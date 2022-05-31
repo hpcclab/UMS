@@ -1,0 +1,82 @@
+#@name ping coordinator source
+GET http://{{src}}/
+Accept: application/json
+
+###
+#@name ping coordinator destination
+GET http://{{des}}/
+Accept: application/json
+
+###
+#@name ping application source
+GET http://{{src}}:30080/
+Accept: application/json
+
+###
+#@name ping application destination
+GET http://{{des}}:30080/
+Accept: application/json
+
+###
+#@name create ready stack
+POST http://{{des}}/create
+Content-Type: application/json
+
+< looper.json
+
+###
+#@name checkpoint
+POST http://{{src}}/checkpoint
+Content-Type: application/json
+
+{
+    "name": "migration-test",
+    "namespace": "default",
+    "checkpointId": "d18dac6c"
+}
+
+###
+#@name show pod state source
+POST http://{{src}}/status
+Content-Type: application/json
+
+{
+    "name": "migration-test",
+    "namespace": "default"
+}
+
+###
+#@name show pod state destination
+POST http://{{des}}/status
+Content-Type: application/json
+
+{
+    "name": "migration-test",
+    "namespace": "default"
+}
+
+###
+#@name full migration source to destination
+POST http://{{src}}/migrate
+Content-Type: application/json
+
+{
+    "name": "migration-test",
+    "namespace": "default",
+    "destinationUrl": "{{des}}",
+    "suspended": true,
+    "redirect": "{{des_ip}}"
+}
+
+### # todo answer why we dont use external docker
+#@name full migration destination to source
+POST http://{{des}}/migrate
+Content-Type: application/json
+
+{
+    "name": "migration-test",
+    "namespace": "default",
+    "destinationUrl": "{{src}}",
+    "suspended": true,
+    "redirect": "{{src_ip}}"
+}

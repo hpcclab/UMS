@@ -1,0 +1,23 @@
+# Default ignored files
+/shelf/
+/.idea/workspace.xml
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+
+/tmp/
+/deployment/config.bat
+/deployment/deployment.*.yml
+/test/http-client.env.json
+/deployment/*.env
+/proxy/http-client.env.json

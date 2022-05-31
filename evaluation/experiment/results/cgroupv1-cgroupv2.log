@@ -1,0 +1,4 @@
+{
+  "description": "error while migrating Pod",
+  "message": "{\"statusCode\":500,\"code\":\"255\",\"error\":\"Internal Server Error\",\"message\":\"Command failed: rsync -avz -e 'ssh -i /app/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p 31164' /var/lib/docker/containers/c256556a10d75d778af520d73685be96f924a5a0ac74cf23ffeeb221134e2b9c/checkpoints/4c701f6d rsync@10.131.36.33.nip.io:/var/lib/docker/containers/86cb7f376f2a7da13965629b6eafe65e6310297a14db20fbbb1a11d6b67d76ea/checkpoints\\nssh: connect to host 10.131.36.33.nip.io port 31164: Connection refused\\r\\nrsync: connection unexpectedly closed (0 bytes received so far) [sender]\\nrsync error: unexplained error (code 255) at io.c(228) [sender=3.2.3]\\n\"}"
+}

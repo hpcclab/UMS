@@ -1,0 +1,13 @@
+FROM debian:10
+
+RUN apt-get update
+RUN apt-get install -y curl xz-utils procps python3
+
+RUN set -ex; \
+  curl -SL https://github.com/twosigma/fastfreeze/releases/download/v1.3.0/fastfreeze-v1.3.0.tar.xz | \
+    tar xJf - -C /opt; \
+  ln -s /opt/fastfreeze/fastfreeze /usr/local/bin; \
+  fastfreeze install
+
+COPY test.py test.sh /root/
+ENTRYPOINT ["/root/test.sh"]

@@ -1,0 +1,10 @@
+FROM fedora
+
+#RUN yum check-update
+RUN yum install -y curl xz
+
+RUN set -ex; \
+  curl -SL https://github.com/twosigma/fastfreeze/releases/download/v1.3.0/fastfreeze-v1.3.0.tar.xz | \
+    tar xJf - -C /opt; \
+  ln -s /opt/fastfreeze/fastfreeze /usr/local/bin; \
+  fastfreeze install

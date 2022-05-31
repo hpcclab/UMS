@@ -1,0 +1,127 @@
+(00.000000) Parsing config file /etc/criu/runc.conf
+(00.000060) Version: 3.15 (gitid 0)
+(00.000066) Running on migration-test-0-57f87c6855-hvq87 Linux 5.4.0-94-generic #106-Ubuntu SMP Thu Jan 6 23:58:14 UTC 2022 x86_64
+(00.000070) Would overwrite RPC settings with values from /etc/criu/runc.conf
+(00.000080) File /run/criu.kdat does not exist
+(00.000093) sockets: Probing sock diag modules
+(00.000132) sockets: Done probing
+(00.001020) Error (criu/util.c:631): exited, status=4
+(00.001995) Error (criu/util.c:631): exited, status=4
+(00.002048) Pagemap is fully functional
+(00.002091) Found anon-shmem device at 1
+(00.002098) Reset 879's dirty tracking
+(00.002131)  ... done
+(00.002154) Dirty track supported on kernel
+(00.002239) Found task size of 7ffffffff000
+(00.007621) Restoring netdev veth idx 10
+(00.007865) Dumping netns links
+(00.007914)     LD: Got link 1, type 772
+(00.007919)     LD: Got link 10, type 1
+(00.008331) vdso: Parsing at 7ffdf83f9000 7ffdf83fa000
+(00.008340) vdso: PT_LOAD p_vaddr: 0
+(00.008343) vdso: DT_HASH: 120
+(00.008345) vdso: DT_STRTAB: 2d8
+(00.008348) vdso: DT_SYMTAB: 1b8
+(00.008350) vdso: DT_STRSZ: 72
+(00.008352) vdso: DT_SYMENT: 18
+(00.008355) vdso: nbucket 3 nchain c bucket 7ffdf83f9128 chain 7ffdf83f9134
+(00.008359) vdso: rt [vdso] 7ffdf83f9000-7ffdf83fa000 [vvar] 7ffdf83f6000-7ffdf83f9000
+(00.009703) vdso: Parsing at 7f57505e8000 7f57505e9000
+(00.009722) vdso: PT_LOAD p_vaddr: 0
+(00.009726) vdso: DT_HASH: b4
+(00.009729) vdso: DT_STRTAB: 1f0
+(00.009732) vdso: DT_SYMTAB: 140
+(00.009735) vdso: DT_STRSZ: c0
+(00.009739) vdso: DT_SYMENT: 10
+(00.009742) vdso: nbucket 3 nchain b bucket 7f57505e80bc chain 7f57505e80c8
+(00.009747) vdso: compat [vdso] 7ffdf83fc000-7ffdf83fd000 [vvar] 7ffdf83f9000-7ffdf83fc000
+(00.010155) cpu: x86_family 6 x86_vendor_id AuthenticAMD x86_model_id QEMU Virtual CPU version 2.5+
+(00.010429) cpu: fpu: x87 FPU will use FXSAVE
+(00.010473) Time namespaces are not supported.
+(00.010498) Found mmap_min_addr 0x10000
+(00.010510) files stat: fs/nr_open 1048576
+(00.010560) Warn  (criu/kerndat.c:877): Can't keep kdat cache on non-tempfs
+(00.010650) Parsing config file /etc/criu/runc.conf
+(00.010681) Will dump/restore TCP connections
+(00.010689) ========================================
+(00.010695) Dumping processes (pid: 424)
+(00.010698) ========================================
+(00.010703) rlimit: RLIMIT_NOFILE unlimited for self
+(00.010707) Running pre-dump scripts
+(00.010711)     RPC
+(00.010893) irmap: Searching irmap cache in work dir
+(00.010916) No irmap-cache image
+(00.010921) irmap: Searching irmap cache in parent
+(00.010928) irmap: No irmap cache
+(00.010932) cpu: fpu:1 fxsr:1 xsave:0 xsaveopt:0 xsavec:0 xgetbv1:0 xsaves:0
+(00.011020) cg-prop: Parsing controller "cpu"
+(00.011029) cg-prop:    Strategy "replace"
+(00.011033) cg-prop:    Property "cpu.shares"
+(00.011037) cg-prop:    Property "cpu.cfs_period_us"
+(00.011041) cg-prop:    Property "cpu.cfs_quota_us"
+(00.011044) cg-prop:    Property "cpu.rt_period_us"
+(00.011048) cg-prop:    Property "cpu.rt_runtime_us"
+(00.011052) cg-prop: Parsing controller "memory"
+(00.011056) cg-prop:    Strategy "replace"
+(00.011059) cg-prop:    Property "memory.limit_in_bytes"
+(00.011063) cg-prop:    Property "memory.memsw.limit_in_bytes"
+(00.011067) cg-prop:    Property "memory.swappiness"
+(00.011072) cg-prop:    Property "memory.soft_limit_in_bytes"
+(00.011075) cg-prop:    Property "memory.move_charge_at_immigrate"
+(00.011079) cg-prop:    Property "memory.oom_control"
+(00.011082) cg-prop:    Property "memory.use_hierarchy"
+(00.011086) cg-prop:    Property "memory.kmem.limit_in_bytes"
+(00.011090) cg-prop:    Property "memory.kmem.tcp.limit_in_bytes"
+(00.011093) cg-prop: Parsing controller "cpuset"
+(00.011097) cg-prop:    Strategy "replace"
+(00.011101) cg-prop:    Property "cpuset.cpus"
+(00.011105) cg-prop:    Property "cpuset.mems"
+(00.011108) cg-prop:    Property "cpuset.memory_migrate"
+(00.011111) cg-prop:    Property "cpuset.cpu_exclusive"
+(00.011115) cg-prop:    Property "cpuset.mem_exclusive"
+(00.011118) cg-prop:    Property "cpuset.mem_hardwall"
+(00.011122) cg-prop:    Property "cpuset.memory_spread_page"
+(00.011125) cg-prop:    Property "cpuset.memory_spread_slab"
+(00.011139) cg-prop:    Property "cpuset.sched_load_balance"
+(00.011143) cg-prop:    Property "cpuset.sched_relax_domain_level"
+(00.011147) cg-prop: Parsing controller "blkio"
+(00.011151) cg-prop:    Strategy "replace"
+(00.011155) cg-prop:    Property "blkio.weight"
+(00.011158) cg-prop: Parsing controller "freezer"
+(00.011162) cg-prop:    Strategy "replace"
+(00.011165) cg-prop: Parsing controller "perf_event"
+(00.011169) cg-prop:    Strategy "replace"
+(00.011172) cg-prop: Parsing controller "net_cls"
+(00.011176) cg-prop:    Strategy "replace"
+(00.011179) cg-prop:    Property "net_cls.classid"
+(00.011183) cg-prop: Parsing controller "net_prio"
+(00.011186) cg-prop:    Strategy "replace"
+(00.011190) cg-prop:    Property "net_prio.ifpriomap"
+(00.011193) cg-prop: Parsing controller "pids"
+(00.011196) cg-prop:    Strategy "replace"
+(00.011200) cg-prop:    Property "pids.max"
+(00.011203) cg-prop: Parsing controller "devices"
+(00.011207) cg-prop:    Strategy "replace"
+(00.011210) cg-prop:    Property "devices.list"
+(00.011260) Preparing image inventory (version 1)
+(00.011318) Add pid ns 1 pid 879
+(00.011334) Add net ns 2 pid 879
+(00.011345) Add ipc ns 3 pid 879
+(00.011355) Add uts ns 4 pid 879
+(00.011363) Add time ns 5 pid 879
+(00.011400) Add mnt ns 6 pid 879
+(00.011412) Add user ns 7 pid 879
+(00.011421) Add cgroup ns 8 pid 879
+(00.011425) cg: Dumping cgroups for 879
+(00.011462) cg:  `- New css ID 1
+(00.011470) cg:     `- [] -> [/kubepods/besteffort/pod32ae48ce-8f82-4ae4-9948-3208da7f7c99/85190fe69e561ea9f9ee9a9ea0df18e216f4d186e45760eee13c21966aae6362] [0]
+(00.011475) cg: Set 1 is criu one
+(00.011506) Detected cgroup V2 freezer
+(00.011511) freezing processes: 100000 attempts with 100 ms steps
+(00.011526) cgroup.freeze=1
+(00.011939) Error (compel/src/lib/infect.c:235): Unseizable non-zombie 424 found, state S, err -1/10
+(00.011962) Unlock network
+(00.011984) Unfreezing tasks into 1
+(00.011988)     Unseizing 424 into 1
+(00.011992) Error (compel/src/lib/infect.c:346): Unable to detach from 424: No such process
+(00.012005) Error (criu/cr-dump.c:1768): Dumping FAILED.

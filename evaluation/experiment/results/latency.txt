@@ -1,0 +1,24 @@
+--- looper
+
+[full]
+15550ms
+
+[without startup]
+3274ms (checkpoint 0103ms, 1862<=transfer+restore<=2865)
+
+[without pull]
+14360ms
+
+
+--- memhog
+
+[full]
+50914ms (256K)
+47360ms (256K)
+38377ms (256K)
+27971ms (128K)
+
+[without startup]
+37136ms (256K)
+35369ms (256K)
+

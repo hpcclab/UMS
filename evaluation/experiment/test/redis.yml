@@ -1,0 +1,31 @@
+apiVersion: kopf.dev/v1
+kind: MigratableStack
+metadata:
+  name: migration-test
+  labels:
+    app: migration-test
+spec:
+  deployment:
+    spec:
+      replicas: 1
+      template:
+        spec:
+          containers:
+            - name: redis
+              image: core.harbor.10.131.36.27.nip.io/migration/redis:latest
+              ports:
+                - containerPort: 6379
+              env:
+                - name: DEFAULT_UPSTREAM
+                  value: test-streams.mux.dev
+              imagePullPolicy: "Always"
+  service:
+    spec:
+      type: NodePort
+      selector:
+        app: migration-test
+      ports:
+        - protocol: TCP
+          port: 6379
+          targetPort: 6379
+          nodePort: 30079
