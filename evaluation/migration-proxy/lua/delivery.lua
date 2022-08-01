@@ -5,16 +5,19 @@ local uri = ngx.var.uri
 
 local http_client = http.new()
 ngx.log(ngx.STDERR, "http://" .. env.get_upstream() .. uri)
-local res, err = http_client:request_uri("http://" .. env.get_upstream() .. uri)
+local res, err
+repeat
+    res, err = http_client:request_uri("http://" .. env.get_upstream() .. uri)
 
-if res then
-    ngx.log(ngx.STDERR, res.status)
-end
-ngx.log(ngx.STDERR, err)
+    if res then
+        ngx.log(ngx.STDERR, res.status)
+    end
+    ngx.log(ngx.STDERR, err)
 
-if err then
-    error(err)
-end
+    if err then
+        error(err)
+    end
+until(res.status ~= 425)
 
 if res.status == 301 then
     ngx.log(ngx.STDERR, res.headers.Location)

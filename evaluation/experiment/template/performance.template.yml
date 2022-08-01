@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: performance-dind
+  namespace: default
+  labels:
+    app: performance
+spec:
+  volumes:
+    - name: docker-storage
+      hostPath:
+        path: /dev/shm/cache
+        type: Directory
+    - name: podinfo
+      downwardAPI:
+        items:
+          - path: annotations
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+        defaultMode: 420
+  containers:
+    - name: runtime
+      image: ${REGISTRY}migration-dind:latest
+      env:
+        - name: DOCKER_HOST
+          value: 127.0.0.1:2375
+        - name: LOG_LEVEL
+          value: debug
+      resources: {}
+      volumeMounts:
+        - name: docker-storage
+          mountPath: /var/lib/docker
+        - name: podinfo
+          mountPath: /etc/podinfo
+      imagePullPolicy: Always
+      securityContext:
+        privileged: true
+  serviceAccountName: migration-coordinator
+# docker run -d --name=iperf -p 5201:5201 ${REGISTRY}performance:latest iperf3 -s
+# for i in {1..30}; do docker run --rm ${REGISTRY}performance:latest sysbench cpu run >> cpu.txt; echo "---" >> cpu.txt; done
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iperf-dind
+spec:
+  type: NodePort
+  selector:
+    app: performance
+  ports:
+    # By default and for convenience, the `targetPort` is set to the same value as the `port` field.
+    - port: 5201
+      targetPort: 5201
+      # Optional field
+      # By default and for convenience, the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
+      nodePort: 30201
+# for i in {1..30}; do iperf3 -c 127.0.0.1 -p 30201 >> iperf.txt; echo "---" >> iperf.txt; done
+# for i in {1..30}; do iperf3 -c 127.0.0.1 -p 30201 >> iperf-dind.txt; echo "---" >> iperf-dind.txt; done
+# for i in {1..30}; do iperf3 -c 127.0.0.1 -p 30201 >> iperf-ff.txt; echo "---" >> iperf-ff.txt; done
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: iperf
+  labels:
+    app: performance-dind
+spec:
+  containers:
+    - name: iperf
+      image: ${REGISTRY}performanceff:latest
+#      image: ${REGISTRY}performance:latest
+      command:
+        - iperf3
+        - -s

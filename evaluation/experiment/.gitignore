@@ -15,9 +15,11 @@
 out
 gen
 
-/tmp/
-/deployment/config.bat
-/deployment/deployment.*.yml
 /test/http-client.env.json
-/deployment/*.env
-/proxy/http-client.env.json
+/template/*.env
+/template/looper.yml
+/template/memhog.yml
+/template/multiple-container.yml
+/template/redis.yml
+/template/streaming.yml
+/template/mesos-script

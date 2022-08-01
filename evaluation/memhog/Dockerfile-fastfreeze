@@ -1,15 +1,5 @@
-FROM debian:10
-
-RUN apt-get update
-RUN apt-get install -y curl xz-utils procps python3 gcc
-
-RUN set -ex; \
-  curl -SL https://github.com/twosigma/fastfreeze/releases/download/v1.3.0/fastfreeze-v1.3.0.tar.xz | \
-    tar xJf - -C /opt; \
-  ln -s /opt/fastfreeze/fastfreeze /usr/local/bin; \
-  fastfreeze install
+FROM fastfreeze-base
 
 COPY main.c /opt/memoryhog/main.c
 RUN cd /opt/memoryhog/ && gcc -Wall -O3 main.c -o memoryhog
-ENTRYPOINT ["fastfreeze"]
-CMD ["run", "--", "/opt/memoryhog/memoryhog"]
+CMD ["/opt/memoryhog/memoryhog"]

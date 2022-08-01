@@ -1,0 +1,80 @@
+s6-rc: info: service minio: starting
+s6-rc: info: service s6rc-oneshot-runner: starting
+s6-rc: info: service minio successfully started
+s6-rc: info: service s6rc-oneshot-runner successfully started
+s6-rc: info: service fix-attrs: starting
+s6-rc: info: service fix-attrs successfully started
+s6-rc: info: service legacy-cont-init: starting
+s6-rc: info: service legacy-cont-init successfully started
+s6-rc: info: service legacy-services: starting
+s6-rc: info: service legacy-services successfully started
+MinIO Object Storage Server
+Copyright: 2015-2022 MinIO, Inc.
+License: GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.html>
+Version: RELEASE.2022-07-17T15-43-14Z (go1.18.4 linux/amd64)
+
+Status:         1 Online, 0 Offline. 
+API: http://10.42.17.215:9000  http://127.0.0.1:9000     
+Console: http://10.42.17.215:34493 http://127.0.0.1:34493   
+
+Documentation: https://docs.min.io
+[ff.run] (6.903s) Restoring application
+set_ns_last_pid: WARN: /proc/sys/kernel/pid_max is high. This might take a while
+set_ns_last_pid: WARN: /proc/sys/kernel/pid_max is high. This might take a while
+[ff.run] (13.899s) Uncompressed image size is 0 MiB, rate: 0 MiB/s
+[ff.run] (13.905s) criu> (00.000000) Will drop all TCP connections on restore
+[ff.run] (13.905s) criu> (00.000016) Version: 3.15 (gitid 0)
+[ff.run] (13.905s) criu> (00.000024) Running on memhog Linux 5.4.0-97-generic #110-Ubuntu SMP Thu Jan 13 18:22:13 UTC 2022 x86_64
+[ff.run] (13.905s) criu> (00.000031) File /run/criu.kdat does not exist
+[ff.run] (13.905s) criu> (00.000044) sockets: Probing sock diag modules
+[ff.run] (13.905s) criu> (00.000138) sockets: Done probing
+[ff.run] (13.905s) criu> (00.000217) Pagemap provides flags only
+[ff.run] (13.905s) criu> (00.000381) Found anon-shmem device at 1
+[ff.run] (13.906s) criu> (00.000401) Reset 912's dirty tracking
+[ff.run] (13.906s) criu> (00.000553)  ... done
+[ff.run] (13.906s) criu> (00.000648) Dirty track supported on kernel
+[ff.run] (13.906s) criu> (00.000661) Zero page detection failed, optimization turns off.
+[ff.run] (13.906s) criu> (00.000845) Found task size of 7ffffffff000
+[ff.run] (13.910s) criu> (00.004531) vdso: Parsing at 7ffd409df000 7ffd409e0000
+[ff.run] (13.910s) criu> (00.004549) vdso: PT_LOAD p_vaddr: 0
+[ff.run] (13.910s) criu> (00.004552) vdso: DT_HASH: 120
+[ff.run] (13.910s) criu> (00.004555) vdso: DT_STRTAB: 2d8
+[ff.run] (13.910s) criu> (00.004557) vdso: DT_SYMTAB: 1b8
+[ff.run] (13.910s) criu> (00.004559) vdso: DT_STRSZ: 72
+[ff.run] (13.910s) criu> (00.004561) vdso: DT_SYMENT: 18
+[ff.run] (13.910s) criu> (00.004563) vdso: nbucket 3 nchain c bucket 7ffd409df128 chain 7ffd409df134
+[ff.run] (13.910s) criu> (00.004569) vdso: rt [vdso] 7ffd409df000-7ffd409e0000 [vvar] 7ffd409dc000-7ffd409df000
+[ff.run] (13.911s) criu> (00.005442) vdso: Parsing at 7f4437846000 7f4437847000
+[ff.run] (13.911s) criu> (00.005457) vdso: PT_LOAD p_vaddr: 0
+[ff.run] (13.911s) criu> (00.005477) vdso: DT_HASH: b4
+[ff.run] (13.911s) criu> (00.005479) vdso: DT_STRTAB: 1f0
+[ff.run] (13.911s) criu> (00.005481) vdso: DT_SYMTAB: 140
+[ff.run] (13.911s) criu> (00.005483) vdso: DT_STRSZ: c0
+[ff.run] (13.911s) criu> (00.005485) vdso: DT_SYMENT: 10
+[ff.run] (13.911s) criu> (00.005487) vdso: nbucket 3 nchain b bucket 7f44378460bc chain 7f44378460c8
+[ff.run] (13.911s) criu> (00.005504) vdso: compat [vdso] 7ffd409e2000-7ffd409e3000 [vvar] 7ffd409df000-7ffd409e2000
+[ff.run] (13.911s) criu> (00.006087) cpu: x86_family 6 x86_vendor_id GenuineIntel x86_model_id QEMU Virtual CPU version 2.5+
+[ff.run] (13.911s) criu> (00.006102) cpu: fpu: x87 FPU will use FXSAVE
+[ff.run] (13.911s) criu> (00.006248) Time namespaces are not supported.
+[ff.run] (13.911s) criu> (00.006322) Found mmap_min_addr 0x10000
+[ff.run] (13.911s) criu> (00.006340) files stat: fs/nr_open 1048576
+[ff.run] (13.912s) criu> (00.006417) Can't keep kdat cache on non-tempfs
+[ff.run] (13.912s) criu> (00.006457) File pipe:[4147680] will be restored from inherit fd 8
+[ff.run] (13.912s) criu> (00.006485) File pipe:[4147679] will be restored from inherit fd 1
+[ff.run] (13.912s) criu> (00.006488) File /dev/null will be restored from inherit fd 0
+[ff.run] (13.912s) criu> (00.006500) rlimit: RLIMIT_NOFILE unlimited for self
+[ff.run] (13.912s) criu> (00.006689) cpu: fpu:1 fxsr:1 xsave:0 xsaveopt:0 xsavec:0 xgetbv1:0 xsaves:0
+[ff.run] (13.912s) criu> (00.006788) Error (criu/arch/x86/cpu.c:310): cpu: CPU capabilities do not match run time
+[ff.run] (14.013s) Exiting with exit_code=171: `criu restore --restore-sibling --restore-detached --tcp-close --ext-unix-sk --images-dir /var/tmp/fastfreeze/run --cpu-cap --shell-job --file-locks --file-validation filesize --stream -vvvv --inherit-fd fd[8]:pipe:[4147680] --inherit-fd fd[1]:pipe:[4147679] --inherit-fd fd[0]:/dev/null` failed with exit_code=1
+[ff.run] (14.013s) You may try again with --no-restore to run the application from scratch
+s6-rc: info: service legacy-services: stopping
+s6-rc: info: service legacy-services successfully stopped
+s6-rc: info: service legacy-cont-init: stopping
+s6-rc: info: service minio: stopping
+Exiting on signal: TERMINATED
+s6-rc: info: service legacy-cont-init successfully stopped
+s6-rc: info: service fix-attrs: stopping
+s6-rc: info: service fix-attrs successfully stopped
+s6-rc: info: service s6rc-oneshot-runner: stopping
+s6-rc: info: service s6rc-oneshot-runner successfully stopped
+s6-rc: info: service minio successfully stopped

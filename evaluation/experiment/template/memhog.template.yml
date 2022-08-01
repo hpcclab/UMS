@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memhog
+  labels:
+    app: memhog
+  namespace: myproject
+  annotations:
+    migration-migratable: 'true'
+    # migration-engine: 'fastfreeze'
+spec:
+  serviceAccountName: migration-coordinator
+  containers:
+    - name: memhog
+      image: ${REGISTRY}memhog:latest
+      env:
+        - name: MEMORY_REQUEST
+          value: '0'
+        - name: MEMORY_LIMIT
+          value: '128'
+        - name: MEMORY_INCREMENT
+          value: '0'
+        - name: SHOULD_CONTINUE
+          value: 'true'
+        # - name: PATTERN
+        #   value: migration
+      volumeMounts:
+        - mountPath: /data
+          name: storage
+  volumes:
+    - name: storage
+      emptyDir: {}
+      # medium: Memory

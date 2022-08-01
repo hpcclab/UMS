@@ -1,0 +1,2 @@
+#!/command/with-contenv sh
+exec dockerd-entrypoint.sh dockerd --tls=false --host=tcp://0.0.0.0:2375

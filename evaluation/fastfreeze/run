@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+/root/wait
+exec fastfreeze run --image-url s3://checkpoints/ff -- setsid "$@"

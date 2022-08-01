@@ -15,5 +15,5 @@
 out
 gen
 
+deployment.yml
 deployment.*.yml
-*.env

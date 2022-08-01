@@ -1,0 +1,200 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: migration-env
+data:
+  EXEC_RUNTIME: core.harbor.example.nip.io/migration/migration-dind:latest
+  EXEC_ENGINE: core.harbor.example.nip.io/migration/migration-engine:latest
+  EXEC_INTERFACE: core.harbor.example.nip.io/migration/migration-interface:latest
+  EXEC_MONITOR: core.harbor.example.nip.io/migration/migration-monitor:latest
+  EVAL_REDIRECTOR: core.harbor.example.nip.io/migration/migration-redirector:latest
+  IMAGE_PULL_POLICY: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: migration-operator
+  labels:
+    app: migration-operator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: migration-operator
+  template:
+    metadata:
+      labels:
+        app: migration-operator
+    spec:
+      serviceAccountName: migration-coordinator
+      containers:
+        - name: operator
+          image: core.harbor.example.nip.io/migration/migration-operator:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: migration-env
+          startupProbe:
+            httpGet:
+              port: 8080
+              path: /healthz
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /healthz
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: migration-coordinator
+  labels:
+    app: migration-coordinator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: migration-coordinator
+  template:
+    metadata:
+      labels:
+        app: migration-coordinator
+    spec:
+      serviceAccountName: migration-coordinator
+      containers:
+        - name: coordinator
+          image: core.harbor.example.nip.io/migration/migration-coordinator:latest
+          ports:
+            - containerPort: 5000
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: migration-env
+          startupProbe:
+            httpGet:
+              port: 5000
+          livenessProbe:
+            httpGet:
+              port: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: migration-coordinator
+  labels:
+    app: migration-coordinator
+spec:
+  type: NodePort
+  selector:
+    app: migration-coordinator
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+      nodePort: 30001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: migration-injector
+  labels:
+    app: migration-injector
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: migration-injector
+  template:
+    metadata:
+      labels:
+        app: migration-injector
+    spec:
+      serviceAccountName: migration-coordinator
+      containers:
+        - name: injector
+          image: core.harbor.example.nip.io/migration/migration-injector:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: migration-env
+          startupProbe:
+            httpGet:
+              port: 8080
+              path: /healthz
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /healthz
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: migration-injector
+  labels:
+    app: migration-injector
+spec:
+  type: NodePort
+  selector:
+    app: migration-injector
+  ports:
+    - protocol: TCP
+      port: 30000
+      targetPort: 30000
+      nodePort: 30000
+---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: migration-validator
+#  labels:
+#    app: migration-validator
+#spec:
+#  replicas: 1
+#  strategy:
+#    type: Recreate
+#  selector:
+#    matchLabels:
+#      app: migration-validator
+#  template:
+#    metadata:
+#      labels:
+#        app: migration-validator
+#    spec:
+#      serviceAccountName: migration-coordinator
+#      containers:
+#        - name: validator
+#          image: core.harbor.example.nip.io/migration/migration-validator:latest
+#          imagePullPolicy: Always
+#          envFrom:
+#            - configMapRef:
+#                name: migration-env
+#          startupProbe:
+#            httpGet:
+#              port: 8080
+#              path: /healthz
+#          livenessProbe:
+#            httpGet:
+#              port: 8080
+#              path: /healthz
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: migration-validator
+#  labels:
+#    app: migration-validator
+#spec:
+#  type: NodePort
+#  selector:
+#    app: migration-injector
+#  ports:
+#    - protocol: TCP
+#      port: 30000
+#      targetPort: 30000
+#      nodePort: 30001
