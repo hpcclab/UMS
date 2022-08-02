@@ -1,0 +1,600 @@
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 41648 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.04 GBytes  8.97 Gbits/sec    0    666 KBytes       
+[  5]   1.00-2.00   sec  1.05 GBytes  9.06 Gbits/sec  140    638 KBytes       
+[  5]   2.00-3.00   sec  1.19 GBytes  10.2 Gbits/sec    0    638 KBytes       
+[  5]   3.00-4.00   sec  1.34 GBytes  11.5 Gbits/sec    0    816 KBytes       
+[  5]   4.00-5.00   sec  1.10 GBytes  9.43 Gbits/sec    0    816 KBytes       
+[  5]   5.00-6.00   sec  1.25 GBytes  10.7 Gbits/sec    0    816 KBytes       
+[  5]   6.00-7.00   sec  1004 MBytes  8.42 Gbits/sec    0    827 KBytes       
+[  5]   7.00-8.00   sec  1.15 GBytes  9.91 Gbits/sec    0    831 KBytes       
+[  5]   8.00-9.00   sec  1.35 GBytes  11.6 Gbits/sec    0    831 KBytes       
+[  5]   9.00-10.00  sec  1.31 GBytes  11.3 Gbits/sec    0    831 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  11.8 GBytes  10.1 Gbits/sec  140             sender
+[  5]   0.00-10.00  sec  11.8 GBytes  10.1 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 41754 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.35 GBytes  11.6 Gbits/sec    0    431 KBytes       
+[  5]   1.00-2.00   sec  1.11 GBytes  9.53 Gbits/sec    0   1.04 MBytes       
+[  5]   2.00-3.00   sec  1.15 GBytes  9.87 Gbits/sec    0   1.15 MBytes       
+[  5]   3.00-4.00   sec  1.14 GBytes  9.78 Gbits/sec    0   1.40 MBytes       
+[  5]   4.00-5.00   sec  1.15 GBytes  9.89 Gbits/sec    0   1.40 MBytes       
+[  5]   5.00-6.00   sec  1.22 GBytes  10.5 Gbits/sec    0   1.40 MBytes       
+[  5]   6.00-7.00   sec  1.17 GBytes  10.1 Gbits/sec    0   1.40 MBytes       
+[  5]   7.00-8.00   sec   921 MBytes  7.73 Gbits/sec    0   1.54 MBytes       
+[  5]   8.00-9.00   sec   928 MBytes  7.78 Gbits/sec    0   1.54 MBytes       
+[  5]   9.00-10.00  sec  1.23 GBytes  10.6 Gbits/sec  230   1.13 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  11.3 GBytes  9.73 Gbits/sec  230             sender
+[  5]   0.00-10.00  sec  11.3 GBytes  9.73 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 41848 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.23 GBytes  10.6 Gbits/sec    0    934 KBytes       
+[  5]   1.00-2.00   sec   971 MBytes  8.15 Gbits/sec    0   1.47 MBytes       
+[  5]   2.00-3.00   sec  1.16 GBytes  9.99 Gbits/sec    0   1.79 MBytes       
+[  5]   3.00-4.00   sec  1.21 GBytes  10.4 Gbits/sec    0   2.19 MBytes       
+[  5]   4.00-5.00   sec  1.36 GBytes  11.7 Gbits/sec    0   2.19 MBytes       
+[  5]   5.00-6.00   sec  1.33 GBytes  11.4 Gbits/sec    0   2.19 MBytes       
+[  5]   6.00-7.00   sec  1.35 GBytes  11.6 Gbits/sec    0   2.30 MBytes       
+[  5]   7.00-8.00   sec  1.33 GBytes  11.4 Gbits/sec    0   2.30 MBytes       
+[  5]   8.00-9.00   sec  1.19 GBytes  10.2 Gbits/sec    0   2.53 MBytes       
+[  5]   9.00-10.00  sec  1.04 GBytes  8.92 Gbits/sec    0   2.53 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  12.1 GBytes  10.4 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  12.1 GBytes  10.4 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 41938 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   952 MBytes  7.98 Gbits/sec    0    276 KBytes       
+[  5]   1.00-2.00   sec  1.14 GBytes  9.83 Gbits/sec    0    829 KBytes       
+[  5]   2.00-3.00   sec  1.08 GBytes  9.28 Gbits/sec    0    879 KBytes       
+[  5]   3.00-4.00   sec  1.05 GBytes  9.00 Gbits/sec    0   1.29 MBytes       
+[  5]   4.00-5.00   sec  1020 MBytes  8.55 Gbits/sec    0   1.29 MBytes       
+[  5]   5.00-6.00   sec  1022 MBytes  8.58 Gbits/sec    0   1.29 MBytes       
+[  5]   6.00-7.00   sec  1.02 GBytes  8.80 Gbits/sec    0   1.80 MBytes       
+[  5]   7.00-8.00   sec  1.14 GBytes  9.82 Gbits/sec    0   2.04 MBytes       
+[  5]   8.00-9.00   sec  1.10 GBytes  9.48 Gbits/sec    0   2.25 MBytes       
+[  5]   9.00-10.00  sec  1.00 GBytes  8.59 Gbits/sec    0   2.25 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.5 GBytes  8.99 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.5 GBytes  8.99 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42032 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   902 MBytes  7.56 Gbits/sec    0    420 KBytes       
+[  5]   1.00-2.00   sec   988 MBytes  8.28 Gbits/sec    0    444 KBytes       
+[  5]   2.00-3.00   sec  1.22 GBytes  10.5 Gbits/sec    0    949 KBytes       
+[  5]   3.00-4.00   sec  1.32 GBytes  11.4 Gbits/sec    0   1.20 MBytes       
+[  5]   4.00-5.00   sec  1.04 GBytes  8.93 Gbits/sec    0   1.46 MBytes       
+[  5]   5.00-6.00   sec  1.25 GBytes  10.7 Gbits/sec    0   1.46 MBytes       
+[  5]   6.00-7.00   sec   961 MBytes  8.07 Gbits/sec    0   1.61 MBytes       
+[  5]   7.00-8.00   sec  1.30 GBytes  11.1 Gbits/sec    0   1.78 MBytes       
+[  5]   8.00-9.00   sec  1.30 GBytes  11.1 Gbits/sec  694   1.34 MBytes       
+[  5]   9.00-10.00  sec  1.08 GBytes  9.27 Gbits/sec  250   1.13 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  11.3 GBytes  9.70 Gbits/sec  944             sender
+[  5]   0.00-10.00  sec  11.3 GBytes  9.70 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42122 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   975 MBytes  8.17 Gbits/sec    0    360 KBytes       
+[  5]   1.00-2.00   sec   999 MBytes  8.39 Gbits/sec    0    916 KBytes       
+[  5]   2.00-3.00   sec  1004 MBytes  8.41 Gbits/sec    0   1.31 MBytes       
+[  5]   3.00-4.00   sec  1.27 GBytes  10.9 Gbits/sec    0   1.50 MBytes       
+[  5]   4.00-5.00   sec  1.29 GBytes  11.1 Gbits/sec  276   1.43 MBytes       
+[  5]   5.00-6.00   sec  1.00 GBytes  8.62 Gbits/sec    0   1.43 MBytes       
+[  5]   6.00-7.00   sec  1.17 GBytes  10.1 Gbits/sec    0   1.55 MBytes       
+[  5]   7.00-8.00   sec  1.00 GBytes  8.59 Gbits/sec    0   1.57 MBytes       
+[  5]   8.00-9.00   sec  1000 MBytes  8.39 Gbits/sec    0   1.57 MBytes       
+[  5]   9.00-10.00  sec  1018 MBytes  8.54 Gbits/sec    0   1.74 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.6 GBytes  9.12 Gbits/sec  276             sender
+[  5]   0.00-10.00  sec  10.6 GBytes  9.12 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42210 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.03 GBytes  8.81 Gbits/sec    0    993 KBytes       
+[  5]   1.00-2.00   sec   910 MBytes  7.62 Gbits/sec    0   1.71 MBytes       
+[  5]   2.00-3.00   sec   821 MBytes  6.89 Gbits/sec    0   1.79 MBytes       
+[  5]   3.00-4.00   sec  1014 MBytes  8.51 Gbits/sec    0   2.08 MBytes       
+[  5]   4.00-5.00   sec   980 MBytes  8.23 Gbits/sec    0   2.08 MBytes       
+[  5]   5.00-6.00   sec  1.00 GBytes  8.63 Gbits/sec    0   2.41 MBytes       
+[  5]   6.00-7.00   sec   981 MBytes  8.23 Gbits/sec    0   2.41 MBytes       
+[  5]   7.00-8.00   sec  1.09 GBytes  9.33 Gbits/sec    0   2.53 MBytes       
+[  5]   8.00-9.00   sec  1.34 GBytes  11.5 Gbits/sec    0   2.53 MBytes       
+[  5]   9.00-10.00  sec   981 MBytes  8.23 Gbits/sec    0   2.53 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.0 GBytes  8.60 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.0 GBytes  8.60 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42306 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   870 MBytes  7.29 Gbits/sec    0    360 KBytes       
+[  5]   1.00-2.00   sec   891 MBytes  7.47 Gbits/sec    0    822 KBytes       
+[  5]   2.00-3.00   sec  1.12 GBytes  9.60 Gbits/sec    0   1.27 MBytes       
+[  5]   3.00-4.00   sec  1.16 GBytes  9.95 Gbits/sec  276   1.02 MBytes       
+[  5]   4.00-5.00   sec  1.24 GBytes  10.6 Gbits/sec    0   1.16 MBytes       
+[  5]   5.00-6.00   sec  1.08 GBytes  9.29 Gbits/sec    0   1.22 MBytes       
+[  5]   6.00-7.00   sec   778 MBytes  6.53 Gbits/sec    0   1.22 MBytes       
+[  5]   7.00-8.00   sec   965 MBytes  8.09 Gbits/sec    0   1.48 MBytes       
+[  5]   8.00-9.00   sec   980 MBytes  8.22 Gbits/sec    0   1.48 MBytes       
+[  5]   9.00-10.00  sec   952 MBytes  7.98 Gbits/sec    0   1.48 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  9.91 GBytes  8.51 Gbits/sec  276             sender
+[  5]   0.00-10.00  sec  9.91 GBytes  8.51 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42398 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   883 MBytes  7.41 Gbits/sec    0    302 KBytes       
+[  5]   1.00-2.00   sec   895 MBytes  7.51 Gbits/sec    0    358 KBytes       
+[  5]   2.00-3.00   sec  1015 MBytes  8.51 Gbits/sec  269    583 KBytes       
+[  5]   3.00-4.00   sec   960 MBytes  8.05 Gbits/sec    0    946 KBytes       
+[  5]   4.00-5.00   sec   850 MBytes  7.14 Gbits/sec    0    946 KBytes       
+[  5]   5.00-6.00   sec   845 MBytes  7.08 Gbits/sec    0    946 KBytes       
+[  5]   6.00-7.00   sec   985 MBytes  8.27 Gbits/sec    0    946 KBytes       
+[  5]   7.00-8.00   sec  1.21 GBytes  10.4 Gbits/sec    0    946 KBytes       
+[  5]   8.00-9.00   sec   868 MBytes  7.27 Gbits/sec    0    946 KBytes       
+[  5]   9.00-10.00  sec   810 MBytes  6.80 Gbits/sec    0    946 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  9.14 GBytes  7.85 Gbits/sec  269             sender
+[  5]   0.00-10.00  sec  9.14 GBytes  7.85 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42486 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   917 MBytes  7.69 Gbits/sec    0    639 KBytes       
+[  5]   1.00-2.00   sec  1.06 GBytes  9.07 Gbits/sec    0   1.26 MBytes       
+[  5]   2.00-3.00   sec  1.18 GBytes  10.1 Gbits/sec    0   1.39 MBytes       
+[  5]   3.00-4.00   sec  1.22 GBytes  10.5 Gbits/sec    0   1.96 MBytes       
+[  5]   4.00-5.00   sec  1.38 GBytes  11.9 Gbits/sec    0   1.96 MBytes       
+[  5]   5.00-6.00   sec  1.39 GBytes  11.9 Gbits/sec    0   1.96 MBytes       
+[  5]   6.00-7.00   sec  1.23 GBytes  10.5 Gbits/sec    0   1.96 MBytes       
+[  5]   7.00-8.00   sec   982 MBytes  8.24 Gbits/sec    0   2.06 MBytes       
+[  5]   8.00-9.00   sec   909 MBytes  7.62 Gbits/sec    0   2.06 MBytes       
+[  5]   9.00-10.00  sec  1002 MBytes  8.41 Gbits/sec    0   2.06 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  11.2 GBytes  9.59 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  11.2 GBytes  9.59 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42578 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   878 MBytes  7.36 Gbits/sec    0    722 KBytes       
+[  5]   1.00-2.00   sec  1.09 GBytes  9.36 Gbits/sec    0    797 KBytes       
+[  5]   2.00-3.00   sec  1.10 GBytes  9.45 Gbits/sec  383    739 KBytes       
+[  5]   3.00-4.00   sec  1.18 GBytes  10.1 Gbits/sec    0    739 KBytes       
+[  5]   4.00-5.00   sec  1.08 GBytes  9.26 Gbits/sec    0    759 KBytes       
+[  5]   5.00-6.00   sec  1002 MBytes  8.41 Gbits/sec    0    786 KBytes       
+[  5]   6.00-7.00   sec   985 MBytes  8.25 Gbits/sec    0    823 KBytes       
+[  5]   7.00-8.00   sec  1.16 GBytes  9.95 Gbits/sec    0    864 KBytes       
+[  5]   8.00-9.00   sec   972 MBytes  8.16 Gbits/sec    0    864 KBytes       
+[  5]   9.00-10.00  sec  1.07 GBytes  9.16 Gbits/sec    0    864 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.4 GBytes  8.95 Gbits/sec  383             sender
+[  5]   0.00-10.00  sec  10.4 GBytes  8.95 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42668 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   966 MBytes  8.09 Gbits/sec    0    709 KBytes       
+[  5]   1.00-2.00   sec   889 MBytes  7.45 Gbits/sec    0   1.17 MBytes       
+[  5]   2.00-3.00   sec  1.00 GBytes  8.64 Gbits/sec  194   1.11 MBytes       
+[  5]   3.00-4.00   sec  1.00 GBytes  8.62 Gbits/sec    0   1.29 MBytes       
+[  5]   4.00-5.00   sec  1.27 GBytes  10.9 Gbits/sec    0   1.29 MBytes       
+[  5]   5.00-6.00   sec  1.21 GBytes  10.4 Gbits/sec    0   1.49 MBytes       
+[  5]   6.00-7.00   sec  1.16 GBytes  9.95 Gbits/sec    0   1.49 MBytes       
+[  5]   7.00-8.00   sec  1.33 GBytes  11.4 Gbits/sec    0   1.52 MBytes       
+[  5]   8.00-9.00   sec  1.33 GBytes  11.4 Gbits/sec    0   1.53 MBytes       
+[  5]   9.00-10.00  sec  1.24 GBytes  10.6 Gbits/sec    0   1.53 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  11.4 GBytes  9.75 Gbits/sec  194             sender
+[  5]   0.00-10.00  sec  11.4 GBytes  9.75 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42764 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   784 MBytes  6.58 Gbits/sec    0   1.21 MBytes       
+[  5]   1.00-2.00   sec   816 MBytes  6.85 Gbits/sec    0   1.80 MBytes       
+[  5]   2.00-3.00   sec  1.05 GBytes  9.04 Gbits/sec    0   1.98 MBytes       
+[  5]   3.00-4.00   sec   904 MBytes  7.58 Gbits/sec    0   2.19 MBytes       
+[  5]   4.00-5.00   sec   889 MBytes  7.45 Gbits/sec    0   2.19 MBytes       
+[  5]   5.00-6.00   sec   806 MBytes  6.77 Gbits/sec    0   2.30 MBytes       
+[  5]   6.00-7.00   sec   779 MBytes  6.53 Gbits/sec    0   2.30 MBytes       
+[  5]   7.00-8.00   sec  1.06 GBytes  9.07 Gbits/sec    0   2.53 MBytes       
+[  5]   8.00-9.00   sec  1.35 GBytes  11.6 Gbits/sec    0   2.53 MBytes       
+[  5]   9.00-10.00  sec  1.07 GBytes  9.19 Gbits/sec    0   2.53 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  9.39 GBytes  8.07 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  9.39 GBytes  8.07 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42858 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.05 GBytes  9.03 Gbits/sec    0    482 KBytes       
+[  5]   1.00-2.00   sec  1.05 GBytes  9.01 Gbits/sec    0   1.10 MBytes       
+[  5]   2.00-3.00   sec   958 MBytes  8.03 Gbits/sec    0   1.10 MBytes       
+[  5]   3.00-4.00   sec   936 MBytes  7.86 Gbits/sec    0   2.05 MBytes       
+[  5]   4.00-5.00   sec   866 MBytes  7.27 Gbits/sec    0   2.15 MBytes       
+[  5]   5.00-6.00   sec   996 MBytes  8.35 Gbits/sec    0   2.26 MBytes       
+[  5]   6.00-7.00   sec  1.16 GBytes  9.94 Gbits/sec    0   2.26 MBytes       
+[  5]   7.00-8.00   sec  1.34 GBytes  11.5 Gbits/sec    0   2.26 MBytes       
+[  5]   8.00-9.00   sec  1.34 GBytes  11.5 Gbits/sec    0   2.26 MBytes       
+[  5]   9.00-10.00  sec  1.32 GBytes  11.3 Gbits/sec    0   2.37 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.9 GBytes  9.38 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.9 GBytes  9.38 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 42954 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   974 MBytes  8.17 Gbits/sec    0    821 KBytes       
+[  5]   1.00-2.00   sec  1.18 GBytes  10.1 Gbits/sec    0   1.15 MBytes       
+[  5]   2.00-3.00   sec  1.24 GBytes  10.6 Gbits/sec    0   1.35 MBytes       
+[  5]   3.00-4.00   sec  1.15 GBytes  9.93 Gbits/sec    0   1.63 MBytes       
+[  5]   4.00-5.00   sec  1.35 GBytes  11.6 Gbits/sec    0   1.63 MBytes       
+[  5]   5.00-6.00   sec  1.35 GBytes  11.6 Gbits/sec    0   1.63 MBytes       
+[  5]   6.00-7.00   sec  1019 MBytes  8.54 Gbits/sec    0   1.63 MBytes       
+[  5]   7.00-8.00   sec  1.18 GBytes  10.1 Gbits/sec    0   1.63 MBytes       
+[  5]   8.00-9.00   sec   794 MBytes  6.66 Gbits/sec    0   1.63 MBytes       
+[  5]   9.00-10.00  sec   788 MBytes  6.61 Gbits/sec    0   1.63 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.9 GBytes  9.40 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.9 GBytes  9.40 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43042 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   976 MBytes  8.19 Gbits/sec    0   1.28 MBytes       
+[  5]   1.00-2.00   sec  1.00 GBytes  8.60 Gbits/sec    0   1.91 MBytes       
+[  5]   2.00-3.00   sec   966 MBytes  8.11 Gbits/sec    0   1.91 MBytes       
+[  5]   3.00-4.00   sec  1.13 GBytes  9.66 Gbits/sec    0   2.21 MBytes       
+[  5]   4.00-5.00   sec  1.08 GBytes  9.29 Gbits/sec    0   2.21 MBytes       
+[  5]   5.00-6.00   sec   925 MBytes  7.76 Gbits/sec    0   2.21 MBytes       
+[  5]   6.00-7.00   sec   859 MBytes  7.20 Gbits/sec    0   2.69 MBytes       
+[  5]   7.00-8.00   sec  1.03 GBytes  8.86 Gbits/sec    0   2.69 MBytes       
+[  5]   8.00-9.00   sec   855 MBytes  7.17 Gbits/sec    0   2.82 MBytes       
+[  5]   9.00-10.00  sec  1.20 GBytes  10.3 Gbits/sec    0   2.96 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  9.91 GBytes  8.52 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  9.91 GBytes  8.51 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43138 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.03 GBytes  8.86 Gbits/sec    0    670 KBytes       
+[  5]   1.00-2.00   sec   915 MBytes  7.67 Gbits/sec    0   1.05 MBytes       
+[  5]   2.00-3.00   sec  1.04 GBytes  8.98 Gbits/sec    0   1.41 MBytes       
+[  5]   3.00-4.00   sec   842 MBytes  7.06 Gbits/sec    0   1.71 MBytes       
+[  5]   4.00-5.00   sec   929 MBytes  7.80 Gbits/sec    0   1.71 MBytes       
+[  5]   5.00-6.00   sec   925 MBytes  7.76 Gbits/sec    0   1.71 MBytes       
+[  5]   6.00-7.00   sec  1015 MBytes  8.52 Gbits/sec    0   1.71 MBytes       
+[  5]   7.00-8.00   sec  1.02 GBytes  8.72 Gbits/sec    0   1.95 MBytes       
+[  5]   8.00-9.00   sec  1018 MBytes  8.54 Gbits/sec  600   1.18 MBytes       
+[  5]   9.00-10.00  sec   894 MBytes  7.49 Gbits/sec    0   1.18 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  9.48 GBytes  8.14 Gbits/sec  600             sender
+[  5]   0.00-10.00  sec  9.48 GBytes  8.14 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43230 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.30 GBytes  11.1 Gbits/sec    0   1.05 MBytes       
+[  5]   1.00-2.00   sec  1.24 GBytes  10.6 Gbits/sec    0   1.42 MBytes       
+[  5]   2.00-3.00   sec  1004 MBytes  8.42 Gbits/sec    0   1.42 MBytes       
+[  5]   3.00-4.00   sec   968 MBytes  8.12 Gbits/sec    0   1.69 MBytes       
+[  5]   4.00-5.00   sec   919 MBytes  7.71 Gbits/sec    0   1.78 MBytes       
+[  5]   5.00-6.00   sec  1.18 GBytes  10.1 Gbits/sec    0   1.87 MBytes       
+[  5]   6.00-7.00   sec  1012 MBytes  8.50 Gbits/sec    0   2.27 MBytes       
+[  5]   7.00-8.00   sec  1.13 GBytes  9.72 Gbits/sec    0   2.27 MBytes       
+[  5]   8.00-9.00   sec   841 MBytes  7.06 Gbits/sec    0   2.39 MBytes       
+[  5]   9.00-10.00  sec   785 MBytes  6.59 Gbits/sec    0   2.39 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.2 GBytes  8.80 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.2 GBytes  8.80 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43322 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.22 GBytes  10.5 Gbits/sec    0   1.27 MBytes       
+[  5]   1.00-2.00   sec  1.01 GBytes  8.68 Gbits/sec    0   1.57 MBytes       
+[  5]   2.00-3.00   sec   999 MBytes  8.37 Gbits/sec  230   1.62 MBytes       
+[  5]   3.00-4.00   sec  1015 MBytes  8.52 Gbits/sec    0   1.62 MBytes       
+[  5]   4.00-5.00   sec  1.10 GBytes  9.43 Gbits/sec    0   1.62 MBytes       
+[  5]   5.00-6.00   sec  1.01 GBytes  8.71 Gbits/sec    0   1.62 MBytes       
+[  5]   6.00-7.00   sec  1.06 GBytes  9.13 Gbits/sec    0   1.62 MBytes       
+[  5]   7.00-8.00   sec   994 MBytes  8.33 Gbits/sec    0   1.62 MBytes       
+[  5]   8.00-9.00   sec  1001 MBytes  8.40 Gbits/sec    0   1.62 MBytes       
+[  5]   9.00-10.00  sec   986 MBytes  8.27 Gbits/sec    0   1.62 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.3 GBytes  8.83 Gbits/sec  230             sender
+[  5]   0.00-10.00  sec  10.3 GBytes  8.83 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43414 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.08 GBytes  9.24 Gbits/sec    0   1.05 MBytes       
+[  5]   1.00-2.00   sec  1.30 GBytes  11.2 Gbits/sec  506   1.05 MBytes       
+[  5]   2.00-3.00   sec   984 MBytes  8.25 Gbits/sec    0   1.05 MBytes       
+[  5]   3.00-4.00   sec  1.07 GBytes  9.20 Gbits/sec    0   1.15 MBytes       
+[  5]   4.00-5.00   sec   870 MBytes  7.30 Gbits/sec    0   1.22 MBytes       
+[  5]   5.00-6.00   sec   958 MBytes  8.03 Gbits/sec    0   1.22 MBytes       
+[  5]   6.00-7.00   sec   951 MBytes  7.99 Gbits/sec    0   1.24 MBytes       
+[  5]   7.00-8.00   sec   789 MBytes  6.61 Gbits/sec    0   1.24 MBytes       
+[  5]   8.00-9.00   sec   794 MBytes  6.66 Gbits/sec    0   1.25 MBytes       
+[  5]   9.00-10.00  sec   798 MBytes  6.70 Gbits/sec    0   1.25 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  9.45 GBytes  8.12 Gbits/sec  506             sender
+[  5]   0.00-10.00  sec  9.45 GBytes  8.12 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43506 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1011 MBytes  8.47 Gbits/sec    0    456 KBytes       
+[  5]   1.00-2.00   sec   865 MBytes  7.26 Gbits/sec    0   1.13 MBytes       
+[  5]   2.00-3.00   sec   852 MBytes  7.16 Gbits/sec    0   1.25 MBytes       
+[  5]   3.00-4.00   sec   828 MBytes  6.93 Gbits/sec    0   1.40 MBytes       
+[  5]   4.00-5.00   sec   831 MBytes  6.98 Gbits/sec    0   1.47 MBytes       
+[  5]   5.00-6.00   sec   836 MBytes  7.01 Gbits/sec    0   1.47 MBytes       
+[  5]   6.00-7.00   sec   959 MBytes  8.04 Gbits/sec    0   1.72 MBytes       
+[  5]   7.00-8.00   sec  1005 MBytes  8.43 Gbits/sec    0   1.72 MBytes       
+[  5]   8.00-9.00   sec  1.31 GBytes  11.3 Gbits/sec    0   1.85 MBytes       
+[  5]   9.00-10.00  sec  1.36 GBytes  11.7 Gbits/sec    0   1.85 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  9.69 GBytes  8.33 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  9.69 GBytes  8.33 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43594 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.14 GBytes  9.75 Gbits/sec    0   1.37 MBytes       
+[  5]   1.00-2.00   sec  1.06 GBytes  9.15 Gbits/sec    0   1.93 MBytes       
+[  5]   2.00-3.00   sec  1.02 GBytes  8.78 Gbits/sec   94   1.35 MBytes       
+[  5]   3.00-4.00   sec   978 MBytes  8.20 Gbits/sec    0   1.77 MBytes       
+[  5]   4.00-5.00   sec  1004 MBytes  8.42 Gbits/sec    0   1.77 MBytes       
+[  5]   5.00-6.00   sec   965 MBytes  8.10 Gbits/sec    0   1.77 MBytes       
+[  5]   6.00-7.00   sec  1.21 GBytes  10.4 Gbits/sec    0   1.80 MBytes       
+[  5]   7.00-8.00   sec  1004 MBytes  8.42 Gbits/sec    0   1.93 MBytes       
+[  5]   8.00-9.00   sec  1.26 GBytes  10.8 Gbits/sec    0   1.93 MBytes       
+[  5]   9.00-10.00  sec  1.26 GBytes  10.9 Gbits/sec    0   1.93 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.8 GBytes  9.28 Gbits/sec   94             sender
+[  5]   0.00-10.00  sec  10.8 GBytes  9.28 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43686 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.03 GBytes  8.85 Gbits/sec    0    691 KBytes       
+[  5]   1.00-2.00   sec  1009 MBytes  8.47 Gbits/sec    0   1.05 MBytes       
+[  5]   2.00-3.00   sec   979 MBytes  8.20 Gbits/sec    0   1.21 MBytes       
+[  5]   3.00-4.00   sec  1.02 GBytes  8.73 Gbits/sec    0   1.34 MBytes       
+[  5]   4.00-5.00   sec  1.06 GBytes  9.07 Gbits/sec    0   1.34 MBytes       
+[  5]   5.00-6.00   sec  1.01 GBytes  8.67 Gbits/sec    0   1.34 MBytes       
+[  5]   6.00-7.00   sec  1.09 GBytes  9.34 Gbits/sec  460   1.05 MBytes       
+[  5]   7.00-8.00   sec  1.02 GBytes  8.73 Gbits/sec    0   1.18 MBytes       
+[  5]   8.00-9.00   sec  1.35 GBytes  11.6 Gbits/sec    0   1.19 MBytes       
+[  5]   9.00-10.00  sec  1.28 GBytes  11.0 Gbits/sec    0   1.31 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.8 GBytes  9.27 Gbits/sec  460             sender
+[  5]   0.00-10.00  sec  10.8 GBytes  9.27 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43782 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.35 GBytes  11.6 Gbits/sec    0   1.01 MBytes       
+[  5]   1.00-2.00   sec  1.02 GBytes  8.74 Gbits/sec    0   1.78 MBytes       
+[  5]   2.00-3.00   sec  1.14 GBytes  9.77 Gbits/sec    0   1.91 MBytes       
+[  5]   3.00-4.00   sec  1.30 GBytes  11.1 Gbits/sec    0   2.27 MBytes       
+[  5]   4.00-5.00   sec  1.11 GBytes  9.51 Gbits/sec    0   2.39 MBytes       
+[  5]   5.00-6.00   sec  1012 MBytes  8.48 Gbits/sec    0   2.39 MBytes       
+[  5]   6.00-7.00   sec  1.07 GBytes  9.19 Gbits/sec    0   2.50 MBytes       
+[  5]   7.00-8.00   sec   946 MBytes  7.94 Gbits/sec    0   2.63 MBytes       
+[  5]   8.00-9.00   sec  1.02 GBytes  8.73 Gbits/sec    0   2.63 MBytes       
+[  5]   9.00-10.00  sec   994 MBytes  8.33 Gbits/sec    0   2.63 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.9 GBytes  9.34 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.9 GBytes  9.34 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43870 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   962 MBytes  8.06 Gbits/sec    0    516 KBytes       
+[  5]   1.00-2.00   sec  1.18 GBytes  10.1 Gbits/sec    0   1.41 MBytes       
+[  5]   2.00-3.00   sec  1024 MBytes  8.59 Gbits/sec    0   2.01 MBytes       
+[  5]   3.00-4.00   sec   884 MBytes  7.41 Gbits/sec    0   2.32 MBytes       
+[  5]   4.00-5.00   sec  1.02 GBytes  8.74 Gbits/sec    0   2.32 MBytes       
+[  5]   5.00-6.00   sec   989 MBytes  8.29 Gbits/sec    0   2.32 MBytes       
+[  5]   6.00-7.00   sec  1.04 GBytes  8.93 Gbits/sec    0   2.32 MBytes       
+[  5]   7.00-8.00   sec  1.04 GBytes  8.93 Gbits/sec    0   2.44 MBytes       
+[  5]   8.00-9.00   sec  1.22 GBytes  10.5 Gbits/sec    0   2.69 MBytes       
+[  5]   9.00-10.00  sec  1.38 GBytes  11.9 Gbits/sec    0   2.69 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.6 GBytes  9.14 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.6 GBytes  9.14 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 43962 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.17 GBytes  10.1 Gbits/sec    0    382 KBytes       
+[  5]   1.00-2.00   sec   992 MBytes  8.32 Gbits/sec    0   1.15 MBytes       
+[  5]   2.00-3.00   sec  1.07 GBytes  9.16 Gbits/sec    0   1.27 MBytes       
+[  5]   3.00-4.00   sec  1019 MBytes  8.55 Gbits/sec    0   1.35 MBytes       
+[  5]   4.00-5.00   sec  1.07 GBytes  9.22 Gbits/sec    0   1.59 MBytes       
+[  5]   5.00-6.00   sec  1.03 GBytes  8.82 Gbits/sec    0   1.94 MBytes       
+[  5]   6.00-7.00   sec  1.00 GBytes  8.63 Gbits/sec    0   2.14 MBytes       
+[  5]   7.00-8.00   sec  1000 MBytes  8.39 Gbits/sec    0   2.14 MBytes       
+[  5]   8.00-9.00   sec   999 MBytes  8.38 Gbits/sec    0   2.24 MBytes       
+[  5]   9.00-10.00  sec  1001 MBytes  8.40 Gbits/sec    0   2.24 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.2 GBytes  8.79 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.2 GBytes  8.79 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 44054 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.18 GBytes  10.2 Gbits/sec    0    343 KBytes       
+[  5]   1.00-2.00   sec  1.13 GBytes  9.72 Gbits/sec    0   1.17 MBytes       
+[  5]   2.00-3.00   sec  1.36 GBytes  11.7 Gbits/sec    0   1.17 MBytes       
+[  5]   3.00-4.00   sec   989 MBytes  8.30 Gbits/sec    0   1.42 MBytes       
+[  5]   4.00-5.00   sec  1.05 GBytes  9.04 Gbits/sec    0   1.50 MBytes       
+[  5]   5.00-6.00   sec  1.02 GBytes  8.76 Gbits/sec    0   1.50 MBytes       
+[  5]   6.00-7.00   sec   982 MBytes  8.24 Gbits/sec    0   1.57 MBytes       
+[  5]   7.00-8.00   sec  1.05 GBytes  8.99 Gbits/sec    0   1.57 MBytes       
+[  5]   8.00-9.00   sec  1.15 GBytes  9.83 Gbits/sec    0   1.57 MBytes       
+[  5]   9.00-10.00  sec  1.39 GBytes  12.0 Gbits/sec    0   1.57 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  11.3 GBytes  9.67 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  11.3 GBytes  9.67 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 44142 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.19 GBytes  10.2 Gbits/sec    0    973 KBytes       
+[  5]   1.00-2.00   sec  1.30 GBytes  11.2 Gbits/sec  366    628 KBytes       
+[  5]   2.00-3.00   sec  1.17 GBytes  10.0 Gbits/sec    0    628 KBytes       
+[  5]   3.00-4.00   sec  1.11 GBytes  9.53 Gbits/sec    0    628 KBytes       
+[  5]   4.00-5.00   sec  1.36 GBytes  11.7 Gbits/sec    0    632 KBytes       
+[  5]   5.00-6.00   sec  1.05 GBytes  9.05 Gbits/sec    0    644 KBytes       
+[  5]   6.00-7.00   sec  1.02 GBytes  8.75 Gbits/sec    0    685 KBytes       
+[  5]   7.00-8.00   sec  1.06 GBytes  9.07 Gbits/sec    0    685 KBytes       
+[  5]   8.00-9.00   sec  1.01 GBytes  8.67 Gbits/sec    0    694 KBytes       
+[  5]   9.00-10.00  sec   940 MBytes  7.89 Gbits/sec    0    694 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  11.2 GBytes  9.61 Gbits/sec  366             sender
+[  5]   0.00-10.00  sec  11.2 GBytes  9.61 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 44238 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.06 GBytes  9.06 Gbits/sec    0    819 KBytes       
+[  5]   1.00-2.00   sec   969 MBytes  8.13 Gbits/sec    0    949 KBytes       
+[  5]   2.00-3.00   sec  1.03 GBytes  8.85 Gbits/sec    0   1.44 MBytes       
+[  5]   3.00-4.00   sec  1.12 GBytes  9.61 Gbits/sec    0   1.84 MBytes       
+[  5]   4.00-5.00   sec  1.05 GBytes  9.05 Gbits/sec    0   1.84 MBytes       
+[  5]   5.00-6.00   sec  1010 MBytes  8.47 Gbits/sec    0   2.12 MBytes       
+[  5]   6.00-7.00   sec  1010 MBytes  8.47 Gbits/sec    0   2.23 MBytes       
+[  5]   7.00-8.00   sec   956 MBytes  8.03 Gbits/sec    0   2.35 MBytes       
+[  5]   8.00-9.00   sec  1.21 GBytes  10.4 Gbits/sec    0   2.47 MBytes       
+[  5]   9.00-10.00  sec  1.40 GBytes  12.0 Gbits/sec    0   2.47 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.7 GBytes  9.20 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.7 GBytes  9.20 Gbits/sec                  receiver
+
+iperf Done.
+---
+Connecting to host 127.0.0.1, port 30201
+[  5] local 127.0.0.1 port 44330 connected to 127.0.0.1 port 30201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.09 GBytes  9.34 Gbits/sec    0    455 KBytes       
+[  5]   1.00-2.00   sec  1.04 GBytes  8.96 Gbits/sec    0   1.45 MBytes       
+[  5]   2.00-3.00   sec  1.03 GBytes  8.88 Gbits/sec    0   1.68 MBytes       
+[  5]   3.00-4.00   sec   968 MBytes  8.11 Gbits/sec    0   1.76 MBytes       
+[  5]   4.00-5.00   sec  1.11 GBytes  9.51 Gbits/sec    0   2.04 MBytes       
+[  5]   5.00-6.00   sec  1.03 GBytes  8.86 Gbits/sec    0   2.14 MBytes       
+[  5]   6.00-7.00   sec  1.12 GBytes  9.65 Gbits/sec    0   2.73 MBytes       
+[  5]   7.00-8.00   sec   942 MBytes  7.90 Gbits/sec    0   2.73 MBytes       
+[  5]   8.00-9.00   sec   935 MBytes  7.85 Gbits/sec    0   2.73 MBytes       
+[  5]   9.00-10.00  sec   961 MBytes  8.06 Gbits/sec    0   2.73 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  10.1 GBytes  8.71 Gbits/sec    0             sender
+[  5]   0.00-10.00  sec  10.1 GBytes  8.71 Gbits/sec                  receiver
+
+iperf Done.
+---
