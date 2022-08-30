@@ -10,7 +10,7 @@ from dateutil.tz import tzlocal
 from flask import Blueprint, request, abort
 
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
-    START_MODE_PASSIVE, START_MODE_FAIL, ENGINE_ANNOTATION, ENGINE_FAST_FREEZE, VOLUME_LIST_ANNOTATION, \
+    START_MODE_PASSIVE, START_MODE_FAIL, ENGINE_ANNOTATION, ENGINE_DIND, VOLUME_LIST_ANNOTATION, \
     INTERFACE_HOST_ANNOTATION, INTERFACE_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS
 from app.db import get_db
 from app.env import EVAL_REDIRECTOR, env, EVAL_KEEPER, ORCHESTRATOR_TYPE
@@ -55,7 +55,8 @@ def migrate(body, migration_id):
     keep = False
     last_checked_time = datetime.now(tz=tzlocal())
     src_pod = get_pod(name, namespace)
-    if not bool(src_pod['metadata']['annotations'].get(MIGRATABLE_ANNOTATION)):
+    # if not bool(src_pod['metadata']['annotations'].get(MIGRATABLE_ANNOTATION)):
+    if not migratable(src_pod):
         abort(400, "pod is not migratable")
     if src_pod['metadata']['annotations'][START_MODE_ANNOTATION] != START_MODE_ACTIVE:
         abort(400, "Pod is not migratable")
@@ -82,7 +83,7 @@ def migrate(body, migration_id):
     finally:
         if body.get('keep') and keep:
             delete_keeper(src_pod)
-        if src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) != ENGINE_FAST_FREEZE:
+        if src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
             update_pod_restart(name, namespace, START_MODE_ACTIVE)
         release_pod(name, namespace)
     try:
@@ -90,10 +91,27 @@ def migrate(body, migration_id):
             create_redirector(src_pod, body.get('redirect'))
         delete_pod(name, namespace)
         if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS \
-                and src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) != ENGINE_FAST_FREEZE:
+                and src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
             delete_pod(f"{name}-monitor", namespace)
     except Exception as e:
         abort(500, f"Error occurs at post-migration step: {e}")
+
+
+def migratable(pod):
+    if bool(pod['metadata']['annotations'].get(ENGINE_ANNOTATION)):
+        return True
+    name = pod['metadata']['name']
+    namespace = pod['metadata'].get('namespace', 'default')
+    ff_processes = asyncio.run(gather([exec_pod(
+        name,
+        namespace,
+        f"ps -A -ww | grep -c [^]]fastfreeze",
+        container['name'],
+    ) for container in pod['spec']['containers']]))
+    for process in ff_processes:
+        if int(process) < 1:
+            return False
+    return True
 
 
 def abort_if_error_exists(migration_id, name, namespace, last_checked_time):
@@ -126,11 +144,11 @@ def create_des_pod(src_pod, destination_url):
 def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    if src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_FAST_FREEZE:
-        checkpoint_and_transfer_ff(src_pod, des_pod_annotations)
-    else:
+    if src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
         src_pod = update_pod_restart(name, namespace, START_MODE_FAIL)
         checkpoint_and_transfer_dind(src_pod, checkpoint_id, des_pod_annotations)
+    else:
+        checkpoint_and_transfer_ff(src_pod, des_pod_annotations)
     return src_pod
 
 

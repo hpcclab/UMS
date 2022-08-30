@@ -7,7 +7,7 @@ from dateutil.tz import tzlocal
 from flask import Blueprint, request, abort
 
 from app.const import VOLUME_LIST_ANNOTATION, INTERFACE_PORT_ANNOTATION, INTERFACE_HOST_ANNOTATION, \
-    START_MODE_ANNOTATION, START_MODE_ACTIVE, START_MODE_PASSIVE, ENGINE_ANNOTATION, ENGINE_FAST_FREEZE
+    START_MODE_ANNOTATION, START_MODE_ACTIVE, START_MODE_PASSIVE, ENGINE_ANNOTATION, ENGINE_DIND
 from app.kubernetes_client import create_pod, wait_pod_ready as wait_pod_ready_ff
 from app.lib import get_pod
 
@@ -18,14 +18,14 @@ create_api_blueprint = Blueprint('create_api', __name__)
 def create_api():
     body = request.get_json()
     new_pod = create_new_pod(body)
-    if body['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_FAST_FREEZE:
-        msg = wait_pod_ready_ff(new_pod)
-        current_containers = None
-    else:
+    if body['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
         msg = wait_pod_ready(new_pod)
         response = requests.get(f"http://{msg['ip']}:8888/list")
         response.raise_for_status()
         current_containers = response.json()
+    else:
+        msg = wait_pod_ready_ff(new_pod)
+        current_containers = None
     return {
         **msg['annotations'],
         'current-containers': current_containers

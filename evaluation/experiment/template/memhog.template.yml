@@ -7,7 +7,7 @@ metadata:
   namespace: myproject
   annotations:
     migration-migratable: 'true'
-    # migration-engine: 'fastfreeze'
+    # migration-engine: 'dind'
 spec:
   serviceAccountName: migration-coordinator
   containers:

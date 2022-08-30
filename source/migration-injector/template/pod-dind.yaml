@@ -17,12 +17,18 @@ spec:
       volumeMounts:
         - mountPath: /var/lib/docker
           name: docker-storage
+        - mountPath: /sys/fs/cgroup
+          name: cgroup
         - mountPath: /etc/podinfo
           name: podinfo
   volumes:
     - name: docker-storage
       hostPath:
         path: /dev/shm/cache
+        type: Directory
+    - name: cgroup
+      hostPath:
+        path: /sys/fs/cgroup
         type: Directory
     - name: podinfo
       downwardAPI:
