@@ -6,7 +6,7 @@ from kubernetes import client
 from kubernetes.client import ApiException
 
 from share.const import MIGRATABLE_ANNOTATION, INTERFACE_PORT_ANNOTATION, INTERFACE_HOST_ANNOTATION, \
-    VOLUME_LIST_ANNOTATION, ENGINE_ANNOTATION, ENGINE_FAST_FREEZE
+    VOLUME_LIST_ANNOTATION, ENGINE_ANNOTATION, ENGINE_DIND
 from share.lib import send_event, send_error_event, inject_service, gather
 
 
@@ -38,11 +38,7 @@ def report_failure(name, body, patch, **_):
     patch.metadata['annotations'] = {MIGRATABLE_ANNOTATION: str(False)}
 
 
-def not_using_ff(annotations, **_):
-    return ENGINE_ANNOTATION not in annotations or annotations[ENGINE_ANNOTATION] != ENGINE_FAST_FREEZE
-
-
-@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT}, when=not_using_ff)
+@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, ENGINE_ANNOTATION: ENGINE_DIND})
 def expose_service(logger, name, meta, namespace, spec, body, patch, **_):
     try:
         service_template = inject_service('../template/service.yml', name, meta['labels'])
@@ -72,7 +68,11 @@ async def expose_one_service_ff(logger, name, meta, namespace, container_name):
     return container_name, str(service.spec.ports[0].node_port)
 
 
-@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, ENGINE_ANNOTATION: ENGINE_FAST_FREEZE})
+def not_using_dind(annotations, **_):
+    return ENGINE_ANNOTATION not in annotations or annotations[ENGINE_ANNOTATION] != ENGINE_DIND
+
+
+@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT}, when=not_using_dind)
 def expose_service_ff(logger, name, meta, namespace, spec, body, patch, **_):
     try:
         results = asyncio.run(gather([expose_one_service_ff(

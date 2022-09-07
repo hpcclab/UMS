@@ -18,7 +18,7 @@ metadata:
   labels:
     app: migration-operator
   annotations:
-    migration-bypass: True
+    migration-bypass: 'True'
 spec:
   replicas: 1
   strategy:
@@ -31,7 +31,7 @@ spec:
       labels:
         app: migration-operator
       annotations:
-        migration-bypass: True
+        migration-bypass: 'True'
     spec:
       serviceAccountName: migration-coordinator
       containers:
@@ -57,7 +57,7 @@ metadata:
   labels:
     app: migration-coordinator
   annotations:
-    migration-bypass: True
+    migration-bypass: 'True'
 spec:
   replicas: 1
   strategy:
@@ -70,7 +70,7 @@ spec:
       labels:
         app: migration-coordinator
       annotations:
-        migration-bypass: True
+        migration-bypass: 'True'
     spec:
       serviceAccountName: migration-coordinator
       containers:
@@ -112,7 +112,7 @@ metadata:
   labels:
     app: migration-injector
   annotations:
-    migration-bypass: True
+    migration-bypass: 'True'
 spec:
   replicas: 1
   strategy:
@@ -125,7 +125,7 @@ spec:
       labels:
         app: migration-injector
       annotations:
-        migration-bypass: True
+        migration-bypass: 'True'
     spec:
       serviceAccountName: migration-coordinator
       containers:
@@ -167,7 +167,7 @@ spec:
 #  labels:
 #    app: migration-validator
 #  annotations:
-#    migration-bypass: True
+#    migration-bypass: 'True'
 #spec:
 #  replicas: 1
 #  strategy:
@@ -180,7 +180,7 @@ spec:
 #      labels:
 #        app: migration-validator
 #      annotations:
-#        migration-bypass: True
+#        migration-bypass: 'True'
 #    spec:
 #      serviceAccountName: migration-coordinator
 #      containers:
