@@ -5,9 +5,8 @@ metadata:
   name: migration-env
 data:
   EXEC_RUNTIME: core.harbor.example.nip.io/migration/migration-dind:latest
-  EXEC_ENGINE: core.harbor.example.nip.io/migration/migration-engine:latest
-  EXEC_INTERFACE: core.harbor.example.nip.io/migration/migration-interface:latest
   EXEC_MONITOR: core.harbor.example.nip.io/migration/migration-monitor:latest
+  EVAL_KEEPER: core.harbor.example.nip.io/migration/migration-keeper:latest
   EVAL_REDIRECTOR: core.harbor.example.nip.io/migration/migration-redirector:latest
   IMAGE_PULL_POLICY: Always
 ---
