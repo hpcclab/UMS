@@ -1,4 +1,4 @@
-FROM fastfreeze-base
+FROM ghcr.io/hpcclab/live_service_migration/fastfreeze-base:development
 
 COPY main.c /opt/memoryhog/main.c
 RUN cd /opt/memoryhog/ && gcc -Wall -O3 main.c -o memoryhog
