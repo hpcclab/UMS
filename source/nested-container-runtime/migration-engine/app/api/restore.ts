@@ -4,7 +4,7 @@ import {listContainer, startContainer} from "../docker";
 
 async function restore(request: FastifyRequest<{Body: BaseRequestType}>) {
     const containerInfos: any[] = await listContainer(request.log, {filters: {status: ["created", "exited"]}})
-    if (containerInfos === []) {
+    if (containerInfos.length === 0) {
         throw {statusCode: 404, message: 'No container found'}
     }
     const { checkpointId } = request.body;
