@@ -71,7 +71,7 @@ WORKDIR /app
 
 COPY migration-engine/package.json .
 
-RUN npm install --production
+RUN npm install
 
 COPY migration-engine .
 
