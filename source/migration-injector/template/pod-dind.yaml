@@ -24,7 +24,7 @@ spec:
   volumes:
     - name: docker-storage
       hostPath:
-        path: /dev/shm/cache
+        path: /dev/shm
         type: Directory
     - name: cgroup
       hostPath:
