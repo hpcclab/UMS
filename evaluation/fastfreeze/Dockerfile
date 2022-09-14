@@ -12,6 +12,7 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 
 COPY wait /root/wait
 COPY run /root/run
+RUN chmod +x /root/run /root/wait
 RUN pip3 install python-dotenv
 
 ENTRYPOINT ["/init", "/command/with-contenv", "/root/run"]
