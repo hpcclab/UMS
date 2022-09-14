@@ -76,4 +76,5 @@ RUN npm install
 COPY migration-engine .
 
 RUN npm run build \
-    && chmod 400 /app/id_rsa
+    && chmod 400 /app/id_rsa \
+    && chmod +x /app/wait-for-it.sh
