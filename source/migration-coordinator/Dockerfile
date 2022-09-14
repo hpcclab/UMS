@@ -10,3 +10,4 @@ RUN mkdir /sqlite3
 COPY wait-for-it.sh .
 COPY main.py .
 COPY app app
+RUN chmod +x /app/wait-for-it.sh
