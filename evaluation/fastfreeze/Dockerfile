@@ -32,7 +32,4 @@ ADD https://dl.min.io/server/minio/release/linux-amd64/minio /usr/sbin
 COPY credentials /root/.aws/credentials
 RUN chmod +x /usr/sbin/minio \
   && mkdir -p /data/checkpoints \
-  && apt-get install -y unzip \
-  && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
-  && unzip awscliv2.zip \
-  && ./aws/install
+  && pip3 install awscli
