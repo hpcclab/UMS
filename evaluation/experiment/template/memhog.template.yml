@@ -4,7 +4,7 @@ metadata:
   name: memhog
   labels:
     app: memhog
-  namespace: myproject
+#  namespace: myproject
   annotations:
     migration-migratable: 'true'
     # migration-engine: 'dind'
@@ -24,10 +24,3 @@ spec:
           value: 'true'
         # - name: PATTERN
         #   value: migration
-      volumeMounts:
-        - mountPath: /data
-          name: storage
-  volumes:
-    - name: storage
-      emptyDir: {}
-      # medium: Memory
