@@ -8,6 +8,7 @@ from kubernetes.client import ApiException
 from share.const import MIGRATABLE_ANNOTATION, INTERFACE_PORT_ANNOTATION, INTERFACE_HOST_ANNOTATION, \
     VOLUME_LIST_ANNOTATION, ENGINE_ANNOTATION, ENGINE_DIND
 from share.lib import send_event, send_error_event, inject_service, gather
+from share.env import INTERFACE_HOST
 
 
 def check_pod_ready(event, **_):
@@ -45,7 +46,7 @@ def expose_service(logger, name, meta, namespace, spec, body, patch, **_):
         service = client.CoreV1Api().create_namespaced_service(namespace, service_template)
         logger.info(f"creating Service: {service.metadata.name}")
 
-        node = client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
+        node = INTERFACE_HOST if INTERFACE_HOST else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
 
         patch.metadata['annotations'] = {
             INTERFACE_HOST_ANNOTATION: f'{node}.nip.io',
@@ -79,7 +80,7 @@ def expose_service_ff(logger, name, meta, namespace, spec, body, patch, **_):
             logger, name, meta, namespace, container['name']
         ) for container in spec['containers']]))
 
-        node = client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
+        node = INTERFACE_HOST if INTERFACE_HOST else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
 
         patch.metadata['annotations'] = {
             INTERFACE_HOST_ANNOTATION: f'{node}.nip.io',
