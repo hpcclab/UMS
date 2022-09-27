@@ -13,8 +13,12 @@ from share.env import EXEC_MONITOR, IMAGE_PULL_POLICY, env, ORCHESTRATOR_TYPE
 # @kopf.on.mutate('v1', 'pods', operation='CREATE',
 #                 annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, BYPASS_ANNOTATION: kopf.ABSENT})
 @kopf.on.mutate('v1', 'pods', operation='CREATE', annotations={BYPASS_ANNOTATION: kopf.ABSENT})
-def mutate_pod(annotations, patch, **_):
-    injected = inject_pod(annotations, json.loads(annotations[LAST_APPLIED_CONFIG])['spec'])
+def mutate_pod(annotations, spec, patch, **_):
+    if annotations.get(LAST_APPLIED_CONFIG):
+        spec_to_mutate = json.loads(annotations[LAST_APPLIED_CONFIG])['spec']
+    else:
+        spec_to_mutate = spec
+    injected = inject_pod(annotations, spec_to_mutate)
     patch.spec['containers'] = injected['spec']['containers']
     if 'volumes' in injected['spec']:
         patch.spec['volumes'] = injected['spec']['volumes']
