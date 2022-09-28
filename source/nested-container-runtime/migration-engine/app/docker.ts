@@ -33,10 +33,11 @@ async function requestDocker(config: AxiosRequestConfig, log: FastifyLoggerInsta
 }
 
 async function pullImage(image: string, log: FastifyLoggerInstance) {
+    const [repo, tag] = image.split(':')
     await requestDocker({
         method: 'post',
         url: `/images/create`,
-        params: {fromImage: image, tag: 'latest'}
+        params: {fromImage: repo, tag: tag || 'latest'}
     }, log);
 }
 
