@@ -36,7 +36,6 @@ RUN apk update && apk add \
     python3 \
     ip6tables \
     iptables \
-    nftables \
     iproute2 \
     bash \
     e2fsprogs \
