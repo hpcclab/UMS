@@ -19,14 +19,18 @@ ENTRYPOINT ["/init", "/command/with-contenv", "/root/run"]
 
 COPY s6-rc.d /etc/s6-overlay/s6-rc.d/
 
+ENV AWS_EC2_METADATA_DISABLED "true"
 ENV S3_CMD "aws --endpoint-url http://127.0.0.1:9000 s3"
-ENV CRIU_OPTS "-vvvv"
+ENV CRIU_OPTS "-v0"
 
 RUN set -ex; \
   curl -SL https://github.com/twosigma/fastfreeze/releases/download/v1.3.0/fastfreeze-v1.3.0.tar.xz | \
     tar xJf - -C /opt; \
   ln -s /opt/fastfreeze/fastfreeze /usr/local/bin; \
   fastfreeze install
+
+
+VOLUME /data
 
 ADD https://dl.min.io/server/minio/release/linux-amd64/minio /usr/sbin
 COPY credentials /root/.aws/credentials
