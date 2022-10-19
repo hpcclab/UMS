@@ -23,6 +23,10 @@ def dict_to_pod(dict_object):
     return client.ApiClient().deserialize(FakeKubeResponse(dict_object), 'V1Pod')
 
 
+def list_pod():
+    return client.CoreV1Api().list_pod_for_all_namespaces()
+
+
 def get_pod(name, namespace):
     return pod_to_dict(client.CoreV1Api().read_namespaced_pod(name, namespace))
 
