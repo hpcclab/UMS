@@ -20,6 +20,14 @@ from app.lib import get_information, gather, get_pod, lock_pod, release_pod, upd
 migrate_api_blueprint = Blueprint('migrate_api', __name__)
 
 
+@migrate_api_blueprint.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    # Other headers can be added here if needed
+    return response
+
+
 @migrate_api_blueprint.route("/migrate", methods=['POST'])
 def migrate_api():
     body = request.get_json()
