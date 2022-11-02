@@ -7,7 +7,7 @@ metadata:
 #  namespace: myproject
   annotations:
     migration-migratable: 'true'
-    # migration-engine: 'dind'
+    # migration-interface: 'dind'
 spec:
   serviceAccountName: migration-coordinator
   containers:

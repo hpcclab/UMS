@@ -107,13 +107,13 @@ spec:
               name: share
           env:
             - name: ENGINE_CINC
-              value: migration-engine-cinc:latest
+              value: migration-interface-cinc:latest
             - name: ENGINE_API_SERVER
-              value: migration-engine-api-server:latest
+              value: migration-interface-api-server:latest
             - name: ENGINE_INTERFACE
-              value: migration-engine-interface:latest
+              value: migration-interface-interface:latest
             - name: ENGINE_MONITOR
-              value: migration-engine-monitor:latest
+              value: migration-interface-monitor:latest
             - name: EVALUATION_REDIRECTOR
               value: migration-evaluation-redirector:latest
             - name: IMAGE_PULL_POLICY

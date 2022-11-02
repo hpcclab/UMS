@@ -107,11 +107,13 @@ async function startContainer(name: string, log: FastifyLoggerInstance, params: 
 }
 
 async function checkpointContainer(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
+    const start = Date.now()
     const response = await requestDocker({
         method: 'post',
         url: `/containers/${name}/checkpoints`,
         data: {CheckpointID: checkpointId, Exit: exit}
     }, log)
+    console.log(`checkpoint: ${Date.now() - start}`)
     imageQueue.done = true
     return response.message
 }
