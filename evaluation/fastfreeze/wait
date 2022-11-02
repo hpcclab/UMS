@@ -7,10 +7,11 @@ ANNOTATIONS_PATH = getenv('ANNOTATIONS_PATH', '/etc/podinfo/annotations')
 DOMAIN = getenv('DOMAIN', 'migration')
 START_MODE_ANNOTATION = getenv('START_MODE_ANNOTATION', f'{DOMAIN}-start-mode')
 START_MODE_PASSIVE = getenv('START_MODE_PASSIVE', 'passive')
+START_MODE_NULL = getenv('START_MODE_NULL', 'null')
 
 if __name__ == '__main__':
     while True:
         config = dotenv_values(ANNOTATIONS_PATH)
-        if config.get(START_MODE_ANNOTATION) != START_MODE_PASSIVE:
+        if config.get(START_MODE_ANNOTATION) != START_MODE_PASSIVE and config.get(START_MODE_ANNOTATION) != START_MODE_NULL:
             break
         sleep(0.1)
