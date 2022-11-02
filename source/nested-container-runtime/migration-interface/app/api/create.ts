@@ -1,19 +1,13 @@
-import {FastifyReply, FastifyRequest} from "fastify";
-import {
-    createContainer,
-    pullImage,
-    removeContainer,
-    startContainer,
-    stopContainer
-} from "../docker";
-import {CreateRequestType} from "../schema";
-import dotenv from "dotenv";
-import {readFileSync} from "fs";
+import {FastifyReply, FastifyRequest} from "fastify"
+import {createContainer, pullImage, removeContainer, startContainer, stopContainer} from "../docker"
+import {CreateRequestType} from "../schema"
+import dotenv from "dotenv"
+import {readFileSync} from "fs"
 
-async function create(request: FastifyRequest<{Params: CreateRequestType}>, reply: FastifyReply) {
+async function create(request: FastifyRequest<{ Params: CreateRequestType }>, reply: FastifyReply) {
     const {containerName} = request.params
 
-    const config = dotenv.parse(readFileSync('/etc/podinfo/annotations','utf8'))
+    const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
     const startMode = config[process.env.START_MODE_ANNOTATION!]
 
     if (startMode === process.env.START_MODE_FAIL) {
@@ -35,7 +29,7 @@ async function create(request: FastifyRequest<{Params: CreateRequestType}>, repl
 
     const containerSpec = JSON.parse(config[process.env.SPEC_CONTAINER_ANNOTATION!]
         .replace(/\\\"/g, "\"").replace(/\\\\/g, "\\"))
-        .find((container: { name: string; }) => container.name === containerName)
+        .find((container: { name: string }) => container.name === containerName)
 
     if (containerSpec.imagePullPolicy === 'Always') {
         await pullImage(containerSpec.image, request.log)
@@ -44,7 +38,7 @@ async function create(request: FastifyRequest<{Params: CreateRequestType}>, repl
     await createContainer(containerSpec, request.log)
 
     if (startMode === process.env.START_MODE_ACTIVE) {
-        return await startContainer(containerName, request.log)
+        return startContainer(containerName, request.log)
     } else {
         reply.code(204)
     }

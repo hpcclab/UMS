@@ -1,9 +1,9 @@
-import {FastifyReply, FastifyRequest} from "fastify";
-import {inspectContainer, listContainer} from "../docker";
-import {CreateRequestType} from "../schema";
+import {FastifyReply, FastifyRequest} from "fastify"
+import {inspectContainer, listContainer} from "../docker"
+import {CreateRequestType} from "../schema"
 
-async function probeAll(request: FastifyRequest<{Params: CreateRequestType}>, reply: FastifyReply) {
-    const containerInfos: any[] = await listContainer(request.log, {all: true});
+async function probeAll(request: FastifyRequest<{ Params: CreateRequestType }>, reply: FastifyReply) {
+    const containerInfos: any[] = await listContainer(request.log, {all: true})
 
     const states = await Promise.all(containerInfos.map(containerInfo => inspectContainer(containerInfo.Id, request.log)))
 

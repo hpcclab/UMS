@@ -1,4 +1,4 @@
-import { Static, Type } from '@sinclair/typebox'
+import {Static, Type} from '@sinclair/typebox'
 
 const BaseRequestProperties = {
     checkpointId: Type.String()
@@ -20,15 +20,15 @@ const MigrateRequestProperties = {
     containers: Type.Array(Type.Any())
 }
 
-const BaseRequest = Type.Object(BaseRequestProperties);
-const CreateRequest = Type.Object(CreateRequestProperties);
-const CheckpointRequest = Type.Object(CheckpointProperties);
-const MigrateRequest = Type.Object(MigrateRequestProperties);
+const BaseRequest = Type.Object(BaseRequestProperties)
+const CreateRequest = Type.Object(CreateRequestProperties)
+const CheckpointRequest = Type.Object(CheckpointProperties)
+const MigrateRequest = Type.Object(MigrateRequestProperties)
 
-export type BaseRequestType = Static<typeof BaseRequest>;
-export type CreateRequestType = Static<typeof CreateRequest>;
-export type CheckpointRequestType = Static<typeof CheckpointRequest>;
-export type MigrateRequestType = Static<typeof MigrateRequest>;
+export type BaseRequestType = Static<typeof BaseRequest>
+export type CreateRequestType = Static<typeof CreateRequest>
+export type CheckpointRequestType = Static<typeof CheckpointRequest>
+export type MigrateRequestType = Static<typeof MigrateRequest>
 
 export const CreateRequestSchema = {
     schema: {
@@ -48,7 +48,7 @@ export const MigrateRequestSchema = {
     }
 }
 
-export const BaseRequestSchema ={
+export const BaseRequestSchema = {
     schema: {
         body: BaseRequest
     }

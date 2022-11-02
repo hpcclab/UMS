@@ -10,9 +10,12 @@ const server = fastify({
     }
 })
 
-server.register(require('fastify-multipart'))
-
 registerPath(server)
+
+server.setErrorHandler(function (error, request, reply) {
+    this.log.error(error)
+    reply.status(error.statusCode || 500).send(error)
+})
 
 server.listen(8888, '0.0.0.0', (err, address) => {
     if (err) {

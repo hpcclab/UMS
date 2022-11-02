@@ -1,13 +1,13 @@
-import {FastifyReply, FastifyRequest} from "fastify";
-import {inspectContainer} from "../docker";
-import {CreateRequestType} from "../schema";
-import dotenv from "dotenv";
-import {readFileSync} from "fs";
+import {FastifyReply, FastifyRequest} from "fastify"
+import {inspectContainer} from "../docker"
+import {CreateRequestType} from "../schema"
+import dotenv from "dotenv"
+import {readFileSync} from "fs"
 
-async function probe(request: FastifyRequest<{Params: CreateRequestType}>, reply: FastifyReply) {
+async function probe(request: FastifyRequest<{ Params: CreateRequestType }>, reply: FastifyReply) {
     const {containerName} = request.params
 
-    const config = dotenv.parse(readFileSync('/etc/podinfo/annotations','utf8'))
+    const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
     const startMode = config[process.env.START_MODE_ANNOTATION!]
 
     if (startMode === process.env.START_MODE_FAIL) {

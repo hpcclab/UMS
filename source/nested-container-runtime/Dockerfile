@@ -68,11 +68,11 @@ RUN apk add npm
 
 WORKDIR /app
 
-COPY migration-engine/package.json .
+COPY migration-interface/package.json .
 
 RUN npm install
 
-COPY migration-engine .
+COPY migration-interface .
 
 RUN npm run build \
     && chmod 400 /app/id_rsa \
