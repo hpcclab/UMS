@@ -81,5 +81,11 @@ async def exec_pod(pod_name, namespace, command, container_name):
     return output
 
 
+def log_pod(pod_name, namespace, container_name):
+    return docker_client.containers.get(
+        get_docker_id(pod_name, namespace)
+    ).logs()
+
+
 def check_error_event(name, namespace, last_checked_time):
     return datetime.now(tz=tzlocal())

@@ -10,9 +10,8 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 
-COPY wait /root/wait
-COPY run /root/run
-RUN chmod +x /root/run /root/wait
+COPY wait run s3 /root/
+RUN chmod +x /root/run /root/wait /root/s3
 RUN pip3 install python-dotenv
 
 ENTRYPOINT ["/init", "/command/with-contenv", "/root/run"]
@@ -20,7 +19,7 @@ ENTRYPOINT ["/init", "/command/with-contenv", "/root/run"]
 COPY s6-rc.d /etc/s6-overlay/s6-rc.d/
 
 ENV AWS_EC2_METADATA_DISABLED "true"
-ENV S3_CMD "aws --endpoint-url http://127.0.0.1:9000 s3"
+ENV S3_CMD "/root/s3 local"
 ENV CRIU_OPTS "-v0"
 
 RUN set -ex; \
@@ -31,9 +30,7 @@ RUN set -ex; \
 
 
 VOLUME /data
-
+COPY config.json /root/.mc/
 ADD https://dl.min.io/server/minio/release/linux-amd64/minio /usr/sbin
-COPY credentials /root/.aws/credentials
-RUN chmod +x /usr/sbin/minio \
-  && mkdir -p /data/checkpoints \
-  && pip3 install awscli
+ADD https://dl.min.io/client/mc/release/linux-amd64/mc /usr/sbin
+RUN chmod +x /usr/sbin/minio /usr/sbin/mc
