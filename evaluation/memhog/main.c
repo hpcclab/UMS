@@ -123,6 +123,7 @@ loop(size_t limit, size_t increment, bool should_stop, size_t req, bool use_patt
 int
 main()
 {
+    setbuf(stdout, NULL);
     size_t req = env_to_sizet("MEMORY_REQUEST", DEFAULT_REQUEST);
     size_t limit = env_to_sizet("MEMORY_LIMIT", DEFAULT_LIMIT);;
     size_t increment = env_to_sizet("MEMORY_INCREMENT", DEFAULT_INCREMENT);
