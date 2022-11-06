@@ -7,10 +7,8 @@
 #include <sys/resource.h>
 
 
-long DEFAULT_REQUEST = 0;
 long DEFAULT_LIMIT = 128;
-long DEFAULT_INCREMENT = 8;
-bool DEFAULT_SHOULD_STOP = false;
+long DEFAULT_INCREMENT = 128;
 
 size_t
 env_to_sizet(char* env_var, long def)
@@ -55,7 +53,7 @@ get_microtime()
 }
 
 int
-loop(size_t limit, size_t increment, bool should_stop, size_t req, bool use_pattern, char* pattern)
+loop(size_t limit, size_t increment, bool should_stop, bool use_pattern, char* pattern)
 {
     size_t current_usage = 0;
     int* data;
@@ -63,25 +61,6 @@ loop(size_t limit, size_t increment, bool should_stop, size_t req, bool use_patt
     int pattern_counter = 0;
     int pattern_len = sizeof(pattern);
     long current_time;
-    if ((data = malloc(1024 * 1024 * req)) == NULL)
-    {
-        fprintf(stderr, "failed to malloc %ldMB more at %ld\n", increment, current_usage);
-        return -1;
-    }
-    for (int i=0; i<1024 * 1024 / 4 * req; ++i)
-    {
-        if (use_pattern)
-        {
-            data[i] = rand();
-        }
-        else
-        {
-            data[i] = (int)(pattern[pattern_counter]);
-            pattern_counter++;
-            if (pattern_counter == pattern_len) pattern_counter = 0;
-        }
-    }
-    current_usage += req;
     print_curr_mem_usage();
     printf("Currently written to %ldMB of memory\n", current_usage);
 
@@ -98,7 +77,16 @@ loop(size_t limit, size_t increment, bool should_stop, size_t req, bool use_patt
         }
         for (int i=0; i<1024 * 1024 / 4 * increment; ++i)
         {
-            data[i] = rand();
+            if (!use_pattern)
+            {
+                data[i] = rand();
+            }
+            else
+            {
+                data[i] = (int)(pattern[pattern_counter]);
+                pattern_counter++;
+                if (pattern_counter == pattern_len) pattern_counter = 0;
+            }
         }
         current_usage += increment;
         print_curr_mem_usage();
@@ -124,19 +112,17 @@ int
 main()
 {
     setbuf(stdout, NULL);
-    size_t req = env_to_sizet("MEMORY_REQUEST", DEFAULT_REQUEST);
     size_t limit = env_to_sizet("MEMORY_LIMIT", DEFAULT_LIMIT);;
     size_t increment = env_to_sizet("MEMORY_INCREMENT", DEFAULT_INCREMENT);
-    bool should_stop = !(getenv("SHOULD_CONTINUE") != NULL);
+    bool should_stop = (getenv("SHOULD_STOP") != NULL);
     bool use_pattern = (getenv("PATTERN") != NULL);
     char* pattern = getenv("PATTERN");
 
-    printf("req: %ld\n", req);
     printf("limit: %ld\n", limit);
     printf("increment: %ld\n", increment);
     printf("should_stop: %s\n", should_stop ? "true" : "false");
     printf("use_pattern: %s\n", use_pattern ? "true" : "false");
     printf("pattern: %s\n", use_pattern ? pattern : "null");
 
-    return loop(limit, increment, should_stop, req, use_pattern, pattern);
+    return loop(limit, increment, should_stop, use_pattern, pattern);
 }
