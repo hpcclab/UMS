@@ -6,6 +6,7 @@ metadata:
     app: looper
   annotations:
     migration-migratable: 'true'
+    migration-engine: 'dind'
 spec:
   containers:
     - name: looper
