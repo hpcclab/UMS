@@ -5,6 +5,8 @@ metadata:
   namespace: default
   labels:
     app: performance
+  annotations:
+    migration-bypass: "True"
 spec:
   containers:
     - name: runtime
@@ -28,6 +30,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: iperf-dind
+  annotations:
+    migration-migratable: 'true'
+    migration-engine: 'dind'
 spec:
   type: NodePort
   selector:
@@ -40,7 +45,7 @@ spec:
       # By default and for convenience, the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
       nodePort: 30201
 # for i in {1..30}; do iperf3 -c 127.0.0.1 -p 30201 >> iperf.txt; echo "---" >> iperf.txt; done
-# for i in {1..30}; do iperf3 -c 127.0.0.1 -p 30201 >> iperf-dind.txt; echo "---" >> iperf-dind.txt; done
+# for i in {1..30}; do iperf3 -c 127.0.0.1 -p 30201 >> iperf-ssh.txt; echo "---" >> iperf-ssh.txt; done
 # for i in {1..30}; do iperf3 -c 127.0.0.1 -p 30201 >> iperf-ff.txt; echo "---" >> iperf-ff.txt; done
 ---
 apiVersion: v1

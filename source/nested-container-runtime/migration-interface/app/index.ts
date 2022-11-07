@@ -1,23 +1,23 @@
-import {FastifyInstance} from "fastify";
-import {create} from "./api/create";
-import {probe} from "./api/probe";
-import {probeAll} from "./api/probeAll";
-import {list} from "./api/list";
-import {checkpoint} from "./api/checkpoint";
-import {transfer} from "./api/transfer";
-import {migrate} from "./api/migrate";
-import {restore} from "./api/restore";
+import {FastifyInstance} from "fastify"
+import {create} from "./api/create"
+import {probe} from "./api/probe"
+import {probeAll} from "./api/probeAll"
+import {list} from "./api/list"
+import {checkpoint} from "./api/checkpoint"
+import {transfer} from "./api/transfer"
+import {migrate} from "./api/migrate"
+import {restore} from "./api/restore"
 import {stop} from "./api/stop"
 import {
-    CreateRequestType,
-    MigrateRequestType,
-    MigrateRequestSchema,
-    CreateRequestSchema,
-    BaseRequestType,
     BaseRequestSchema,
+    BaseRequestType,
+    CheckpointRequestSchema,
     CheckpointRequestType,
-    CheckpointRequestSchema
-} from "./schema";
+    CreateRequestSchema,
+    CreateRequestType,
+    MigrateRequestSchema,
+    MigrateRequestType
+} from "./schema"
 
 function registerPath(server: FastifyInstance) {
     server.get('/', (request, reply) => {

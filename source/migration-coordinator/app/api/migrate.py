@@ -169,7 +169,10 @@ def checkpoint_and_transfer_ff(src_pod, des_pod_annotations):
     asyncio.run(gather([exec_pod(
         name,
         namespace,
-        f"if aws --endpoint-url http://{interface_host}:{interface_port[container['name']]} s3 ls 's3://checkpoints' 2>&1 | grep -q 'NoSuchBucket'; then aws --endpoint-url http://{interface_host}:{interface_port[container['name']]} s3 mb 's3://checkpoints'; fi && S3_CMD='aws --endpoint-url http://{interface_host}:{interface_port[container['name']]} s3' fastfreeze checkpoint --leave-running {'--preserve-path' + volume_list[container['name']] if container['name'] in volume_list else ''}",
+        f'''
+        mc alias set migration http://{interface_host}:{interface_port[container['name']]} minioadmin minioadmin &&
+        S3_CMD='/root/s3 migration' fastfreeze checkpoint --leave-running {'--preserve-path' + volume_list[container['name']] if container['name'] in volume_list else ''}
+        ''',
         container['name'],
     ) for container in src_pod['spec']['containers']]))
 

@@ -1,0 +1,12 @@
+#!/bin/bash
+service=$1
+if [[ $3 == --expected-size ]] ; then
+  target="$6"
+  target="${target/s3:\//$service}"
+  mc pipe "$target" <&0
+else
+  target="$3"
+  target="${target/s3:\//$service}"
+  exec 2> >(trap "" INT TERM; sed 's/Object does not exist/Not Found/' >&2)
+  mc cat "$target"
+fi

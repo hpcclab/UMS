@@ -50,7 +50,7 @@ rules:
     resources: [customresourcedefinitions]
     verbs: [list, watch]
   - apiGroups: [""]
-    resources: [namespaces, services, pods, pods/status, pods/exec, events, nodes]
+    resources: [namespaces, services, pods, pods/status, pods/exec, pods/log, events, nodes]
     verbs: [ get, list, watch, update, patch, create, delete ]
   #  - apiGroups: [apps]
   #    resources: [deployments]

@@ -1,6 +1,7 @@
-import {AxiosInstance, AxiosRequestConfig} from "axios";
-import {FastifyLoggerInstance} from "fastify/types/logger";
-import {waitForIt} from "./lib";
+import {AxiosInstance, AxiosRequestConfig} from "axios"
+import {FastifyLoggerInstance} from "fastify/types/logger"
+import {HttpError, waitForIt} from "./lib"
+import {AsyncBlockingQueue} from "./queue"
 
 const axios: AxiosInstance = require("axios").default.create({
     baseURL: `http://${process.env.DOCKER_HOST}`
@@ -18,16 +19,16 @@ async function requestDocker(config: AxiosRequestConfig, log: FastifyLoggerInsta
         if (error.response) {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
-            throw {statusCode: error.response.status, message: error.response.data}
+            if (error.response.status > 399) throw new HttpError(error.response.data, error.response.status)
+            return {statusCode: error.response.status, message: error.response.data}
         } else if (error.request) {
             // The request was made but no response was received
             // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
             // http.ClientRequest in node.js
-            throw {statusCode: 502, message: 'The request was made but no response was received'}
+            throw new HttpError('The request was made but no response was received', 502)
         } else {
             // Something happened in setting up the request that triggered an Error
-            log.error('Error', error.message);
-            throw {statusCode: 500, message: error.message}
+            throw new HttpError(error.message, 500)
         }
     }
 }
@@ -38,10 +39,10 @@ async function pullImage(image: string, log: FastifyLoggerInstance) {
         method: 'post',
         url: `/images/create`,
         params: {fromImage: repo, tag: tag || 'latest'}
-    }, log);
+    }, log)
 }
 
-async function listContainer(log: FastifyLoggerInstance, params: any=null) {
+async function listContainer(log: FastifyLoggerInstance, params: any = null) {
     const response = await requestDocker({
         method: 'get',
         url: '/containers/json',
@@ -65,18 +66,18 @@ async function createContainer(container: any, log: FastifyLoggerInstance): Prom
             url: `/containers/create`,
             params: {name: container.name},
             data: {
-                Env: container.hasOwnProperty('env') ? container.env.map((e: { name: any; value: any; }) => `${e.name}=${e.value}`) : null,
+                Env: container.hasOwnProperty('env') ? container.env.map((e: { name: any; value: any }) => `${e.name}=${e.value}`) : null,
                 Cmd: container.hasOwnProperty('command') ? container.command : null,
                 Image: container.image,
                 HostConfig: {
                     SecurityOpt: ['seccomp:unconfined'],
                     Binds: container.hasOwnProperty('volumeMounts') ?
-                        container.volumeMounts.map((mount: { name: string, mountPath: string; }) => `/mount/${mount.name}:${mount.mountPath}`)
+                        container.volumeMounts.map((mount: { name: string, mountPath: string }) => `/mount/${mount.name}:${mount.mountPath}`)
                         : null,
                     PortBindings: container.hasOwnProperty('ports') ?
-                        container.ports.reduce((obj: { [x: string]: { HostPort: string; }[]; }, v: {
-                            protocol: string;
-                            containerPort: string;
+                        container.ports.reduce((obj: { [x: string]: { HostPort: string }[] }, v: {
+                            protocol: string
+                            containerPort: string
                         }) => {
                             const protocol = v.hasOwnProperty('protocol') ? v.protocol.toLowerCase() : 'tcp'
                             obj[`${v.containerPort}/${protocol}`] = [{HostPort: v.containerPort.toString()}]
@@ -89,28 +90,31 @@ async function createContainer(container: any, log: FastifyLoggerInstance): Prom
     } catch (error: any) {
         if (error.statusCode == 404) {
             await pullImage(container.image, log)
-            return await createContainer(container, log)
+            return createContainer(container, log)
         }
         throw error
     }
 }
 
 
-async function startContainer(name: string, log: FastifyLoggerInstance, params: any=null) {
+async function startContainer(name: string, log: FastifyLoggerInstance, params: any = null) {
     const response = await requestDocker({
         method: 'post',
         url: `/containers/${name}/start`,
         params: params
-    }, log);
+    }, log)
     return response.message
 }
 
-async function checkpointContainer(name: string, checkpointId: string, exit: boolean, log: FastifyLoggerInstance): Promise<any> {
+async function checkpointContainer(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
+    const start = Date.now()
     const response = await requestDocker({
         method: 'post',
         url: `/containers/${name}/checkpoints`,
         data: {CheckpointID: checkpointId, Exit: exit}
     }, log)
+    console.log(`checkpoint: ${Date.now() - start}`)
+    imageQueue.done = true
     return response.message
 }
 
@@ -119,7 +123,7 @@ async function stopContainer(name: string, log: FastifyLoggerInstance) {
         await requestDocker({
             method: 'post',
             url: `/containers/${name}/stop`
-        }, log);
+        }, log)
     } catch (error: any) {
         if (error.statusCode !== 304) {
             throw error
@@ -135,6 +139,10 @@ async function removeContainer(name: string, log: FastifyLoggerInstance) {
     }, log)
 }
 
+type ContainerInfo = {
+    Id: string
+}
+
 export {
     requestDocker,
     pullImage,
@@ -144,5 +152,6 @@ export {
     startContainer,
     checkpointContainer,
     stopContainer,
-    removeContainer
+    removeContainer,
+    ContainerInfo
 }

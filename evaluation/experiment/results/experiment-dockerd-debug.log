@@ -1,0 +1,23 @@
+time="2022-11-06T05:53:52.217741778Z" level=debug msg="Calling HEAD /_ping"
+time="2022-11-06T05:53:52.219332198Z" level=debug msg="Calling POST /v1.41/containers/memhog/checkpoints"
+time="2022-11-06T05:53:52.219838193Z" level=debug msg="form data: {\"CheckpointDir\":\"\",\"CheckpointID\":\"test\",\"Exit\":false}"
+time="2022-11-06T05:53:52.246197328Z" level=debug msg="event forwarded" ns=moby topic=/tasks/paused type=containerd.events.TaskPaused
+time="2022-11-06T05:53:52.246708253Z" level=debug msg=event module=libcontainerd namespace=moby topic=/tasks/paused
+time="2022-11-06T05:53:52.677996666Z" level=debug msg="Using single walk diff for /tmp/ctd-checkpoint330956871"
+time="2022-11-06T05:53:54.814918068Z" level=debug msg="(*service).Write started" ref=f5f07ce089f95869567f5c9bd2ee00c4c4114332aff5e6da29e9bdab25a3bab4
+time="2022-11-06T05:53:54.828780576Z" level=debug msg="create image" name="containerd.io/checkpoint/f5f07ce089f95869567f5c9bd2ee00c4c4114332aff5e6da29e9bdab25a3bab4:11-06-2022-05:53:52" target="sha256:7403fc32bee375e4122452530f73b79e7c8c27cec64cdf3335db9a9d69b13f8b"
+time="2022-11-06T05:53:54.830637143Z" level=debug msg="event published" ns=moby topic=/images/create type=containerd.services.images.v1.ImageCreate
+time="2022-11-06T05:53:54.852053977Z" level=debug msg="event forwarded" ns=moby topic=/tasks/resumed type=containerd.events.TaskResumed
+time="2022-11-06T05:53:54.852149786Z" level=debug msg=event module=libcontainerd namespace=moby topic=/tasks/resumed
+time="2022-11-06T05:53:55.827525111Z" level=debug msg="garbage collected" d=1.574428ms
+time="2022-11-06T05:53:58.890251385Z" level=debug msg="delete image" name="containerd.io/checkpoint/f5f07ce089f95869567f5c9bd2ee00c4c4114332aff5e6da29e9bdab25a3bab4:11-06-2022-05:53:52"
+time="2022-11-06T05:53:58.892027482Z" level=debug msg="event published" ns=moby topic=/images/delete type=containerd.services.images.v1.ImageDelete
+time="2022-11-06T05:53:59.632505443Z" level=debug msg="remove content" key="sha256:35716f3743c52d5d9a45af5831637426cf10d941304f582a81fda087be717394"
+time="2022-11-06T05:53:59.632733969Z" level=debug msg="remove content" key="sha256:7403fc32bee375e4122452530f73b79e7c8c27cec64cdf3335db9a9d69b13f8b"
+time="2022-11-06T05:53:59.632810236Z" level=debug msg="remove content" key="sha256:a7ebb0daa6a0e96c6bd6312daf45d405b01ad1ed75e172f5426896d95254c0d5"
+time="2022-11-06T05:53:59.634669203Z" level=debug msg="schedule content cleanup"
+time="2022-11-06T05:53:59.635299748Z" level=debug msg="removed content" digest="sha256:35716f3743c52d5d9a45af5831637426cf10d941304f582a81fda087be717394"
+time="2022-11-06T05:53:59.635474714Z" level=debug msg="removed content" digest="sha256:7403fc32bee375e4122452530f73b79e7c8c27cec64cdf3335db9a9d69b13f8b"
+time="2022-11-06T05:53:59.662202875Z" level=debug msg="removed content" digest="sha256:a7ebb0daa6a0e96c6bd6312daf45d405b01ad1ed75e172f5426896d95254c0d5"
+time="2022-11-06T05:53:59.662318722Z" level=debug msg="content garbage collected" d=27.509901ms
+time="2022-11-06T05:53:59.662366936Z" level=debug msg="garbage collected" d=2.504745ms

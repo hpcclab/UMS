@@ -1,10 +1,10 @@
-import {FastifyReply, FastifyRequest} from "fastify";
-import {inspectContainer, listContainer} from "../docker";
-import {FastifyLoggerInstance} from "fastify/types/logger";
+import {FastifyReply, FastifyRequest} from "fastify"
+import {inspectContainer, listContainer} from "../docker"
+import {FastifyLoggerInstance} from "fastify/types/logger"
 
 async function list(request: FastifyRequest, reply: FastifyReply) {
-    const containerInfos: any[] = await listContainer(request.log, {all: true});
-    return await Promise.all(containerInfos.map(containerInfo => getFs(containerInfo.Id, request.log)))
+    const containerInfos: any[] = await listContainer(request.log, {all: true})
+    return Promise.all(containerInfos.map(containerInfo => getFs(containerInfo.Id, request.log)))
 }
 
 async function getFs(containerName: string, log: FastifyLoggerInstance) {
