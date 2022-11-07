@@ -13,6 +13,14 @@ def after_request(response):
     return response
 
 
+@list_api_blueprint.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    # Other headers can be added here if needed
+    return response
+
+
 @list_api_blueprint.route("/list", methods=['GET'])
 def list_api():
     pods = list_pod().items
