@@ -8,7 +8,7 @@ from dateutil.tz import tzlocal
 from flask import Blueprint, request, abort
 
 from app.api.create import probe_all
-from app.const import ENGINE_ANNOTATION, ENGINE_DIND, START_MODE_FAIL, MIGRATION_ID_ANNOTATION, \
+from app.const import INTERFACE_ANNOTATION, INTERFACE_DIND, START_MODE_FAIL, MIGRATION_ID_ANNOTATION, \
     START_MODE_ACTIVE
 from app.lib import get_pod, update_pod_restart, release_pod, gather, exec_pod, log_pod
 
@@ -44,7 +44,7 @@ def restore_api():
 def restore(des_pod, checkpoint_id):
     name = des_pod['metadata']['name']
     namespace = des_pod['metadata'].get('namespace', 'default')
-    if des_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
+    if des_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_DIND:
         des_pod = update_pod_restart(name, namespace, START_MODE_FAIL)
         restore_dind(des_pod, checkpoint_id)
         wait_pod_ready(des_pod)

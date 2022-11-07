@@ -6,21 +6,16 @@ metadata:
     app: memhog
 #  namespace: myproject
   annotations:
-    migration-migratable: 'true'
-    migration-engine: 'dind'
+    migration-interface: 'dind'
 spec:
   serviceAccountName: migration-coordinator
   containers:
     - name: memhog
-      image: ${REGISTRY}memhog:latest
+      image: ghcr.io/hpcclab/live_service_migration/memhog:main
       env:
-        - name: MEMORY_REQUEST
-          value: '0'
         - name: MEMORY_LIMIT
           value: '128'
         - name: MEMORY_INCREMENT
           value: '0'
-        - name: SHOULD_CONTINUE
-          value: 'true'
         # - name: PATTERN
         #   value: migration

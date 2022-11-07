@@ -4,13 +4,13 @@ metadata:
   name: redis
   labels:
     app: redis
+#  namespace: myproject
   annotations:
-    migration-migratable: 'true'
-    migration-engine: 'dind'
+    migration-interface: 'dind'
 spec:
   containers:
     - name: redis
-      image: ${REGISTRY}redis:latest
+      image: redis
       ports:
         - containerPort: 6379
       imagePullPolicy: "Always"

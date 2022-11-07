@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
     - name: runtime
-      image: "{EXEC_RUNTIME}"
+      image: "{PIND_IMAGE}"
       securityContext:
         privileged: true
       env:
@@ -15,7 +15,7 @@ spec:
           value: debug
       imagePullPolicy: "{IMAGE_PULL_POLICY}"
       volumeMounts:
-        - mountPath: /var/lib/docker
+        - mountPath: /var/lib/containers/storage
           name: docker-storage
         - mountPath: /sys/fs/cgroup
           name: cgroup
@@ -24,7 +24,7 @@ spec:
   volumes:
     - name: docker-storage
       hostPath:
-        path: /dev/shm/cache
+        path: /dev/shm/pind
         type: Directory
     - name: cgroup
       hostPath:

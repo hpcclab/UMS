@@ -5,10 +5,10 @@ import kopf
 from kubernetes import client
 from kubernetes.client import ApiException
 
-from share.const import MIGRATABLE_ANNOTATION, INTERFACE_PORT_ANNOTATION, INTERFACE_HOST_ANNOTATION, \
-    VOLUME_LIST_ANNOTATION, ENGINE_ANNOTATION, ENGINE_DIND
+from share.const import MIGRATABLE_ANNOTATION, SYNC_PORT_ANNOTATION, SYNC_HOST_ANNOTATION, \
+    VOLUME_LIST_ANNOTATION, INTERFACE_ANNOTATION, INTERFACE_DIND
 from share.lib import send_event, send_error_event, inject_service, gather
-from share.env import INTERFACE_HOST
+from share.env import HOST_NAME
 
 
 def check_pod_ready(event, **_):
@@ -21,11 +21,11 @@ def check_pod_ready(event, **_):
 def report_ready(name, annotations, body, patch, **_):
     if annotations[MIGRATABLE_ANNOTATION] == str(False):
         patch.metadata['annotations'] = {MIGRATABLE_ANNOTATION: str(True)}
-    if INTERFACE_PORT_ANNOTATION in annotations:
+    if SYNC_PORT_ANNOTATION in annotations:
         send_event(body, 'ready', {'pod': name, 'annotations': {
             VOLUME_LIST_ANNOTATION: annotations[VOLUME_LIST_ANNOTATION],
-            INTERFACE_HOST_ANNOTATION: annotations[INTERFACE_HOST_ANNOTATION],
-            INTERFACE_PORT_ANNOTATION: annotations[INTERFACE_PORT_ANNOTATION],
+            SYNC_HOST_ANNOTATION: annotations[SYNC_HOST_ANNOTATION],
+            SYNC_PORT_ANNOTATION: annotations[SYNC_PORT_ANNOTATION],
         }, 'ip': body['status']['podIP']})
 
 
@@ -39,18 +39,18 @@ def report_failure(name, body, patch, **_):
     patch.metadata['annotations'] = {MIGRATABLE_ANNOTATION: str(False)}
 
 
-@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, ENGINE_ANNOTATION: ENGINE_DIND})
+@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_DIND})
 def expose_service(logger, name, meta, namespace, spec, body, patch, **_):
     try:
         service_template = inject_service('../template/service.yml', name, meta['labels'])
         service = client.CoreV1Api().create_namespaced_service(namespace, service_template)
         logger.info(f"creating Service: {service.metadata.name}")
 
-        node = INTERFACE_HOST if INTERFACE_HOST else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
+        node = HOST_NAME if HOST_NAME else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
 
         patch.metadata['annotations'] = {
-            INTERFACE_HOST_ANNOTATION: f'{node}.nip.io',
-            INTERFACE_PORT_ANNOTATION: str(service.spec.ports[0].node_port)
+            SYNC_HOST_ANNOTATION: f'{node}.nip.io',
+            SYNC_PORT_ANNOTATION: str(service.spec.ports[0].node_port)
         }
     except ApiException as e:
         logger.error(f"[{e.status}]: {e.body}")
@@ -70,7 +70,7 @@ async def expose_one_service_ff(logger, name, meta, namespace, container_name):
 
 
 def not_using_dind(annotations, **_):
-    return ENGINE_ANNOTATION not in annotations or annotations[ENGINE_ANNOTATION] != ENGINE_DIND
+    return INTERFACE_ANNOTATION not in annotations or annotations[INTERFACE_ANNOTATION] != INTERFACE_DIND
 
 
 @kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT}, when=not_using_dind)
@@ -80,11 +80,11 @@ def expose_service_ff(logger, name, meta, namespace, spec, body, patch, **_):
             logger, name, meta, namespace, container['name']
         ) for container in spec['containers']]))
 
-        node = INTERFACE_HOST if INTERFACE_HOST else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
+        node = HOST_NAME if HOST_NAME else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
 
         patch.metadata['annotations'] = {
-            INTERFACE_HOST_ANNOTATION: f'{node}.nip.io',
-            INTERFACE_PORT_ANNOTATION: json.dumps({result[0]: result[1] for result in results})
+            SYNC_HOST_ANNOTATION: f'{node}.nip.io',
+            SYNC_PORT_ANNOTATION: json.dumps({result[0]: result[1] for result in results})
         }
     except ApiException as e:
         logger.error(f"[{e.status}]: {e.body}")
@@ -93,17 +93,17 @@ def expose_service_ff(logger, name, meta, namespace, spec, body, patch, **_):
 
 
 @kopf.on.update('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT},
-                field=f'metadata.annotations.{INTERFACE_PORT_ANNOTATION}', old=kopf.ABSENT, new=kopf.PRESENT)
+                field=f'metadata.annotations.{SYNC_PORT_ANNOTATION}', old=kopf.ABSENT, new=kopf.PRESENT)
 def report_expose(name, annotations, body, **_):
     if 'podIP' in body['status']:
         send_event(body, 'ready', {'pod': name, 'annotations': {
                 VOLUME_LIST_ANNOTATION: annotations[VOLUME_LIST_ANNOTATION],
-                INTERFACE_HOST_ANNOTATION: annotations[INTERFACE_HOST_ANNOTATION],
-                INTERFACE_PORT_ANNOTATION: annotations[INTERFACE_PORT_ANNOTATION],
+                SYNC_HOST_ANNOTATION: annotations[SYNC_HOST_ANNOTATION],
+                SYNC_PORT_ANNOTATION: annotations[SYNC_PORT_ANNOTATION],
             }, 'ip': body['status']['podIP']})
     else:
         send_event(body, 'expose', {'pod': name, 'annotations': {
             VOLUME_LIST_ANNOTATION: annotations[VOLUME_LIST_ANNOTATION],
-            INTERFACE_HOST_ANNOTATION: annotations[INTERFACE_HOST_ANNOTATION],
-            INTERFACE_PORT_ANNOTATION: annotations[INTERFACE_PORT_ANNOTATION],
+            SYNC_HOST_ANNOTATION: annotations[SYNC_HOST_ANNOTATION],
+            SYNC_PORT_ANNOTATION: annotations[SYNC_PORT_ANNOTATION],
         }})

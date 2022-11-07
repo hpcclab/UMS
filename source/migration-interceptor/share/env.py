@@ -1,9 +1,9 @@
 from os import getenv
 
-from app.const import ORCHESTRATOR_TYPE_KUBERNETES
+from share.const import ORCHESTRATOR_TYPE_KUBERNETES
 
 ORCHESTRATOR_TYPE = getenv('ORCHESTRATOR_TYPE', ORCHESTRATOR_TYPE_KUBERNETES)
-MARATHON_URL = getenv('MARATHON_URL', 'http://localhost:8080')
+HOST_NAME = getenv('HOST_NAME', None)
 
 DIND_IMAGE = getenv('DIND_IMAGE', 'migration-dind')
 PIND_IMAGE = getenv('PIND_IMAGE', 'migration-pind')

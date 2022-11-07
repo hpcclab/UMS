@@ -4,14 +4,12 @@ import os
 import kopf
 import yaml
 
-from share.const import MIGRATABLE_ANNOTATION, BYPASS_ANNOTATION, ENGINE_ANNOTATION, ENGINE_DIND, \
+from share.const import MIGRATABLE_ANNOTATION, BYPASS_ANNOTATION, INTERFACE_ANNOTATION, INTERFACE_DIND, \
     START_MODE_ANNOTATION, START_MODE_ACTIVE, VOLUME_LIST_ANNOTATION, CONTAINER_SPEC_ANNOTATION, LAST_APPLIED_CONFIG, \
     ORCHESTRATOR_TYPE_MINISHIFT, ORCHESTRATOR_TYPE_KUBERNETES
 from share.env import EXEC_MONITOR, IMAGE_PULL_POLICY, env, ORCHESTRATOR_TYPE
 
 
-# @kopf.on.mutate('v1', 'pods', operation='CREATE',
-#                 annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, BYPASS_ANNOTATION: kopf.ABSENT})
 @kopf.on.mutate('v1', 'pods', operation='CREATE', annotations={BYPASS_ANNOTATION: kopf.ABSENT})
 def mutate_pod(annotations, spec, patch, **_):
     if annotations.get(LAST_APPLIED_CONFIG):
@@ -26,7 +24,7 @@ def mutate_pod(annotations, spec, patch, **_):
 
 
 def inject_pod(annotations, spec):
-    if annotations.get(ENGINE_ANNOTATION) == ENGINE_DIND:
+    if annotations.get(INTERFACE_ANNOTATION) == INTERFACE_DIND:
         template = inject_pod_dind(spec)
     else:
         template = inject_pod_ff(spec)
