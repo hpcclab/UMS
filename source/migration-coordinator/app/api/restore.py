@@ -15,6 +15,14 @@ from app.lib import get_pod, update_pod_restart, release_pod, gather, exec_pod, 
 restore_api_blueprint = Blueprint('restore_api', __name__)
 
 
+@restore_api_blueprint.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    # Other headers can be added here if needed
+    return response
+
+
 @restore_api_blueprint.route("/restore", methods=['POST'])
 def restore_api():
     body = request.get_json()
