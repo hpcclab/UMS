@@ -18,6 +18,7 @@ restore_api_blueprint = Blueprint('restore_api', __name__)
 @restore_api_blueprint.after_request
 def after_request(response):
     header = response.headers
+    header['Access-Control-Allow-Headers'] = '*'
     header['Access-Control-Allow-Origin'] = '*'
     # Other headers can be added here if needed
     return response
