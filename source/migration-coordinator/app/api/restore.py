@@ -8,20 +8,11 @@ from dateutil.tz import tzlocal
 from flask import Blueprint, request, abort
 
 from app.api.create import probe_all
-from app.const import ENGINE_ANNOTATION, ENGINE_DIND, START_MODE_FAIL, MIGRATION_ID_ANNOTATION, \
-    START_MODE_ACTIVE
+from app.const import INTERFACE_ANNOTATION, INTERFACE_DIND, START_MODE_FAIL, MIGRATION_ID_ANNOTATION, \
+    START_MODE_ACTIVE, INTERFACE_PIND, INTERFACE_FF
 from app.lib import get_pod, update_pod_restart, release_pod, gather, exec_pod, log_pod
 
 restore_api_blueprint = Blueprint('restore_api', __name__)
-
-
-@restore_api_blueprint.after_request
-def after_request(response):
-    header = response.headers
-    header['Access-Control-Allow-Headers'] = '*'
-    header['Access-Control-Allow-Origin'] = '*'
-    # Other headers can be added here if needed
-    return response
 
 
 @restore_api_blueprint.route("/restore", methods=['POST'])
@@ -53,14 +44,15 @@ def restore_api():
 def restore(des_pod, checkpoint_id):
     name = des_pod['metadata']['name']
     namespace = des_pod['metadata'].get('namespace', 'default')
-    if des_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
-        des_pod = update_pod_restart(name, namespace, START_MODE_FAIL)
+    if des_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
         restore_dind(des_pod, checkpoint_id)
         wait_pod_ready(des_pod)
         update_pod_restart(name, namespace, START_MODE_ACTIVE)
-    else:
+    elif des_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_FF:
         update_pod_restart(name, namespace, START_MODE_ACTIVE)
         wait_pod_ready_ff(des_pod)
+    else:
+        pass  # todo
     return release_pod(name, namespace)
 
 

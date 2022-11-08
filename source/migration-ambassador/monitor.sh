@@ -11,10 +11,10 @@ do
   status=$(wait-for-it.sh "$API_SERVER" -- curl -i -o - --silent "$API_SERVER/probe/$CONTAINER_NAME")
   status_code=$(echo "$status" | grep HTTP |  awk '{print $2}')
   if [[ "$status_code" -eq 200 ]]; then
-      continue
+    continue
   elif [[ "$status_code" -eq 204 ]]; then
-      sleep 1
+    sleep 1
   else
-      exit "$(echo "$status" | grep body)"
+    exit 1
   fi
 done

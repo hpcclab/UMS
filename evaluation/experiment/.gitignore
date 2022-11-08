@@ -16,10 +16,4 @@ out
 gen
 
 /test/http-client.env.json
-/template/*.env
-/template/looper.yml
-/template/memhog.yml
-/template/multiple-container.yml
-/template/redis.yml
-/template/streaming.yml
-/template/mesos-script
+/template/*.dev.yml

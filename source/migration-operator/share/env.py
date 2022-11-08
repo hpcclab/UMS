@@ -1,18 +1,17 @@
 from os import getenv
 
-INTERFACE_HOST = getenv('INTERFACE_HOST', None)
+HOST_NAME = getenv('HOST_NAME', None)
 
-EXEC_RUNTIME = getenv('EXEC_RUNTIME', 'migration-dind')
-EXEC_MONITOR = getenv('EXEC_MONITOR', 'migration-monitor')
-EVAL_REDIRECTOR = getenv('EVAL_REDIRECTOR', 'migration-redirector')
-EVAL_KEEPER = getenv('EVAL_KEEPER', 'migration-keeper')
+DIND_IMAGE = getenv('DIND_IMAGE', 'migration-dind')
+PIND_IMAGE = getenv('PIND_IMAGE', 'migration-pind')
+AMBASSADOR_IMAGE = getenv('AMBASSADOR_IMAGE', 'migration-ambassador')
+FRONTMAN_IMAGE = getenv('FRONTMAN_IMAGE', 'frontman')
 IMAGE_PULL_POLICY = getenv('IMAGE_PULL_POLICY', 'IfNotPresent')
 
 env = {
-    'INTERFACE_HOST': INTERFACE_HOST,
-    'EXEC_RUNTIME': EXEC_RUNTIME,
-    'EXEC_MONITOR': EXEC_MONITOR,
-    'EVAL_REDIRECTOR': EVAL_REDIRECTOR,
-    'EVAL_KEEPER': EVAL_KEEPER,
+    'DIND_IMAGE': DIND_IMAGE,
+    'PIND_IMAGE': PIND_IMAGE,
+    'AMBASSADOR_IMAGE': AMBASSADOR_IMAGE,
+    'FRONTMAN_IMAGE': FRONTMAN_IMAGE,
     'IMAGE_PULL_POLICY': IMAGE_PULL_POLICY
 }

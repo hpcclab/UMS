@@ -10,7 +10,7 @@ metadata:
 spec:
   containers:
     - name: runtime
-      image: ${REGISTRY}migration-dind:latest
+      image: ghcr.io/hpcclab/live_service_migration/migration-dind:main
       env:
         - name: DOCKER_HOST
           value: 127.0.0.1:2375
@@ -21,18 +21,17 @@ spec:
       securityContext:
         privileged: true
   serviceAccountName: migration-coordinator
-# docker run -d --name=iperf -p 5201:5201 ${REGISTRY}performance:latest iperf3 -s
-# for i in {1..30}; do docker run --rm ${REGISTRY}performance:latest sysbench cpu run >> cpu.txt; echo "---" >> cpu.txt; done
-# for i in {1..30}; do docker run --rm ${REGISTRY}performance:latest sysbench memory run >> memory.txt; echo "---" >> memory.txt; done
-# for i in {1..30}; do docker run --rm ${REGISTRY}performance:latest bash -c "sysbench fileio --file-total-size=4G prepare; sysbench fileio --file-total-size=4G --file-test-mode=rndrw run" >> disk.txt; echo "---" >> disk.txt; done
+# docker run -d --name=iperf -p 5201:5201 ghcr.io/hpcclab/live_service_migration/performance:main iperf3 -s
+# for i in {1..30}; do docker run --rm ghcr.io/hpcclab/live_service_migration/performance:main sysbench cpu run >> cpu.txt; echo "---" >> cpu.txt; done
+# for i in {1..30}; do docker run --rm ghcr.io/hpcclab/live_service_migration/performance:main sysbench memory run >> memory.txt; echo "---" >> memory.txt; done
+# for i in {1..30}; do docker run --rm ghcr.io/hpcclab/live_service_migration/performance:main bash -c "sysbench fileio --file-total-size=4G prepare; sysbench fileio --file-total-size=4G --file-test-mode=rndrw run" >> disk.txt; echo "---" >> disk.txt; done
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: iperf-dind
   annotations:
-    migration-migratable: 'true'
-    migration-engine: 'dind'
+    migration-interface: 'dind'
 spec:
   type: NodePort
   selector:
@@ -57,8 +56,8 @@ metadata:
 spec:
   containers:
     - name: iperf
-      image: ${REGISTRY}performanceff:latest
-#      image: ${REGISTRY}performance:latest
+      image: ghcr.io/hpcclab/live_service_migration/performanceff:main
+#      image: ghcr.io/hpcclab/live_service_migration/performance:main
       command:
         - iperf3
         - -s
@@ -74,7 +73,7 @@ spec:
     spec:
       containers:
         - name: sysbench
-          image: ${REGISTRY}performanceff:latest
+          image: ghcr.io/hpcclab/live_service_migration/performanceff:main
           command: ["bash", "-c", "sysbench fileio --file-total-size=4G prepare && sysbench fileio --file-total-size=4G --file-test-mode=rndrw run >> /log/disk-ff.txt"]
           volumeMounts:
             - name: log

@@ -4,13 +4,13 @@ metadata:
   name: looper
   labels:
     app: looper
+#  namespace: myproject
   annotations:
-    migration-migratable: 'true'
-    migration-engine: 'dind'
+    migration-interface: 'dind'
 spec:
   containers:
     - name: looper
-      image: ${REGISTRY}busybox
+      image: busybox
       command: ["/bin/sh", "-c", 'i=0; while true; do echo $(nmeter -d0 "%3t" | head -n1) $i; i=$(expr $i + 1); sleep 1; done']
       volumeMounts:
         - mountPath: /volume/1

@@ -4,10 +4,11 @@ kind: ConfigMap
 metadata:
   name: migration-env
 data:
-  EXEC_RUNTIME: core.harbor.example.nip.io/migration/migration-ssh:latest
-  EXEC_MONITOR: core.harbor.example.nip.io/migration/migration-monitor:latest
-  EVAL_KEEPER: core.harbor.example.nip.io/migration/migration-keeper:latest
-  EVAL_REDIRECTOR: core.harbor.example.nip.io/migration/migration-redirector:latest
+  ORCHESTRATOR_TYPE: kubernetes
+  DIND_IMAGE: ghcr.io/hpcclab/live_service_migration/migration-dind:main
+  PIND_IMAGE: ghcr.io/hpcclab/live_service_migration/migration-pind:main
+  AMBASSADOR_IMAGE: ghcr.io/hpcclab/live_service_migration/migration-ambassador:main
+  FRONTMAN_IMAGE: ghcr.io/hpcclab/live_service_migration/frontman:main
   IMAGE_PULL_POLICY: Always
 ---
 apiVersion: apps/v1
@@ -35,7 +36,7 @@ spec:
       serviceAccountName: migration-coordinator
       containers:
         - name: operator
-          image: core.harbor.example.nip.io/migration/migration-operator:latest
+          image: ghcr.io/hpcclab/live_service_migration/migration-operator:main
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
@@ -74,7 +75,7 @@ spec:
       serviceAccountName: migration-coordinator
       containers:
         - name: coordinator
-          image: core.harbor.example.nip.io/migration/migration-coordinator:latest
+          image: ghcr.io/hpcclab/live_service_migration/migration-coordinator:main
           ports:
             - containerPort: 5000
           imagePullPolicy: Always
@@ -107,9 +108,9 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: migration-injector
+  name: migration-interceptor
   labels:
-    app: migration-injector
+    app: migration-interceptor
   annotations:
     migration-bypass: 'True'
 spec:
@@ -118,18 +119,18 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: migration-injector
+      app: migration-interceptor
   template:
     metadata:
       labels:
-        app: migration-injector
+        app: migration-interceptor
       annotations:
         migration-bypass: 'True'
     spec:
       serviceAccountName: migration-coordinator
       containers:
-        - name: injector
-          image: core.harbor.example.nip.io/migration/migration-injector:latest
+        - name: interceptor
+          image: ghcr.io/hpcclab/live_service_migration/migration-interceptor:main
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
@@ -146,70 +147,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: migration-injector
+  name: migration-interceptor
   labels:
-    app: migration-injector
+    app: migration-interceptor
 spec:
   type: NodePort
   selector:
-    app: migration-injector
+    app: migration-interceptor
   ports:
     - protocol: TCP
       port: 30000
       targetPort: 30000
       nodePort: 30000
----
-#apiVersion: apps/v1
-#kind: Deployment
-#metadata:
-#  name: migration-validator
-#  labels:
-#    app: migration-validator
-#  annotations:
-#    migration-bypass: 'True'
-#spec:
-#  replicas: 1
-#  strategy:
-#    type: Recreate
-#  selector:
-#    matchLabels:
-#      app: migration-validator
-#  template:
-#    metadata:
-#      labels:
-#        app: migration-validator
-#      annotations:
-#        migration-bypass: 'True'
-#    spec:
-#      serviceAccountName: migration-coordinator
-#      containers:
-#        - name: validator
-#          image: core.harbor.example.nip.io/migration/migration-validator:latest
-#          imagePullPolicy: Always
-#          envFrom:
-#            - configMapRef:
-#                name: migration-env
-#          startupProbe:
-#            httpGet:
-#              port: 8080
-#              path: /healthz
-#          livenessProbe:
-#            httpGet:
-#              port: 8080
-#              path: /healthz
-#---
-#apiVersion: v1
-#kind: Service
-#metadata:
-#  name: migration-validator
-#  labels:
-#    app: migration-validator
-#spec:
-#  type: NodePort
-#  selector:
-#    app: migration-injector
-#  ports:
-#    - protocol: TCP
-#      port: 30000
-#      targetPort: 30000
-#      nodePort: 30001

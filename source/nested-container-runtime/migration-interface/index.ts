@@ -34,4 +34,7 @@ function loadDefaultConfig() {
     process.env.START_MODE_PASSIVE = 'passive'
     process.env.START_MODE_NULL = 'null'
     process.env.START_MODE_FAIL = 'fail'
+    process.env.INTERFACE_ANNOTATION = 'migration-interface'
+    process.env.INTERFACE_DIND = 'dind'
+    process.env.INTERFACE_PIND = 'pind'
 }

@@ -249,9 +249,3 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
-/api-server/id_rsa
-/interface/id_rsa.pub
-/cinc/ca.crt
-/cinc/ca2.crt
-/test/http-client.env.json
