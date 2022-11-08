@@ -23,11 +23,11 @@ POST http://{{src}}/migrate
 Content-Type: application/json
 
 {
-    "name": "memhog",
+    "name": "streaming",
     "namespace": "{{namespace}}",
     "destinationUrl": "{{des}}",
     "keep": "true",
-    "redirect": "{{src_ip}}"
+    "redirect": "{{des_ip}}"
 }
 
 ### # todo answer why we dont use external docker

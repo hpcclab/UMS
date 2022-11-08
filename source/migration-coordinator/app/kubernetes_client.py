@@ -58,6 +58,11 @@ def update_pod_restart(name, namespace, start_mode):
         START_MODE_ANNOTATION: start_mode}}}))
 
 
+def update_pod_redirect(name, namespace, redirect_uri):
+    return pod_to_dict(client.CoreV1Api().patch_namespaced_pod(name, namespace, {'metadata': {'annotations': {
+        'redirect': redirect_uri}}}))
+
+
 async def exec_pod(pod_name, namespace, command, container_name):
     return stream(client.CoreV1Api().connect_get_namespaced_pod_exec, pod_name, namespace,
                   command=['/bin/sh', '-c', command], container=container_name,

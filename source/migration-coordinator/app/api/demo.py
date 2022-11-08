@@ -12,12 +12,12 @@ from flask import Blueprint, request, abort, Response, current_app
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
     START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, INTERFACE_PIND, \
-    INTERFACE_FF, START_MODE_NULL
+    INTERFACE_FF, START_MODE_NULL, BYPASS_ANNOTATION
 from app.db import get_db
 from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE
 from app.kubernetes_client import create_pod, update_pod_label
-from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, delete_pod, exec_pod, \
-    check_error_event
+from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
+    delete_pod, exec_pod, check_error_event
 
 demo_api_blueprint = Blueprint('demo_api', __name__)
 
@@ -70,9 +70,9 @@ def migrate(body, migration_id, context):
             last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
             des_pod_annotations = create_des_pod(src_pod, destination_url)
             last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-            yield 'RESERVED\n\n'
-            # if body.get('keep'):
-            #     keep = create_keeper(src_pod)
+            yield 'data: RESERVED\n\n'
+            if body.get('keep'):
+                keep = create_frontman(src_pod)
             try:
                 checkpoint_id = uuid4().hex[:8]
                 src_pod = checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id)
@@ -80,25 +80,30 @@ def migrate(body, migration_id, context):
             except Exception as e:
                 delete_des_pod(src_pod, destination_url)
                 raise e
-            yield 'CHECKPOINTED\n\n'
+            yield 'data: CHECKPOINTED\n\n'
             restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id)
-            yield 'RESTORED\n\n'
+            yield 'data: RESTORED\n\n'
+        except Exception as e:
+            if keep:
+                delete_frontman(src_pod)
+            raise e
         finally:
-            # if body.get('keep') and keep:
-            #     delete_keeper(src_pod)
             if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
                 update_pod_restart(name, namespace, START_MODE_ACTIVE)
             release_pod(name, namespace)
         try:
-            # if body.get('redirect'):
-            #     create_redirector(src_pod, body.get('redirect'))
+            if body.get('redirect'):
+                if keep:
+                    update_frontman(src_pod, body.get('redirect'))
+                else:
+                    create_frontman(src_pod, body.get('redirect'))
             delete_pod(name, namespace)
             if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS \
                     and src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
                 delete_pod(f"{name}-monitor", namespace)
         except Exception as e:
             abort(500, f"Error occurs at post-migration step: {e}")
-        yield 'DONE\n\n'
+        yield 'data: DONE\n\n'
 
 
 def abort_if_error_exists(migration_id, name, namespace, last_checked_time):
@@ -191,61 +196,45 @@ def restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoi
     response.raise_for_status()
 
 
-def create_keeper(src_pod):
-    with open(path.join(path.dirname(__file__), '../keeper.yml'), 'rt') as f:
-        keeper_template = yaml.safe_load(f.read().format(**env))
+def create_frontman(src_pod, redirect_uri=None):
+    with open(path.join(path.dirname(__file__), '../frontman.yml'), 'rt') as f:
+        frontman_template = yaml.safe_load(f.read().format(**env))
     src = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
-    keeper_template['metadata'] = src['metadata']
-    keeper_template['metadata']['name'] += '-keeper'
-    keeper_template['metadata']['annotations'].pop(MIGRATABLE_ANNOTATION)
+    frontman_template['metadata'] = src['metadata']
+    frontman_template['metadata']['name'] += '-frontman'
+    frontman_template['metadata']['annotations'].pop(MIGRATABLE_ANNOTATION, None)
+    frontman_template['metadata']['annotations'].pop(INTERFACE_ANNOTATION, None)
+    frontman_template['metadata']['annotations'][BYPASS_ANNOTATION] = str(True)
+    if redirect_uri:
+        frontman_template['metadata']['annotations']['redirect'] = redirect_uri
 
-    keeper_template['spec']['containers'] = [{
+    frontman_template['spec']['containers'] = [{
         'name': f"{container['name']}-{port['containerPort']}",
         'image': FRONTMAN_IMAGE,
         'imagePullPolicy': 'Always',
         'ports': [{'name': 'web', 'protocol': 'TCP', 'containerPort': port['containerPort']}],
         'env': [
-            {'name': 'NGINX_PORT', 'value': str(port['containerPort'])}
+            {'name': 'FLASK_RUN_PORT', 'value': str(port['containerPort'])}
+        ],
+        'volumeMounts': [
+            {'mountPath': '/etc/podinfo', 'name': 'podinfo'}
         ]
     } for container in src['spec']['containers'] for port in container.get('ports', [])]
 
-    if not keeper_template['spec']['containers']:
+    if not frontman_template['spec']['containers']:
         return False
 
-    create_pod(src['metadata']['namespace'], keeper_template)
+    create_pod(src['metadata']['namespace'], frontman_template)
     update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
                      {k: None for k in src['metadata']['labels']})
     return True
 
 
-def delete_keeper(src_pod):
+def update_frontman(src_pod, redirect_uri):
+    update_pod_redirect(f"{src_pod['metadata']['name']}-frontman", src_pod['metadata']['namespace'], redirect_uri)
+
+
+def delete_frontman(src_pod):
     src = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     update_pod_label(src['metadata']['name'], src['metadata']['namespace'], src['metadata']['labels'])
-    delete_pod(f"{src['metadata']['name']}-keeper", src['metadata']['namespace'])
-
-
-def create_redirector(src_pod, new_uri):
-    with open(path.join(path.dirname(__file__), '../redirector.yml'), 'rt') as f:
-        redirector_template = yaml.safe_load(f.read().format(**env))
-
-    src = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
-
-    redirector_template['metadata'] = src['metadata']
-    redirector_template['metadata']['name'] += '-redirector'
-    redirector_template['metadata']['annotations'].pop(MIGRATABLE_ANNOTATION)
-
-    redirector_template['spec']['containers'] = [{
-        'name': f"{container['name']}-{port['containerPort']}",
-        'image': FRONTMAN_IMAGE,
-        'imagePullPolicy': 'Always',
-        'ports': [{'name': 'web', 'protocol': 'TCP', 'containerPort': port['containerPort']}],
-        'env': [
-            {'name': 'NGINX_PORT', 'value': str(port['containerPort'])},
-            {'name': 'NEW_URI', 'value': new_uri}
-        ]
-    } for container in src['spec']['containers'] for port in container.get('ports', [])]
-
-    if not redirector_template['spec']['containers']:
-        return
-
-    create_pod(src['metadata']['namespace'], redirector_template)
+    delete_pod(f"{src['metadata']['name']}-frontman", src['metadata']['namespace'])

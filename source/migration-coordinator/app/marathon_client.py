@@ -72,6 +72,13 @@ def update_pod_restart(name, namespace, start_mode):
     return app
 
 
+def update_pod_redirect(name, namespace, redirect_uri):
+    # This does not really update the app (leave to future work)
+    app = get_pod(name, namespace)
+    app['metadata']['annotations']['redirect'] = redirect_uri
+    return app
+
+
 async def exec_pod(pod_name, namespace, command, container_name):
     exit_code, output = docker_client.containers.get(
         get_docker_id(pod_name, namespace)

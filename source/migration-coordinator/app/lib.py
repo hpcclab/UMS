@@ -4,9 +4,9 @@ from app.const import ORCHESTRATOR_TYPE_KUBERNETES, \
     ORCHESTRATOR_TYPE_MINISHIFT
 from app.env import ORCHESTRATOR_TYPE
 if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_KUBERNETES or ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MINISHIFT:
-    from app.kubernetes_client import get_pod, delete_pod, lock_pod, release_pod, update_pod_restart, exec_pod, log_pod, check_error_event
+    from app.kubernetes_client import get_pod, delete_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect, exec_pod, log_pod, check_error_event
 else:
-    from app.marathon_client import get_pod, delete_pod, lock_pod, release_pod, update_pod_restart, exec_pod, log_pod, check_error_event
+    from app.marathon_client import get_pod, delete_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect, exec_pod, log_pod, check_error_event
 
 
 def get_information():
