@@ -6,15 +6,11 @@ import Rsync from "rsync"
 const exec = util.promisify(childExec)
 
 class HttpError extends Error {
-    private readonly _statusCode: number
+    public statusCode: number
 
     constructor(message: string, statusCode: number) {
         super(message)
-        this._statusCode = statusCode
-    }
-
-    get statusCode() {
-        return this._statusCode
+        this.statusCode = statusCode
     }
 }
 
@@ -34,11 +30,15 @@ function findDestinationFileSystemId(containers: any, containerInfo: any) {
 }
 
 async function waitForIt(interfaceHost: string, interfacePort: string, log: FastifyLoggerInstance) {
+    await execBash(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t 0`, log)
+}
+
+async function execBash(command: string, log: FastifyLoggerInstance) {
     try {
         const {
             stdout,
             stderr
-        } = await exec(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t 0`)
+        } = await exec(command)
         log.debug(stdout)
         log.error(stderr)
     } catch (error: any) {
@@ -84,6 +84,7 @@ function execRsync(port: string, source: string, destination: string, log: Fasti
 export {
     findDestinationFileSystemId,
     waitForIt,
+    execBash,
     execRsync,
     HttpError
 }

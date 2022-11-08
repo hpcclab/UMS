@@ -1,5 +1,5 @@
 import {FastifyRequest} from "fastify"
-import {checkpointContainer, inspectContainer, listContainer} from "../docker"
+import {checkpointContainerDind, checkpointContainerPind, inspectContainer, listContainer} from "../docker"
 import {CheckpointRequestType} from "../schema"
 import {cpSync, readFileSync} from "fs"
 import {FastifyLoggerInstance} from "fastify/types/logger"
@@ -12,18 +12,33 @@ async function checkpoint(request: FastifyRequest<{ Body: CheckpointRequestType 
     const {checkpointId, volumes} = request.body
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
-    const responses = await Promise.all([
-        ...containerInfos.map(
-            containerInfo => checkpointContainer(containerInfo.Id, checkpointId, exit, new AsyncBlockingQueue<string>(),
-                request.log)
-        ),
-        ...containerInfos.map(
-            containerInfo => checkpointContainerFS(checkpointId, containerInfo, request.log)
-        ),
-        ...volumes.map(
-            volume => checkpointVolume(checkpointId, volume, request.log)
-        )
-    ])
+    const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
+
+    let responses
+    if (pind) {
+        responses = await Promise.all([
+            ...containerInfos.map(
+                containerInfo => checkpointContainerPind(containerInfo.Id, checkpointId, exit, new AsyncBlockingQueue<string>(),
+                    request.log)
+            ),
+            ...volumes.map(
+                volume => checkpointVolume(checkpointId, volume, request.log)
+            )
+        ])
+    } else {
+        responses = await Promise.all([
+            ...containerInfos.map(
+                containerInfo => checkpointContainerDind(containerInfo.Id, checkpointId, exit, new AsyncBlockingQueue<string>(),
+                    request.log)
+            ),
+            ...containerInfos.map(
+                containerInfo => checkpointContainerFS(checkpointId, containerInfo, request.log)
+            ),
+            ...volumes.map(
+                volume => checkpointVolume(checkpointId, volume, request.log)
+            )
+        ])
+    }
     request.log.info(responses)
     return responses
 }

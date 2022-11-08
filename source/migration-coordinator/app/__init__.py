@@ -30,6 +30,14 @@ def handle_exception(e):
     return str(e), 500
 
 
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    header['Access-Control-Allow-Headers'] = '*'
+    # Other headers can be added here if needed
+    return response
+
+
 def create_app(config):
     app = Flask(__name__)
 
@@ -51,5 +59,7 @@ def create_app(config):
     app.errorhandler(HTTPException)(handle_abort_exception)
     app.errorhandler(RequestException)(handle_exception)
     app.errorhandler(DockerException)(handle_exception)
+
+    app.after_request(after_request)
 
     return app

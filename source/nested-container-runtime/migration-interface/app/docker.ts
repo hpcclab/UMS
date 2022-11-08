@@ -1,6 +1,6 @@
 import {AxiosInstance, AxiosRequestConfig} from "axios"
 import {FastifyLoggerInstance} from "fastify/types/logger"
-import {HttpError, waitForIt} from "./lib"
+import {execBash, HttpError, waitForIt} from "./lib"
 import {AsyncBlockingQueue} from "./queue"
 
 const axios: AxiosInstance = require("axios").default.create({
@@ -106,7 +106,7 @@ async function startContainer(name: string, log: FastifyLoggerInstance, params: 
     return response.message
 }
 
-async function checkpointContainer(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
+async function checkpointContainerDind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
     const start = Date.now()
     const response = await requestDocker({
         method: 'post',
@@ -116,6 +116,21 @@ async function checkpointContainer(name: string, checkpointId: string, exit: boo
     console.log(`checkpoint: ${Date.now() - start}`)
     imageQueue.done = true
     return response.message
+}
+
+async function checkpointContainerPind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
+    const start = Date.now()
+    await execBash(`docker container checkpoint ${name} -e /var/lib/containers/storage/${checkpointId}-${name}.tar.gz --tcp-established${exit ? "" : " -R"}`, log)
+    console.log(`checkpoint: ${Date.now() - start}`)
+    imageQueue.done = true
+    return ""
+}
+
+async function restoreContainer(fileName: string, log: FastifyLoggerInstance) {
+    const start = Date.now()
+    await execBash(`docker container restore -i /var/lib/containers/storage/${fileName} --tcp-established`, log)
+    console.log(`restore: ${Date.now() - start}`)
+    return ""
 }
 
 async function stopContainer(name: string, log: FastifyLoggerInstance) {
@@ -150,7 +165,9 @@ export {
     inspectContainer,
     createContainer,
     startContainer,
-    checkpointContainer,
+    checkpointContainerDind,
+    checkpointContainerPind,
+    restoreContainer,
     stopContainer,
     removeContainer,
     ContainerInfo

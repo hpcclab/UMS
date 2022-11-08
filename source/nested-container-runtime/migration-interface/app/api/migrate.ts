@@ -1,5 +1,5 @@
 import {FastifyReply, FastifyRequest} from "fastify"
-import {checkpointContainer, ContainerInfo, inspectContainer, listContainer} from "../docker"
+import {checkpointContainerDind, checkpointContainerPind, ContainerInfo, inspectContainer, listContainer} from "../docker"
 import {MigrateRequestType} from "../schema"
 import {execRsync, findDestinationFileSystemId, waitForIt} from "../lib"
 import {FastifyLoggerInstance} from "fastify/types/logger"
@@ -16,24 +16,39 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
 
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
+    const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 
     await waitForIt(interfaceHost, interfacePort, request.log)
 
-    const responses = await Promise.all([
-        ...containerInfos.map(
-            containerInfo => migrateOneContainer(checkpointId, interfaceHost, interfacePort,
-                containers, containerInfo, exit, request.log)
-        ),
-        ...volumes.map(
-            volume => transferVolume(interfaceHost, interfacePort, volume, request.log)
-        )
-    ])
+    let responses
+    if (pind) {
+        responses = await Promise.all([
+            ...containerInfos.map(
+                containerInfo => migrateOneContainerPind(checkpointId, interfaceHost, interfacePort,
+                    containerInfo, exit, request.log)
+            ),
+            ...volumes.map(
+                volume => transferVolume(interfaceHost, interfacePort, volume, request.log)
+            )
+        ])
+    } else {
+        responses = await Promise.all([
+            ...containerInfos.map(
+                containerInfo => migrateOneContainerDind(checkpointId, interfaceHost, interfacePort,
+                    containers, containerInfo, exit, request.log)
+            ),
+            ...volumes.map(
+                volume => transferVolume(interfaceHost, interfacePort, volume, request.log)
+            )
+        ])
+    }
     request.log.info(responses)
     reply.code(204)
 }
 
-async function migrateOneContainer(checkpointId: string, interfaceHost: string, interfacePort: string, containers: any,
-                                   containerInfo: ContainerInfo, exit: boolean, log: FastifyLoggerInstance) {
+async function migrateOneContainerDind(checkpointId: string, interfaceHost: string, interfacePort: string, containers: any,
+                                   containerInfo: ContainerInfo, exit: boolean,
+                                   log: FastifyLoggerInstance) {
     const {destinationId, destinationFs} = findDestinationFileSystemId(containers, containerInfo)
 
     const sourceImagePath = `/var/lib/docker/containers/${containerInfo.Id}/checkpoints/${checkpointId}`
@@ -59,7 +74,38 @@ async function migrateOneContainer(checkpointId: string, interfaceHost: string, 
     await Promise.all([
         transferContainerImage(interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
         transferContainerFS(interfaceHost, interfacePort, containerInfo, destinationFs, log),
-        checkpointContainer(containerInfo.Id, checkpointId, exit, imageQueue, log)
+        checkpointContainerDind(containerInfo.Id, checkpointId, exit, imageQueue, log)
+    ])
+
+    await imageWatcher.close()
+}
+
+async function migrateOneContainerPind(checkpointId: string, interfaceHost: string, interfacePort: string,
+                                   containerInfo: ContainerInfo, exit: boolean,
+                                   log: FastifyLoggerInstance) {
+    const sourceImagePath = `/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
+    const destinationImagePath = `root@${interfaceHost}:/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
+    const imageQueue = new AsyncBlockingQueue<string>()
+    let imageQueueInit: (value: unknown) => void
+    const imageQueueInitPromise = new Promise(resolve => {
+        imageQueueInit = resolve
+    })
+    const imageWatcher = chokidar.watch(sourceImagePath)
+    imageWatcher
+        .on('all', (event, path) => {
+            if ((event === 'add' || event == 'change') && imageQueue.isEmpty()) {
+                imageQueue.enqueue(path)
+            }
+        })
+        .on('ready', () => {
+            imageQueueInit(null)
+        })
+
+    await imageQueueInitPromise
+
+    await Promise.all([
+        transferContainerImage(interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
+        checkpointContainerPind(containerInfo.Id, checkpointId, exit, imageQueue, log)
     ])
 
     await imageWatcher.close()
