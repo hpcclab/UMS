@@ -7,7 +7,7 @@ from uuid import uuid4
 import requests
 import yaml
 from dateutil.tz import tzlocal
-from flask import Blueprint, request, abort
+from flask import Blueprint, request, abort, Response, current_app
 
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
     START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
@@ -19,11 +19,11 @@ from app.kubernetes_client import create_pod, update_pod_label
 from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
     delete_pod, exec_pod, check_error_event
 
-migrate_api_blueprint = Blueprint('migrate_api', __name__)
+demo_api_blueprint = Blueprint('demo_api', __name__)
 
 
-@migrate_api_blueprint.route("/migrate", methods=['POST'])
-def migrate_api():
+@demo_api_blueprint.route("/demo", methods=['POST'])
+def demo_api():
     body = request.get_json()
 
     name = body.get('name')
@@ -41,66 +41,69 @@ def migrate_api():
     try:
         connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
         connection.commit()
-        migrate(body, migration_id)
+        return Response(migrate(body, migration_id, current_app.app_context()), mimetype="text/event-stream")
     finally:
         connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
         connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
         connection.commit()
 
-    return f"migration complete! id: {migration_id}"
 
-
-def migrate(body, migration_id):
-    name = body['name']
-    namespace = body.get('namespace', 'default')
-    destination_url = body['destinationUrl']
-    keep = False
-    last_checked_time = datetime.now(tz=tzlocal())
-    src_pod = get_pod(name, namespace)
-    if not bool(src_pod['metadata']['annotations'].get(MIGRATABLE_ANNOTATION)):
-        abort(400, "pod is not migratable")
-    if src_pod['metadata']['annotations'][START_MODE_ANNOTATION] != START_MODE_ACTIVE:
-        abort(400, "Pod is not migratable")
-    if src_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION):
-        abort(409, "Pod is being migrated")
-    last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-    src_pod = lock_pod(name, namespace, migration_id)
-    try:
+def migrate(body, migration_id, context):
+    with context:
+        name = body['name']
+        namespace = body.get('namespace', 'default')
+        destination_url = body['destinationUrl']
+        keep = False
+        last_checked_time = datetime.now(tz=tzlocal())
+        src_pod = get_pod(name, namespace)
+        if not bool(src_pod['metadata']['annotations'].get(MIGRATABLE_ANNOTATION)):
+            abort(400, "pod is not migratable")
+        if src_pod['metadata']['annotations'][START_MODE_ANNOTATION] != START_MODE_ACTIVE:
+            abort(400, "Pod is not migratable")
+        if src_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION):
+            abort(409, "Pod is being migrated")
         last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-        ping_destination(destination_url)
-        last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-        des_pod_annotations = create_des_pod(src_pod, destination_url)
-        last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-        if body.get('keep'):
-            keep = create_frontman(src_pod)
+        src_pod = lock_pod(name, namespace, migration_id)
         try:
-            checkpoint_id = uuid4().hex[:8]
-            src_pod = checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id)
-            _ = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+            last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+            ping_destination(destination_url)
+            last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+            des_pod_annotations = create_des_pod(src_pod, destination_url)
+            last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+            yield 'data: RESERVED\n\n'
+            if body.get('keep'):
+                keep = create_frontman(src_pod)
+            try:
+                checkpoint_id = uuid4().hex[:8]
+                src_pod = checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id)
+                _ = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+            except Exception as e:
+                delete_des_pod(src_pod, destination_url)
+                raise e
+            yield 'data: CHECKPOINTED\n\n'
+            restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id)
+            yield 'data: RESTORED\n\n'
         except Exception as e:
-            delete_des_pod(src_pod, destination_url)
-            raise e
-        restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id)
-    except Exception as e:
-        if keep:
-            delete_frontman(src_pod)
-        raise e
-    finally:
-        if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
-            update_pod_restart(name, namespace, START_MODE_ACTIVE)
-        release_pod(name, namespace)
-    try:
-        if body.get('redirect'):
             if keep:
-                update_frontman(src_pod, body.get('redirect'))
-            else:
-                create_frontman(src_pod, body.get('redirect'))
-        delete_pod(name, namespace)
-        if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS \
-                and src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
-            delete_pod(f"{name}-monitor", namespace)
-    except Exception as e:
-        abort(500, f"Error occurs at post-migration step: {e}")
+                delete_frontman(src_pod)
+            raise e
+        finally:
+            if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
+                update_pod_restart(name, namespace, START_MODE_ACTIVE)
+            release_pod(name, namespace)
+        try:
+            if body.get('redirect'):
+                if keep:
+                    update_frontman(src_pod, body.get('redirect'))
+                else:
+                    create_frontman(src_pod, body.get('redirect'))
+            delete_pod(name, namespace)
+            if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS \
+                    and src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
+                delete_pod(f"{name}-monitor", namespace)
+        except Exception as e:
+            abort(500, f"Error occurs at post-migration step: {e}")
+        yield 'data: DONE\n\n'
 
 
 def abort_if_error_exists(migration_id, name, namespace, last_checked_time):

@@ -1,6 +1,0 @@
-server {
-    listen       ${NGINX_PORT};
-    location / {
-        return 425;
-    }
-}
