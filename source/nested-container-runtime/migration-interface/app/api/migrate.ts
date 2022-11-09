@@ -17,7 +17,11 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 
+    console.log(1)
+
     await waitForIt(interfaceHost, interfacePort, request.log)
+
+    console.log(2)
 
     let responses
     if (pind) {
@@ -68,7 +72,11 @@ async function migrateOneContainerDind(checkpointId: string, interfaceHost: stri
             imageQueueInit(null)
         })
 
+    console.log(3)
+
     await imageQueueInitPromise
+
+    console.log(4)
 
     await Promise.all([
         transferContainerImage(interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
@@ -76,7 +84,11 @@ async function migrateOneContainerDind(checkpointId: string, interfaceHost: stri
         checkpointContainerDind(containerInfo.Id, checkpointId, exit, imageQueue, log)
     ])
 
+    console.log(5)
+
     await imageWatcher.close()
+
+    console.log(6)
 }
 
 async function migrateOneContainerPind(checkpointId: string, interfaceHost: string, interfacePort: string,
