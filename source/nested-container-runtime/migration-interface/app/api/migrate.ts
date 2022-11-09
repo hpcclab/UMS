@@ -17,8 +17,6 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 
-    console.log(1)
-
     await waitForIt(interfaceHost, interfacePort, request.log)
 
     console.log(2)

@@ -30,18 +30,26 @@ function findDestinationFileSystemId(containers: any, containerInfo: any) {
 }
 
 async function waitForIt(interfaceHost: string, interfacePort: string, log: FastifyLoggerInstance) {
+    console.log(interfaceHost)
+    console.log(interfacePort)
     await execBash(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t 0`, log)
 }
 
 async function execBash(command: string, log: FastifyLoggerInstance) {
+    console.log(command)
     try {
         const {
             stdout,
             stderr
         } = await exec(command)
+        console.log(999)
         log.debug(stdout)
+        console.log(888)
         log.error(stderr)
+        console.log(777)
     } catch (error: any) {
+        console.log(1111)
+        console.log(error)
         throw new HttpError(error.message, 500)
     }
 }
