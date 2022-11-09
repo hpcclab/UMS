@@ -42,13 +42,22 @@ async function pullImage(image: string, log: FastifyLoggerInstance) {
     }, log)
 }
 
-async function listContainer(log: FastifyLoggerInstance, params: any = null) {
+async function listContainer(containerSpecString: string, log: FastifyLoggerInstance, params: any = null) {
     const response = await requestDocker({
         method: 'get',
         url: '/containers/json',
         params: params
     }, log)
-    return response.message
+    const containerSpec = JSON.parse(containerSpecString
+        .replace(/\\\"/g, "\"").replace(/\\\\/g, "\\"))
+    return response.message.filter((containerInfo: { Names: string[] }) => {
+        for (const container of containerSpec) {
+            if (containerInfo.Names.includes(`/${container.name}`)) {
+                return true
+            }
+        }
+        return false
+    })
 }
 
 async function inspectContainer(containerName: string, log: FastifyLoggerInstance) {

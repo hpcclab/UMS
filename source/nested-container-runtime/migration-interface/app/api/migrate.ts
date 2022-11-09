@@ -10,11 +10,10 @@ import {AsyncBlockingQueue} from "../queue"
 
 
 async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, reply: FastifyReply) {
-    const containerInfos: any[] = await listContainer(request.log)
-
     const {checkpointId, interfaceHost, interfacePort, containers, volumes} = request.body
 
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
+    const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log)
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 

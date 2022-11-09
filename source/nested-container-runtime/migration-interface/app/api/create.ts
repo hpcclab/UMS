@@ -7,6 +7,15 @@ import {readFileSync} from "fs"
 async function create(request: FastifyRequest<{ Params: CreateRequestType }>, reply: FastifyReply) {
     const {containerName} = request.params
 
+    try {
+        await stopContainer(containerName, request.log)
+        await removeContainer(containerName, request.log)
+    } catch (error: any) {
+        if (error.statusCode !== 404) {
+            throw error
+        }
+    }
+
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
     const startMode = config[process.env.START_MODE_ANNOTATION!]
 
@@ -16,15 +25,6 @@ async function create(request: FastifyRequest<{ Params: CreateRequestType }>, re
     } else if (startMode === process.env.START_MODE_NULL) {
         reply.code(204)
         return
-    }
-
-    try {
-        await stopContainer(containerName, request.log)
-        await removeContainer(containerName, request.log)
-    } catch (error: any) {
-        if (error.statusCode !== 404) {
-            throw error
-        }
     }
 
     const containerSpec = JSON.parse(config[process.env.SPEC_CONTAINER_ANNOTATION!]

@@ -4,8 +4,9 @@ from dotenv import dotenv_values
 app = Flask(__name__)
 
 
-@app.route('/')
-def hello_world():
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
     config = dotenv_values('/etc/podinfo/annotations')
     if config.get('redirect') is not None:
         return redirect(config['redirect'], 301)

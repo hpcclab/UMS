@@ -13,7 +13,7 @@ async function restore(request: FastifyRequest<{ Body: BaseRequestType }>, reply
 
     let responses
     if (pind) {
-        const containerInfos: any[] = await listContainer(request.log, {all: true})
+        const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log, {all: true})
         await Promise.all(containerInfos.map(async containerInfo => {
             try {
                 await stopContainer(containerInfo.Id, request.log)
@@ -31,7 +31,7 @@ async function restore(request: FastifyRequest<{ Body: BaseRequestType }>, reply
             .map(fileName => restoreContainer(fileName, request.log))
         )
     } else {
-        const containerInfos: any[] = await listContainer(request.log, {filters: {status: ["created", "exited"]}})
+        const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log, {filters: {status: ["created", "exited"]}})
         if (containerInfos.length === 0) {
             throw new HttpError('No container found', 404)
         }

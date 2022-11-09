@@ -8,9 +8,9 @@ import dotenv from "dotenv"
 import {AsyncBlockingQueue} from "../queue"
 
 async function checkpoint(request: FastifyRequest<{ Body: CheckpointRequestType }>) {
-    const containerInfos: any[] = await listContainer(request.log)
     const {checkpointId, volumes} = request.body
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
+    const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log)
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 
