@@ -226,6 +226,7 @@ def create_frontman(src_pod, redirect_uri=None):
     create_pod(src['metadata']['namespace'], frontman_template)
     update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
                      {k: None for k in src['metadata']['labels']})
+    # todo wait pod ready
     return True
 
 
