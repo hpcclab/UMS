@@ -21,12 +21,19 @@ def list_api():
     #     connection.commit()
 
     return jsonify([{'name': pod.metadata.name, 'namespace': pod.metadata.namespace,
-                     'migratable': pod.metadata.annotations.get(MIGRATABLE_ANNOTATION, str(False)),
+                     'migratable': determine_migratable(pod),
                      'status': determine_status(pod)} for pod in pods])
 
 
+def determine_migratable(pod):
+    if pod.metadata.annotations:
+        return pod.metadata.annotations.get(MIGRATABLE_ANNOTATION, str(False))
+    return str(False)
+
+
 def determine_status(pod):
-    if pod.metadata.annotations.get(START_MODE_ANNOTATION, START_MODE_ACTIVE) == START_MODE_ACTIVE \
+    if pod.metadata.annotations \
+            and pod.metadata.annotations.get(START_MODE_ANNOTATION, START_MODE_ACTIVE) == START_MODE_ACTIVE \
             and pod.metadata.annotations.get(MIGRATION_ID_ANNOTATION) is None:
         return pod.status.phase
     return 'Migrating'
