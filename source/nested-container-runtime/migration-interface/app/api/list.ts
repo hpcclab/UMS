@@ -1,9 +1,12 @@
 import {FastifyReply, FastifyRequest} from "fastify"
 import {inspectContainer, listContainer} from "../docker"
 import {FastifyLoggerInstance} from "fastify/types/logger"
+import dotenv from "dotenv";
+import {readFileSync} from "fs";
 
 async function list(request: FastifyRequest, reply: FastifyReply) {
-    const containerInfos: any[] = await listContainer(request.log, {all: true})
+    const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
+    const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log, {all: true})
     return Promise.all(containerInfos.map(containerInfo => getFs(containerInfo.Id, request.log)))
 }
 

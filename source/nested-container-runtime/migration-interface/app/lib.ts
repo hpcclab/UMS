@@ -17,7 +17,7 @@ class HttpError extends Error {
 function findDestinationFileSystemId(containers: any, containerInfo: any) {
     let destinationId, destinationFs
     for (const container of containers) {
-        if (container.name === containerInfo.Names[0]) {
+        if (containerInfo.Names.includes(container.name)) {
             destinationId = container.id
             destinationFs = container.fs
             break

@@ -82,6 +82,7 @@ def migrate(body, migration_id):
             delete_des_pod(src_pod, destination_url)
             raise e
         restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id)
+        # todo try deleting des pod if timeout
     except Exception as e:
         if keep:
             delete_frontman(src_pod)

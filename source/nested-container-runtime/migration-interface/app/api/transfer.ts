@@ -9,11 +9,10 @@ import {readFileSync} from "fs"
 
 
 async function transfer(request: FastifyRequest<{ Body: MigrateRequestType }>) {
-    const containerInfos: any[] = await listContainer(request.log)
-
     const {checkpointId, interfaceHost, interfacePort, containers, volumes} = request.body
 
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
+    const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log)
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 
     await waitForIt(interfaceHost, interfacePort, request.log)
