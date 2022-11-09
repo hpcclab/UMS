@@ -13,7 +13,6 @@ const server = fastify({
 registerPath(server)
 
 server.setErrorHandler(function (error, request, reply) {
-    console.log(error)
     this.log.error(error)
     reply.status(error.statusCode || 500).send(error)
 })
