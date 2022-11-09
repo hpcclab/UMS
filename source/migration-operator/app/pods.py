@@ -7,9 +7,9 @@ from kubernetes.client import ApiException
 
 from share.const import MIGRATABLE_ANNOTATION, SYNC_PORT_ANNOTATION, SYNC_HOST_ANNOTATION, \
     VOLUME_LIST_ANNOTATION, INTERFACE_ANNOTATION, INTERFACE_DIND, INTERFACE_FF, INTERFACE_PIND, \
-    MIGRATABLE_TRUE, MIGRATABLE_POSSIBLE, MIGRATABLE_FALSE, BYPASS_ANNOTATION
-from share.lib import send_event, send_error_event, inject_service, gather
+    MIGRATABLE_TRUE, MIGRATABLE_POSSIBLE, MIGRATABLE_FALSE
 from share.env import HOST_NAME
+from share.lib import send_event, send_error_event, inject_service, gather
 
 
 def check_pod_ready(event, **_):
@@ -18,7 +18,7 @@ def check_pod_ready(event, **_):
            all([condition['status'] == str(True) for condition in event['object']['status']['conditions']])
 
 
-@kopf.on.event('v1', 'pods', annotations={BYPASS_ANNOTATION: kopf.ABSENT, MIGRATABLE_ANNOTATION: MIGRATABLE_FALSE}, when=check_pod_ready)
+@kopf.on.event('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: MIGRATABLE_FALSE}, when=check_pod_ready)
 def report_ready(name, annotations, body, patch, **_):
     if annotations.get(INTERFACE_ANNOTATION) is None:
         patch.metadata['annotations'] = {MIGRATABLE_ANNOTATION: MIGRATABLE_POSSIBLE}
@@ -36,15 +36,15 @@ def check_pod_not_ready(event, **_):
     return not(check_pod_ready(event))
 
 
-@kopf.on.event('v1', 'pods', annotations={BYPASS_ANNOTATION: kopf.ABSENT, MIGRATABLE_ANNOTATION: MIGRATABLE_TRUE}, when=check_pod_not_ready)
-@kopf.on.event('v1', 'pods', annotations={BYPASS_ANNOTATION: kopf.ABSENT, MIGRATABLE_ANNOTATION: MIGRATABLE_POSSIBLE}, when=check_pod_not_ready)
+@kopf.on.event('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: MIGRATABLE_TRUE}, when=check_pod_not_ready)
+@kopf.on.event('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: MIGRATABLE_POSSIBLE}, when=check_pod_not_ready)
 def report_failure(name, body, patch, **_):
     send_error_event(body, name, 'pod becomes not ready')
     patch.metadata['annotations'] = {MIGRATABLE_ANNOTATION: MIGRATABLE_FALSE}
 
 
-@kopf.on.create('v1', 'pods', annotations={BYPASS_ANNOTATION: kopf.ABSENT, INTERFACE_ANNOTATION: INTERFACE_DIND})
-@kopf.on.create('v1', 'pods', annotations={BYPASS_ANNOTATION: kopf.ABSENT, INTERFACE_ANNOTATION: INTERFACE_PIND})
+@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_DIND})
+@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_PIND})
 def expose_service(logger, name, meta, namespace, spec, body, patch, **_):
     try:
         service_template = inject_service('../template/service.yml', name, meta['labels'])
@@ -74,7 +74,7 @@ async def expose_one_service_ff(logger, name, meta, namespace, container_name):
     return container_name, str(service.spec.ports[0].node_port)
 
 
-@kopf.on.create('v1', 'pods', annotations={BYPASS_ANNOTATION: kopf.ABSENT, INTERFACE_ANNOTATION: INTERFACE_FF})
+@kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_FF})
 def expose_service_ff(logger, name, meta, namespace, spec, body, patch, **_):
     try:
         results = asyncio.run(gather([expose_one_service_ff(
@@ -93,7 +93,7 @@ def expose_service_ff(logger, name, meta, namespace, spec, body, patch, **_):
         return
 
 
-@kopf.on.update('v1', 'pods', annotations={BYPASS_ANNOTATION: kopf.ABSENT}, field=f'metadata.annotations.{SYNC_PORT_ANNOTATION}', old=kopf.ABSENT, new=kopf.PRESENT)
+@kopf.on.update('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT}, field=f'metadata.annotations.{SYNC_PORT_ANNOTATION}', old=kopf.ABSENT, new=kopf.PRESENT)
 def report_expose(name, annotations, body, **_):
     if 'podIP' in body['status']:
         send_event(body, 'ready', {'pod': name, 'annotations': {

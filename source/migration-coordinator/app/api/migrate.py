@@ -71,6 +71,7 @@ def migrate(body, migration_id):
         last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         des_pod_annotations = create_des_pod(src_pod, destination_url)
         last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+        # todo try deleting des pod if timeout
         if body.get('keep'):
             keep = create_frontman(src_pod)
         try:
