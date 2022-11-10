@@ -129,7 +129,7 @@ async function checkpointContainerDind(name: string, checkpointId: string, exit:
 
 async function checkpointContainerPind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
     const start = Date.now()
-    await execBash(`docker container checkpoint ${name} -e /var/lib/containers/storage/${checkpointId}-${name}.tar.gz --tcp-established${exit ? "" : " -R"}`, log)
+    await execBash(`docker container checkpoint ${name} -e /var/lib/containers/storage/${checkpointId}-${name}.tar.gz --tcp-established --file-locks${exit ? "" : " -R"}`, log)
     console.log(`checkpoint: ${Date.now() - start}`)
     imageQueue.done = true
     return ""
@@ -137,7 +137,7 @@ async function checkpointContainerPind(name: string, checkpointId: string, exit:
 
 async function restoreContainer(fileName: string, log: FastifyLoggerInstance) {
     const start = Date.now()
-    await execBash(`docker container restore -i /var/lib/containers/storage/${fileName} --tcp-established`, log)
+    await execBash(`docker container restore -i /var/lib/containers/storage/${fileName} --tcp-established --file-locks`, log)
     console.log(`restore: ${Date.now() - start}`)
     return ""
 }

@@ -9,8 +9,8 @@ metadata:
     migration-interface: 'dind'
 spec:
   containers:
-    - name: proxy
-      image: ghcr.io/hpcclab/live_service_migration/migration-proxy
+    - name: streaming
+      image: ghcr.io/hpcclab/live_service_migration/migration-proxy:main
       ports:
         - containerPort: 80
       env:
@@ -46,7 +46,7 @@ metadata:
 spec:
   containers:
     - name: proxy
-      image: ghcr.io/hpcclab/live_service_migration/migration-proxy
+      image: ghcr.io/hpcclab/live_service_migration/migration-proxy:main
       ports:
         - containerPort: 80
       env:
