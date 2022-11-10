@@ -9,7 +9,7 @@ from flask import Blueprint, request, abort
 from app.const import VOLUME_LIST_ANNOTATION, SYNC_PORT_ANNOTATION, SYNC_HOST_ANNOTATION, \
     START_MODE_ANNOTATION, START_MODE_ACTIVE, START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, INTERFACE_PIND, \
     INTERFACE_FF, START_MODE_NULL
-from app.kubernetes_client import create_pod, wait_pod_ready as wait_pod_ready_ff
+from app.kubernetes_client import create_pod, wait_pod_ready_ff
 from app.lib import get_pod
 
 create_api_blueprint = Blueprint('create_api', __name__)

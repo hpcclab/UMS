@@ -75,6 +75,25 @@ def log_pod(pod_name, namespace, container_name):
 
 def wait_pod_ready(pod):
     name = pod['metadata']['name']
+    namespace = pod['metadata']['namespace']
+    w = watch.Watch()
+    for event in w.stream(func=client.CoreV1Api().list_namespaced_pod,
+                          namespace=namespace,
+                          field_selector=f'metadata.name={name}',
+                          timeout_seconds=60):
+        if event["object"].status.phase == "Running":
+            w.stop()
+            return
+        # event.type: ADDED, MODIFIED, DELETED
+        if event["type"] == "DELETED":
+            # Pod was deleted while we were waiting for it to start.
+            w.stop()
+            abort(500, f'{name} deleted before it started')
+    abort(504, f'Timeout while waiting {name} to be ready')
+
+
+def wait_pod_ready_ff(pod):
+    name = pod['metadata']['name']
     current_time = datetime.now(tz=tzlocal())
     w = watch.Watch()
     for event in w.stream(func=client.CoreV1Api().list_event_for_all_namespaces, timeout_seconds=60):

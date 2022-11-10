@@ -15,7 +15,7 @@ from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE
     INTERFACE_FF, START_MODE_NULL, BYPASS_ANNOTATION
 from app.db import get_db
 from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE
-from app.kubernetes_client import create_pod, update_pod_label
+from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready
 from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
     delete_pod, exec_pod, check_error_event
 
@@ -223,10 +223,10 @@ def create_frontman(src_pod, redirect_uri=None):
     if not frontman_template['spec']['containers']:
         return False
 
-    create_pod(src['metadata']['namespace'], frontman_template)
+    wait_pod_ready(create_pod(src['metadata']['namespace'], frontman_template))
+
     update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
                      {k: None for k in src['metadata']['labels']})
-    # todo wait pod ready
     return True
 
 
