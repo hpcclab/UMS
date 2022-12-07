@@ -17,6 +17,7 @@ create_api_blueprint = Blueprint('create_api', __name__)
 
 @create_api_blueprint.route("/create", methods=['POST'])
 def create_api():
+    start_time = datetime.now(tz=tzlocal())
     body = request.get_json()
     new_pod = create_new_pod(body)
     if body['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
@@ -32,7 +33,8 @@ def create_api():
         current_containers = None  # todo
     return {
         **msg['annotations'],
-        'current-containers': current_containers
+        'current-containers': current_containers,
+        'overhead': datetime.now(tz=tzlocal()) - start_time
     }
 
 

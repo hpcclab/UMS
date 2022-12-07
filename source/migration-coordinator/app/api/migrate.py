@@ -13,7 +13,7 @@ from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE
     START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, INTERFACE_PIND, \
     INTERFACE_FF, START_MODE_NULL, BYPASS_ANNOTATION
-from app.db import get_db
+# from app.db import get_db
 from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE
 from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready
 from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
@@ -34,23 +34,26 @@ def migrate_api():
     if destination_url is None:
         abort(400, 'destinationUrl is null')
 
-    connection = get_db()
+    # connection = get_db()
 
     migration_id = uuid4().hex[:8]
 
-    try:
-        connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
-        connection.commit()
-        migrate(body, migration_id)
-    finally:
-        connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
-        connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
-        connection.commit()
+    start_time, created_time, checkpointed_time, restored_time = migrate(body, migration_id)
+    # try:
+    #     connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
+    #     connection.commit()
+    #     migrate(body, migration_id)
+    # finally:
+    #     connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
+    #     connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
+    #     connection.commit()
 
-    return f"migration complete! id: {migration_id}"
+    return f"migration complete! id: {migration_id}, {start_time}, {created_time}, {checkpointed_time}, {restored_time}"
 
 
 def migrate(body, migration_id):
+    # todo measure "ping api" latency
+    start_time = datetime.now(tz=tzlocal())
     name = body['name']
     namespace = body.get('namespace', 'default')
     destination_url = body['destinationUrl']
@@ -63,24 +66,27 @@ def migrate(body, migration_id):
         abort(400, "Pod is not migratable")
     if src_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION):
         abort(409, "Pod is being migrated")
-    last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+    # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
     src_pod = lock_pod(name, namespace, migration_id)
     try:
-        last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+        # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         ping_destination(destination_url)
-        last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+        # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         des_pod_annotations = create_des_pod(src_pod, destination_url)
-        last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+        # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         # todo try deleting des pod if timeout
+        created_time = datetime.now(tz=tzlocal())
         if body.get('keep'):
             keep = create_frontman(src_pod)
         try:
             checkpoint_id = uuid4().hex[:8]
+            # todo actual checkpoint time (interface)
             src_pod = checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id)
-            _ = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
+            # _ = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         except Exception as e:
             delete_des_pod(src_pod, destination_url)
             raise e
+        checkpointed_time = datetime.now(tz=tzlocal())
         restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id)
         # todo try deleting des pod if timeout
     except Exception as e:
@@ -103,14 +109,17 @@ def migrate(body, migration_id):
             delete_pod(f"{name}-monitor", namespace)
     except Exception as e:
         abort(500, f"Error occurs at post-migration step: {e}")
+    restored_time = datetime.now(tz=tzlocal())
+    return start_time, created_time, checkpointed_time, restored_time
 
 
-def abort_if_error_exists(migration_id, name, namespace, last_checked_time):
-    cur = get_db().execute("SELECT * FROM message WHERE migration_id = ?", (migration_id,))
-    rv = cur.fetchall()
-    if rv:
-        abort(rv[0]['message'])
-    return check_error_event(name, namespace, last_checked_time)
+# def abort_if_error_exists(migration_id, name, namespace, last_checked_time):
+#     cur = get_db().execute("SELECT * FROM message WHERE migration_id = ?", (migration_id,))
+#     rv = cur.fetchall()
+#     if rv:
+#         abort(rv[0]['message'])
+#     return check_error_event(name, namespace, last_checked_time)
+# todo check if pod restart: checkpoint step and restore step
 
 
 def ping_destination(destination_url):

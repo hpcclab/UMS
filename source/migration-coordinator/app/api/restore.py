@@ -17,6 +17,7 @@ restore_api_blueprint = Blueprint('restore_api', __name__)
 
 @restore_api_blueprint.route("/restore", methods=['POST'])
 def restore_api():
+    start_time = datetime.now(tz=tzlocal())
     body = request.get_json()
 
     name = body.get('name')
@@ -38,7 +39,8 @@ def restore_api():
     if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
         abort(409, "Pod is being migrated")
 
-    return restore(des_pod, checkpoint_id)
+    restore(des_pod, checkpoint_id)
+    return {'overhead': datetime.now(tz=tzlocal()) - start_time}
 
 
 def restore(des_pod, checkpoint_id):
