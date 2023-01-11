@@ -60,6 +60,10 @@ async def exec_pod(pod_name, namespace, command, container_name):
                   stderr=True, stdin=True, stdout=True, tty=False, )
 
 
+def log_pod(pod_name, namespace, container_name):
+    return client.CoreV1Api().read_namespaced_pod_log(pod_name, namespace, container=container_name)
+
+
 def wait_pod_ready(pod):
     name = pod['metadata']['name']
     current_time = datetime.now(tz=tzlocal())

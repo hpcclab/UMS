@@ -10,8 +10,8 @@ from dateutil.tz import tzlocal
 from flask import Blueprint, request, abort
 
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
-    START_MODE_PASSIVE, START_MODE_FAIL, ENGINE_ANNOTATION, ENGINE_DIND, VOLUME_LIST_ANNOTATION, \
-    INTERFACE_HOST_ANNOTATION, INTERFACE_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS
+    START_MODE_PASSIVE, START_MODE_FAIL, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
+    SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, START_MODE_NULL
 from app.db import get_db
 from app.env import EVAL_REDIRECTOR, env, EVAL_KEEPER, ORCHESTRATOR_TYPE
 from app.kubernetes_client import create_pod, update_pod_label
@@ -39,13 +39,13 @@ def migrate_api():
     try:
         connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
         connection.commit()
-        migrate(body, migration_id)
+        res = migrate(body, migration_id)
     finally:
         connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
         connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
         connection.commit()
 
-    return f"migration complete! id: {migration_id}"
+    return f"migration complete! id: {migration_id}, res: {res}"
 
 
 def migrate(body, migration_id):
@@ -74,7 +74,7 @@ def migrate(body, migration_id):
             keep = create_keeper(src_pod)
         try:
             checkpoint_id = uuid4().hex[:8]
-            src_pod = checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id)
+            src_pod, res = checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id)
             _ = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         except Exception as e:
             delete_des_pod(src_pod, destination_url)
@@ -83,7 +83,7 @@ def migrate(body, migration_id):
     finally:
         if body.get('keep') and keep:
             delete_keeper(src_pod)
-        if src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
+        if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_DIND:
             update_pod_restart(name, namespace, START_MODE_ACTIVE)
         release_pod(name, namespace)
     try:
@@ -91,14 +91,15 @@ def migrate(body, migration_id):
             create_redirector(src_pod, body.get('redirect'))
         delete_pod(name, namespace)
         if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS \
-                and src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
+                and src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_DIND:
             delete_pod(f"{name}-monitor", namespace)
     except Exception as e:
         abort(500, f"Error occurs at post-migration step: {e}")
+    return res
 
 
 def migratable(pod):
-    if bool(pod['metadata']['annotations'].get(ENGINE_ANNOTATION)):
+    if bool(pod['metadata']['annotations'].get(INTERFACE_ANNOTATION)):
         return True
     name = pod['metadata']['name']
     namespace = pod['metadata'].get('namespace', 'default')
@@ -144,37 +145,65 @@ def create_des_pod(src_pod, destination_url):
 def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    if src_pod['metadata']['annotations'].get(ENGINE_ANNOTATION) == ENGINE_DIND:
-        src_pod = update_pod_restart(name, namespace, START_MODE_FAIL)
-        checkpoint_and_transfer_dind(src_pod, checkpoint_id, des_pod_annotations)
+    if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_DIND:
+        src_pod = update_pod_restart(name, namespace, START_MODE_NULL)
+        res = checkpoint_and_transfer_dind(src_pod, checkpoint_id, des_pod_annotations)
     else:
-        checkpoint_and_transfer_ff(src_pod, des_pod_annotations)
-    return src_pod
+        res = checkpoint_and_transfer_ff(src_pod, des_pod_annotations)
+    return src_pod, res
 
 
 def checkpoint_and_transfer_ff(src_pod, des_pod_annotations):
     volume_list = json.loads(src_pod['metadata']['annotations'][VOLUME_LIST_ANNOTATION])
-    interface_host = des_pod_annotations[INTERFACE_HOST_ANNOTATION]
-    interface_port = json.loads(des_pod_annotations[INTERFACE_PORT_ANNOTATION])
+    interface_host = des_pod_annotations[SYNC_HOST_ANNOTATION]
+    interface_port = json.loads(des_pod_annotations[SYNC_PORT_ANNOTATION])
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
+    res = asyncio.run(gather([exec_pod(
+        name,
+        namespace,
+        'top -n 1 -b | grep darknet | tr -s " " | cut -d " " -f 7',
+        container['name'],
+    ) for container in src_pod['spec']['containers']]))
     asyncio.run(gather([exec_pod(
         name,
         namespace,
         f"if aws --endpoint-url http://{interface_host}:{interface_port[container['name']]} s3 ls 's3://checkpoints' 2>&1 | grep -q 'NoSuchBucket'; then aws --endpoint-url http://{interface_host}:{interface_port[container['name']]} s3 mb 's3://checkpoints'; fi && S3_CMD='aws --endpoint-url http://{interface_host}:{interface_port[container['name']]} s3' fastfreeze checkpoint --leave-running {'--preserve-path' + volume_list[container['name']] if container['name'] in volume_list else ''}",
         container['name'],
     ) for container in src_pod['spec']['containers']]))
+    res += asyncio.run(gather([exec_pod(
+        name,
+        namespace,
+        'top -n 1 -b | grep darknet | tr -s " " | cut -d " " -f 7',
+        container['name'],
+    ) for container in src_pod['spec']['containers']]))
+    return res
 
 
 def checkpoint_and_transfer_dind(src_pod, checkpoint_id, des_pod_annotations):
+    name = src_pod['metadata']['name']
+    namespace = src_pod['metadata'].get('namespace', 'default')
+    res = [asyncio.run(exec_pod(
+        name,
+        namespace,
+        'docker stats yolo --no-stream --format "{{.MemUsage}}" | cut -f1 -d " "',
+        'runtime',
+    ))]
     response = requests.post(f"http://{src_pod['status']['podIP']}:8888/migrate", json={
         'checkpointId': checkpoint_id,
-        'interfaceHost': des_pod_annotations[INTERFACE_HOST_ANNOTATION],
-        'interfacePort': des_pod_annotations[INTERFACE_PORT_ANNOTATION],
+        'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
+        'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
         'containers': des_pod_annotations['current-containers'],
         'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
     })
     response.raise_for_status()
+    res += [asyncio.run(exec_pod(
+        name,
+        namespace,
+        'docker stats yolo --no-stream --format "{{.MemUsage}}" | cut -f1 -d " "',
+        'runtime',
+    ))]
+    return res
 
 
 def delete_des_pod(src_pod, destination_url):
@@ -202,7 +231,7 @@ def create_keeper(src_pod):
     src = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     keeper_template['metadata'] = src['metadata']
     keeper_template['metadata']['name'] += '-keeper'
-    keeper_template['metadata']['annotations'].pop(MIGRATABLE_ANNOTATION)
+    keeper_template['metadata']['annotations'].pop(MIGRATABLE_ANNOTATION, None)
 
     keeper_template['spec']['containers'] = [{
         'name': f"{container['name']}-{port['containerPort']}",
@@ -237,7 +266,7 @@ def create_redirector(src_pod, new_uri):
 
     redirector_template['metadata'] = src['metadata']
     redirector_template['metadata']['name'] += '-redirector'
-    redirector_template['metadata']['annotations'].pop(MIGRATABLE_ANNOTATION)
+    redirector_template['metadata']['annotations'].pop(MIGRATABLE_ANNOTATION, None)
 
     redirector_template['spec']['containers'] = [{
         'name': f"{container['name']}-{port['containerPort']}",
