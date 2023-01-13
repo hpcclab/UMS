@@ -6,7 +6,7 @@ RUN pip install -r requirements.txt \
 ENV FLASK_APP main
 #CMD flask init-db && flask run --host=0.0.0.0
 CMD flask run --host=0.0.0.0
-HEALTHCHECK CMD wget -q localhost || exit 1
+HEALTHCHECK CMD wget -q localhost/healthcheck || exit 1
 RUN #mkdir /sqlite3
 COPY wait-for-it.sh .
 COPY main.py .

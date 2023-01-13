@@ -1,5 +1,4 @@
 loadDefaultConfig()
-require('dotenv').config()
 import fastify from 'fastify'
 import {registerPath} from './app'
 
@@ -17,16 +16,15 @@ server.setErrorHandler(function (error, request, reply) {
     reply.status(error.statusCode || 500).send(error)
 })
 
-server.listen(8888, '0.0.0.0', (err, address) => {
+server.listen({ port: 8888, host: '0.0.0.0' }, (err, address) => {
     if (err) {
         console.error(err)
         process.exit(1)
     }
-    console.log(`Server listening at ${address}`)
 })
 
 function loadDefaultConfig() {
-    process.env.LOG_LEVEL = 'info'
+    process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'info'
     process.env.DOMAIN = 'migration'
     process.env.SPEC_CONTAINER_ANNOTATION = `${process.env.DOMAIN}-containers`
     process.env.START_MODE_ANNOTATION = `${process.env.DOMAIN}-start-mode`

@@ -85,9 +85,11 @@ spec:
           startupProbe:
             httpGet:
               port: 5000
+              path: /healthcheck
           livenessProbe:
             httpGet:
               port: 5000
+              path: /healthcheck
 ---
 apiVersion: v1
 kind: Service

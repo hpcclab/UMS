@@ -2,11 +2,13 @@ from flask import Flask
 from kubernetes.client import ApiException
 from requests.exceptions import RequestException
 from werkzeug.exceptions import HTTPException
+from werkzeug import serving
 from docker.errors import DockerException
 from app.api.create import create_api_blueprint
 from app.api.delete import delete_api_blueprint
 from app.api.demo import demo_api_blueprint
 # from app.api.error import error_api_blueprint
+from app.api.healthcheck import healthcheck_api_blueprint
 from app.api.list import list_api_blueprint
 from app.api.migrate import migrate_api_blueprint
 from app.api.ping import ping_api_blueprint
@@ -47,6 +49,7 @@ def create_app(config):
 
     # app.register_blueprint(error_api_blueprint)
     app.register_blueprint(ping_api_blueprint)
+    app.register_blueprint(healthcheck_api_blueprint)
     app.register_blueprint(list_api_blueprint)
     app.register_blueprint(create_api_blueprint)
     app.register_blueprint(migrate_api_blueprint)
@@ -63,5 +66,14 @@ def create_app(config):
     app.errorhandler(DockerException)(handle_exception)
 
     app.after_request(after_request)
+
+    parent_log_request = serving.WSGIRequestHandler.log_request
+
+    def log_request(self, *args, **kwargs):
+        if self.path == '/healthcheck':
+            return
+        parent_log_request(self, *args, **kwargs)
+
+    serving.WSGIRequestHandler.log_request = log_request
 
     return app
