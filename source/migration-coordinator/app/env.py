@@ -4,6 +4,7 @@ from app.const import ORCHESTRATOR_TYPE_KUBERNETES
 
 ORCHESTRATOR_TYPE = getenv('ORCHESTRATOR_TYPE', ORCHESTRATOR_TYPE_KUBERNETES)
 MARATHON_URL = getenv('MARATHON_URL', 'http://localhost:8080')
+NATIVE_INTERFACE_SERVICE = getenv('NATIVE_INTERFACE_SERVICE', 'migration-native-interface')
 
 DIND_IMAGE = getenv('DIND_IMAGE', 'migration-dind')
 PIND_IMAGE = getenv('PIND_IMAGE', 'migration-pind')

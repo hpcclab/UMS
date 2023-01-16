@@ -13,14 +13,15 @@ from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE
     START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, INTERFACE_PIND, \
     INTERFACE_FF, START_MODE_NULL, BYPASS_ANNOTATION
-# from app.db import get_db
-from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE
+from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE, NATIVE_INTERFACE_SERVICE
 from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready
 from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
     delete_pod, exec_pod, check_error_event
 
 migrate_api_blueprint = Blueprint('migrate_api', __name__)
 
+
+# todo disallowed
 
 @migrate_api_blueprint.route("/migrate", methods=['POST'])
 def migrate_api():
@@ -34,19 +35,9 @@ def migrate_api():
     if destination_url is None:
         abort(400, 'destinationUrl is null')
 
-    # connection = get_db()
-
     migration_id = uuid4().hex[:8]
 
     start_time, created_time, checkpointed_time, restored_time = migrate(body, migration_id)
-    # try:
-    #     connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
-    #     connection.commit()
-    #     migrate(body, migration_id)
-    # finally:
-    #     connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
-    #     connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
-    #     connection.commit()
 
     return f"migration complete! id: {migration_id}, {start_time}, {created_time}, {checkpointed_time}, {restored_time}"
 
@@ -70,9 +61,12 @@ def migrate(body, migration_id):
     src_pod = lock_pod(name, namespace, migration_id)
     try:
         # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-        ping_destination(destination_url)
+        des_info = ping_destination(destination_url)
         # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-        des_pod_annotations = create_des_pod(src_pod, destination_url)
+        if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND, INTERFACE_FF]:
+            des_pod_annotations = create_des_pod(src_pod, destination_url)
+        else:
+            des_pod_annotations = des_info
         # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         # todo try deleting des pod if timeout
         created_time = datetime.now(tz=tzlocal())
@@ -84,7 +78,8 @@ def migrate(body, migration_id):
             src_pod = checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id)
             # _ = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
         except Exception as e:
-            delete_des_pod(src_pod, destination_url)
+            if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND, INTERFACE_FF]:
+                delete_des_pod(src_pod, destination_url)
             raise e
         checkpointed_time = datetime.now(tz=tzlocal())
         restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id)
@@ -103,7 +98,8 @@ def migrate(body, migration_id):
                 update_frontman(src_pod, body.get('redirect'))
             else:
                 create_frontman(src_pod, body.get('redirect'))
-        delete_pod(name, namespace)
+        if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND, INTERFACE_FF]:
+            delete_pod(name, namespace)
         if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS \
                 and src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
             delete_pod(f"{name}-monitor", namespace)
@@ -127,6 +123,8 @@ def ping_destination(destination_url):
     response.raise_for_status()
     if response.text != get_information():  # todo check native support
         abort(409, 'Cannot migrate to incompatible destination')
+    #todo fix mockup
+    return {SYNC_HOST_ANNOTATION: '10.131.36.34.nip.io', SYNC_PORT_ANNOTATION: '30002'}
 
 
 def create_des_pod(src_pod, destination_url):
@@ -153,8 +151,23 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
     elif src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_FF:
         checkpoint_and_transfer_ff(src_pod, des_pod_annotations)
     else:
-        pass  # todo
+        # todo check native support
+        checkpoint_and_transfer_native(src_pod, checkpoint_id, des_pod_annotations)
     return src_pod
+
+
+# todo sort and move ff-based and frontman to source dir
+def checkpoint_and_transfer_native(src_pod, checkpoint_id, des_pod_annotations):
+    response = requests.post(f"http://{NATIVE_INTERFACE_SERVICE}:8888/migrate", json={
+        'checkpointId': checkpoint_id,
+        'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
+        'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
+        'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
+        # 'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
+        #todo check if volume is migrated
+    })
+    response.raise_for_status()
+    # todo remove custom resource
 
 
 def checkpoint_and_transfer_ff(src_pod, des_pod_annotations):
@@ -200,7 +213,9 @@ def restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoi
                              json={'migrationId': migration_id,
                                    'checkpointId': checkpoint_id,
                                    'name': name,
-                                   'namespace': namespace})
+                                   'namespace': namespace,
+                                   'native': src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) not in [INTERFACE_DIND, INTERFACE_PIND, INTERFACE_FF],
+                                   'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))})
     response.raise_for_status()
 
 

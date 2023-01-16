@@ -10,6 +10,7 @@ from flask import Blueprint, request, abort
 from app.api.create import probe_all
 from app.const import INTERFACE_ANNOTATION, INTERFACE_DIND, START_MODE_FAIL, MIGRATION_ID_ANNOTATION, \
     START_MODE_ACTIVE, INTERFACE_PIND, INTERFACE_FF
+from app.env import NATIVE_INTERFACE_SERVICE
 from app.lib import get_pod, update_pod_restart, release_pod, gather, exec_pod, log_pod
 
 restore_api_blueprint = Blueprint('restore_api', __name__)
@@ -34,13 +35,17 @@ def restore_api():
 
     namespace = body.get('namespace', 'default')
 
-    des_pod = get_pod(name, namespace)
+    native = body.get('native', False)
+    if not native:
+        des_pod = get_pod(name, namespace)
 
-    if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
-        abort(409, "Pod is being migrated")
+        if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
+            abort(409, "Pod is being migrated")
+    else:
+        des_pod = body.get('template')
 
     restore(des_pod, checkpoint_id)
-    return {'overhead': datetime.now(tz=tzlocal()) - start_time}
+    return {'overhead': str(datetime.now(tz=tzlocal()) - start_time)}
 
 
 def restore(des_pod, checkpoint_id):
@@ -50,12 +55,13 @@ def restore(des_pod, checkpoint_id):
         restore_dind(des_pod, checkpoint_id)
         wait_pod_ready(des_pod)
         update_pod_restart(name, namespace, START_MODE_ACTIVE)
+        release_pod(name, namespace)
     elif des_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_FF:
         update_pod_restart(name, namespace, START_MODE_ACTIVE)
         wait_pod_ready_ff(des_pod)
+        release_pod(name, namespace)
     else:
-        pass  # todo
-    return release_pod(name, namespace)
+        restore_native(des_pod, checkpoint_id)
 
 
 def restore_dind(des_pod, checkpoint_id):
@@ -63,6 +69,17 @@ def restore_dind(des_pod, checkpoint_id):
         'checkpointId': checkpoint_id
     })
     response.raise_for_status()
+
+
+def restore_native(des_pod, checkpoint_id):
+    response = requests.post(f"http://{NATIVE_INTERFACE_SERVICE}:8888/restore", json={
+        'checkpointId': checkpoint_id,
+        'template': des_pod
+        # 'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
+        #todo check if volume is migrated
+    })
+    response.raise_for_status()
+    # todo remove custom resource
 
 
 def wait_pod_ready(pod):
