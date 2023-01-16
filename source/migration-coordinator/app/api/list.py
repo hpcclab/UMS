@@ -10,16 +10,6 @@ list_api_blueprint = Blueprint('list_api', __name__)
 def list_api():
     pods = list_pod().items
 
-    # connection = get_db()
-    #
-    # try:
-    #     connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
-    #     connection.commit()
-    # finally:
-    #     connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
-    #     connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
-    #     connection.commit()
-
     return jsonify([{'name': pod.metadata.name, 'namespace': pod.metadata.namespace,
                      'migratable': determine_migratable(pod),
                      'status': determine_status(pod)} for pod in pods])

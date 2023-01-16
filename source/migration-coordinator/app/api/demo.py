@@ -13,7 +13,6 @@ from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE
     START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, INTERFACE_PIND, \
     INTERFACE_FF, START_MODE_NULL, BYPASS_ANNOTATION
-# from app.db import get_db
 from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE
 from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready
 from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
@@ -34,20 +33,9 @@ def demo_api():
     if destination_url is None:
         abort(400, 'destinationUrl is null')
 
-    # connection = get_db()
-
     migration_id = uuid4().hex[:8]
 
     return Response(migrate(body, migration_id, current_app.app_context()), mimetype="text/event-stream")
-
-    # try:
-    #     connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
-    #     connection.commit()
-    #     return Response(migrate(body, migration_id, current_app.app_context()), mimetype="text/event-stream")
-    # finally:
-    #     connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
-    #     connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
-    #     connection.commit()
 
 
 def migrate(body, migration_id, context):
