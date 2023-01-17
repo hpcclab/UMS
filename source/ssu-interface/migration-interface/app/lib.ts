@@ -57,7 +57,7 @@ async function execBash(command: string, log: FastifyBaseLogger) {
             stdout,
             stderr
         } = await exec(command)
-        log.error(stdout)
+        log.debug(stdout)
         log.error(stderr)
     } catch (error: any) {
         throw new HttpError(error.message, 500)
