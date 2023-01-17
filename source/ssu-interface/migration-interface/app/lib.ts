@@ -12,6 +12,7 @@ class HttpError extends Error {
     constructor(message: string, statusCode: number) {
         super(message)
         this.statusCode = statusCode
+        Object.setPrototypeOf(this, new.target.prototype)
     }
 }
 
@@ -23,19 +24,17 @@ const axios: AxiosInstance = require("axios").default.create({
 
 async function requestAxios(config: AxiosRequestConfig, log: FastifyBaseLogger) {
     try {
-        console.log('j')
         await waitForIt(`${process.env.HOST}`, '5000', log)
-        console.log('k')
         const response = await axios(config)
-        console.log('l')
-        log.debug(response.data)
+        log.debug(JSON.stringify(response.data))
         return {statusCode: response.status, message: response.data}
     } catch (error: any) {
+        log.debug(JSON.stringify(error))
         if (error.response) {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
-            if (error.response.status > 399) throw new HttpError(error.response.data, error.response.status)
-            return {statusCode: error.response.status, message: error.response.data}
+            if (error.response.status > 399) throw new HttpError(JSON.stringify(error.response.data), error.response.status)
+            return {statusCode: error.response.status, message: JSON.stringify(error.response.data)}
         } else if (error.request) {
             // The request was made but no response was received
             // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
@@ -49,7 +48,6 @@ async function requestAxios(config: AxiosRequestConfig, log: FastifyBaseLogger) 
 }
 
 async function waitForIt(interfaceHost: string, interfacePort: string, log: FastifyBaseLogger) {
-    console.log(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t 0`)
     await execBash(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t 0`, log)
 }
 

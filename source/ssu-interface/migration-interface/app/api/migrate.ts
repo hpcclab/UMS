@@ -62,11 +62,7 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
         })
     ])
 
-    console.log('m')
-
     await imageWatcher.close()
-
-    console.log('n')
 
     reply.code(204)
 }
@@ -74,28 +70,16 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
 async function transferContainerImage(interfacePort: string, queue: AsyncBlockingQueue<string>, sourcePath: string,
                                       destinationPath: string, log: FastifyBaseLogger) {
     while (true) {
-        console.log('a')
         if (queue.done) break
-        console.log('b')
         await queue.dequeue()
-        console.log('c')
         await execRsync(interfacePort, sourcePath, destinationPath, log)
-        console.log('d')
     }
-
-    console.log('e')
 
     while (!queue.isEmpty()) {
-        console.log('f')
         await queue.dequeue()
-        console.log('g')
     }
 
-    console.log('h')
-
     await execRsync(interfacePort, sourcePath, destinationPath, log)
-
-    console.log('i')
 }
 
 async function transferVolume(interfaceHost: string, interfacePort: string, volume: any, log: FastifyBaseLogger) {

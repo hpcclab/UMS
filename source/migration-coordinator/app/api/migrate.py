@@ -167,6 +167,7 @@ def checkpoint_and_transfer_native(src_pod, checkpoint_id, des_pod_annotations):
         #todo check if volume is migrated
     })
     response.raise_for_status()
+    # todo forward body
     # todo remove custom resource
 
 

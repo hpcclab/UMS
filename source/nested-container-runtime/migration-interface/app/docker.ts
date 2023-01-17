@@ -1,5 +1,5 @@
 import {AxiosInstance, AxiosRequestConfig} from "axios"
-import {FastifyLoggerInstance} from "fastify/types/logger"
+import {FastifyBaseLogger} from "fastify/types/logger"
 import {execBash, HttpError, waitForIt} from "./lib"
 import {AsyncBlockingQueue} from "./queue"
 
@@ -8,19 +8,20 @@ const axios: AxiosInstance = require("axios").default.create({
 })
 
 
-async function requestDocker(config: AxiosRequestConfig, log: FastifyLoggerInstance) {
+async function requestDocker(config: AxiosRequestConfig, log: FastifyBaseLogger) {
     try {
         const dockerHost = `${process.env.DOCKER_HOST}`.split(':')
         await waitForIt(dockerHost[0], dockerHost[1], log)
         const response = await axios(config)
-        log.debug(response.data)
+        log.debug(JSON.stringify(response.data))
         return {statusCode: response.status, message: response.data}
     } catch (error: any) {
+        log.debug(JSON.stringify(error))
         if (error.response) {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
-            if (error.response.status > 399) throw new HttpError(error.response.data, error.response.status)
-            return {statusCode: error.response.status, message: error.response.data}
+            if (error.response.status > 399) throw new HttpError(JSON.stringify(error.response.data), error.response.status)
+            return {statusCode: error.response.status, message: JSON.stringify(error.response.data)}
         } else if (error.request) {
             // The request was made but no response was received
             // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
@@ -33,7 +34,7 @@ async function requestDocker(config: AxiosRequestConfig, log: FastifyLoggerInsta
     }
 }
 
-async function pullImage(image: string, log: FastifyLoggerInstance) {
+async function pullImage(image: string, log: FastifyBaseLogger) {
     const [repo, tag] = image.split(':')
     await requestDocker({
         method: 'post',
@@ -42,7 +43,7 @@ async function pullImage(image: string, log: FastifyLoggerInstance) {
     }, log)
 }
 
-async function listContainer(containerSpecString: string, log: FastifyLoggerInstance, params: any = null) {
+async function listContainer(containerSpecString: string, log: FastifyBaseLogger, params: any = null) {
     const response = await requestDocker({
         method: 'get',
         url: '/containers/json',
@@ -60,7 +61,7 @@ async function listContainer(containerSpecString: string, log: FastifyLoggerInst
     })
 }
 
-async function inspectContainer(containerName: string, log: FastifyLoggerInstance) {
+async function inspectContainer(containerName: string, log: FastifyBaseLogger) {
     const response = await requestDocker({
         method: 'get',
         url: `/containers/${containerName}/json`,
@@ -68,7 +69,7 @@ async function inspectContainer(containerName: string, log: FastifyLoggerInstanc
     return response.message
 }
 
-async function createContainer(container: any, log: FastifyLoggerInstance): Promise<any> {
+async function createContainer(container: any, log: FastifyBaseLogger): Promise<any> {
     try {
         const response = await requestDocker({
             method: 'post',
@@ -106,7 +107,7 @@ async function createContainer(container: any, log: FastifyLoggerInstance): Prom
 }
 
 
-async function startContainer(name: string, log: FastifyLoggerInstance, params: any = null) {
+async function startContainer(name: string, log: FastifyBaseLogger, params: any = null) {
     const response = await requestDocker({
         method: 'post',
         url: `/containers/${name}/start`,
@@ -115,7 +116,7 @@ async function startContainer(name: string, log: FastifyLoggerInstance, params: 
     return response.message
 }
 
-async function checkpointContainerDind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
+async function checkpointContainerDind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyBaseLogger): Promise<any> {
     const start = Date.now()
     const response = await requestDocker({
         method: 'post',
@@ -127,7 +128,7 @@ async function checkpointContainerDind(name: string, checkpointId: string, exit:
     return response.message
 }
 
-async function checkpointContainerPind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyLoggerInstance): Promise<any> {
+async function checkpointContainerPind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyBaseLogger): Promise<any> {
     const start = Date.now()
     await execBash(`docker container checkpoint ${name} -e /var/lib/containers/storage/${checkpointId}-${name}.tar.gz --tcp-established --file-locks${exit ? "" : " -R"}`, log)
     console.log(`checkpoint: ${Date.now() - start}`)
@@ -135,14 +136,14 @@ async function checkpointContainerPind(name: string, checkpointId: string, exit:
     return ""
 }
 
-async function restoreContainer(fileName: string, log: FastifyLoggerInstance) {
+async function restoreContainer(fileName: string, log: FastifyBaseLogger) {
     const start = Date.now()
     await execBash(`docker container restore -i /var/lib/containers/storage/${fileName} --tcp-established --file-locks`, log)
     console.log(`restore: ${Date.now() - start}`)
     return ""
 }
 
-async function stopContainer(name: string, log: FastifyLoggerInstance) {
+async function stopContainer(name: string, log: FastifyBaseLogger) {
     try {
         await requestDocker({
             method: 'post',
@@ -155,7 +156,7 @@ async function stopContainer(name: string, log: FastifyLoggerInstance) {
     }
 }
 
-async function removeContainer(name: string, log: FastifyLoggerInstance) {
+async function removeContainer(name: string, log: FastifyBaseLogger) {
     await requestDocker({
         method: 'delete',
         url: `/containers/${name}`,

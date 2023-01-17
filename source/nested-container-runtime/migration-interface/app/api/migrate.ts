@@ -2,7 +2,7 @@ import {FastifyReply, FastifyRequest} from "fastify"
 import {checkpointContainerDind, checkpointContainerPind, ContainerInfo, inspectContainer, listContainer} from "../docker"
 import {MigrateRequestType} from "../schema"
 import {execRsync, findDestinationFileSystemId, waitForIt} from "../lib"
-import {FastifyLoggerInstance} from "fastify/types/logger"
+import {FastifyBaseLogger} from "fastify/types/logger"
 import dotenv from "dotenv"
 import {readFileSync} from "fs"
 import chokidar from "chokidar"
@@ -47,7 +47,7 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
 
 async function migrateOneContainerDind(checkpointId: string, interfaceHost: string, interfacePort: string, containers: any,
                                    containerInfo: ContainerInfo, exit: boolean,
-                                   log: FastifyLoggerInstance) {
+                                   log: FastifyBaseLogger) {
     const {destinationId, destinationFs} = findDestinationFileSystemId(containers, containerInfo)
 
     const sourceImagePath = `/var/lib/docker/containers/${containerInfo.Id}/checkpoints/${checkpointId}`
@@ -81,7 +81,7 @@ async function migrateOneContainerDind(checkpointId: string, interfaceHost: stri
 
 async function migrateOneContainerPind(checkpointId: string, interfaceHost: string, interfacePort: string,
                                    containerInfo: ContainerInfo, exit: boolean,
-                                   log: FastifyLoggerInstance) {
+                                   log: FastifyBaseLogger) {
     const sourceImagePath = `/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
     const destinationImagePath = `root@${interfaceHost}:/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
     const imageQueue = new AsyncBlockingQueue<string>()
@@ -111,7 +111,7 @@ async function migrateOneContainerPind(checkpointId: string, interfaceHost: stri
 }
 
 async function transferContainerImage(interfacePort: string, queue: AsyncBlockingQueue<string>, sourcePath: string,
-                                      destinationPath: string, log: FastifyLoggerInstance) {
+                                      destinationPath: string, log: FastifyBaseLogger) {
     while (true) {
         if (queue.done) break
         await queue.dequeue()
@@ -126,14 +126,14 @@ async function transferContainerImage(interfacePort: string, queue: AsyncBlockin
 }
 
 async function transferContainerFS(interfaceHost: string, interfacePort: string, containerInfo: ContainerInfo,
-                                   destinationFs: string, log: FastifyLoggerInstance) {
+                                   destinationFs: string, log: FastifyBaseLogger) {
     const {GraphDriver: {Name, Data: {UpperDir}}} = await inspectContainer(containerInfo.Id, log)
     if (Name === 'overlay2' && destinationFs !== null) {
         await execRsync(interfacePort, UpperDir, `root@${interfaceHost}:${destinationFs}`.slice(0, -5), log)
     }
 }
 
-async function transferVolume(interfaceHost: string, interfacePort: string, volume: any, log: FastifyLoggerInstance) {
+async function transferVolume(interfaceHost: string, interfacePort: string, volume: any, log: FastifyBaseLogger) {
     await execRsync(interfacePort, volume, `root@${interfaceHost}:/mount`, log)
 }
 

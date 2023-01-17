@@ -1,4 +1,4 @@
-import {FastifyLoggerInstance} from "fastify/types/logger"
+import {FastifyBaseLogger} from "fastify/types/logger"
 import {exec as childExec} from 'child_process'
 import util from "util"
 import Rsync from "rsync"
@@ -11,6 +11,7 @@ class HttpError extends Error {
     constructor(message: string, statusCode: number) {
         super(message)
         this.statusCode = statusCode
+        Object.setPrototypeOf(this, new.target.prototype)
     }
 }
 
@@ -29,11 +30,11 @@ function findDestinationFileSystemId(containers: any, containerInfo: any) {
     return {destinationId, destinationFs}
 }
 
-async function waitForIt(interfaceHost: string, interfacePort: string, log: FastifyLoggerInstance) {
+async function waitForIt(interfaceHost: string, interfacePort: string, log: FastifyBaseLogger) {
     await execBash(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t 0`, log)
 }
 
-async function execBash(command: string, log: FastifyLoggerInstance) {
+async function execBash(command: string, log: FastifyBaseLogger) {
     try {
         const {
             stdout,
@@ -46,7 +47,7 @@ async function execBash(command: string, log: FastifyLoggerInstance) {
     }
 }
 
-function execRsync(port: string, source: string, destination: string, log: FastifyLoggerInstance) {
+function execRsync(port: string, source: string, destination: string, log: FastifyBaseLogger) {
     const rsync = new Rsync()
         .shell(`ssh -i /app/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${port}`)
         .flags('avz')
