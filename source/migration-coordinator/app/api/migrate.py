@@ -13,7 +13,7 @@ from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE
     START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, INTERFACE_PIND, \
     INTERFACE_FF, START_MODE_NULL, BYPASS_ANNOTATION
-from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE, NATIVE_INTERFACE_SERVICE
+from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE, SSU_INTERFACE_SERVICE
 from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready
 from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
     delete_pod, exec_pod, check_error_event
@@ -158,7 +158,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
 
 # todo sort and move ff-based and frontman to source dir
 def checkpoint_and_transfer_native(src_pod, checkpoint_id, des_pod_annotations):
-    response = requests.post(f"http://{NATIVE_INTERFACE_SERVICE}:8888/migrate", json={
+    response = requests.post(f"http://{SSU_INTERFACE_SERVICE}:8888/migrate", json={
         'checkpointId': checkpoint_id,
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
         'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],

@@ -10,7 +10,7 @@ from flask import Blueprint, request, abort
 from app.api.create import probe_all
 from app.const import INTERFACE_ANNOTATION, INTERFACE_DIND, START_MODE_FAIL, MIGRATION_ID_ANNOTATION, \
     START_MODE_ACTIVE, INTERFACE_PIND, INTERFACE_FF
-from app.env import NATIVE_INTERFACE_SERVICE
+from app.env import SSU_INTERFACE_SERVICE
 from app.lib import get_pod, update_pod_restart, release_pod, gather, exec_pod, log_pod
 
 restore_api_blueprint = Blueprint('restore_api', __name__)
@@ -72,14 +72,14 @@ def restore_dind(des_pod, checkpoint_id):
 
 
 def restore_native(des_pod, checkpoint_id):
-    response = requests.post(f"http://{NATIVE_INTERFACE_SERVICE}:8888/restore", json={
+    response = requests.post(f"http://{SSU_INTERFACE_SERVICE}:8888/restore", json={
         'checkpointId': checkpoint_id,
         'template': des_pod
         # 'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
         #todo check if volume is migrated
     })
     response.raise_for_status()
-    # todo remove custom resource
+    # todo remove owner and custom resource
 
 
 def wait_pod_ready(pod):
