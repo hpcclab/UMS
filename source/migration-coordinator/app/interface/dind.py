@@ -5,7 +5,7 @@ from time import sleep
 import requests
 from dateutil.tz import tzlocal
 from flask import abort
-from requests import Timeout, HTTPError
+from requests import Timeout, HTTPError, RequestException
 
 from app.api.create import probe_all
 from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_PASSIVE, \
@@ -18,6 +18,18 @@ from app.lib import delete_pod, get_pod, update_pod_restart, release_pod
 
 def get_name():
     return INTERFACE_DIND
+
+
+def is_compatible(src_pod, des_info):
+    try:
+        response = requests.get(f"http://{src_pod['status']['podIP']}:2375/_ping")
+        response.raise_for_status()
+        if 'Docker' in response.headers.get('Server'):
+            return True
+    except RequestException:
+        pass
+    return False
+
 
 
 def generate_des_pod_template(src_pod):

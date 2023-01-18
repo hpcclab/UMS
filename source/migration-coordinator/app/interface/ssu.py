@@ -4,12 +4,18 @@ import requests
 
 from app.const import MIGRATION_ID_ANNOTATION, SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, \
     INTERFACE_SSU
-from app.env import SSU_INTERFACE_SERVICE
+from app.env import SSU_INTERFACE_SERVICE, SSU_INTERFACE_ENABLE
 from app.kubernetes_client import delete_ssu_custom_resource, delete_pod_owner_reference, wait_pod_ready_ssu
 
 
 def get_name():
     return INTERFACE_SSU
+
+
+def is_compatible(src_pod, des_info):
+    if 'ssu_port' in des_info and SSU_INTERFACE_ENABLE is not None:
+        return True
+    return False
 
 
 def generate_des_pod_template(src_pod):

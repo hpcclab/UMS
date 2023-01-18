@@ -14,6 +14,19 @@ def get_name():
     return INTERFACE_FF
 
 
+def is_compatible(src_pod, des_info):
+    ff_processes = asyncio.run(gather([exec_pod(
+        src_pod['metadata']['name'],
+        src_pod['metadata'].get('namespace', 'default'),
+        f"ps -A -ww | grep -c [^]]fastfreeze",
+        container['name'],
+    ) for container in src_pod['spec']['containers']]))
+    for process in ff_processes:
+        if int(process) < 1:
+            return False
+    return True
+
+
 def generate_des_pod_template(src_pod):
     body = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     body['metadata']['annotations'][LAST_APPLIED_CONFIG] = src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG)

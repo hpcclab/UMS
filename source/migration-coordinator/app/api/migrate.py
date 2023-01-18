@@ -128,11 +128,17 @@ def select_interface(src_pod, des_info, selected_interface):
             return interface
         else:
             abort(400, f'Incompatible interface {selected_interface}')
-    if 'ssu_port' in des_info and SSU_INTERFACE_ENABLE is not None:
+    if ssu.is_compatible(src_pod, des_info):
         return ssu
     interface = interfaces.get(src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION))
     if interface is not None:
         return interface
+    if ff.is_compatible(src_pod, des_info):
+        return ff
+    if pind.is_compatible(src_pod, des_info):
+        return pind
+    if dind.is_compatible(src_pod, des_info):
+        return dind
     abort(409, 'Cannot migrate to incompatible destination')
 
 
