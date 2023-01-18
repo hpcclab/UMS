@@ -73,6 +73,49 @@ def log_pod(pod_name, namespace, container_name):
     return client.CoreV1Api().read_namespaced_pod_log(pod_name, namespace, container=container_name)
 
 
+def delete_pod_owner_reference(name, namespace, checkpoint_id):
+    pod = get_pod(name, namespace)
+    if pod['metadata'].get('ownerReferences') is None:
+        return pod
+    owner_references = []
+    for owner_reference in pod['metadata'].get('ownerReferences', []):
+        if owner_reference['apiVersion'] == 'podmig.dcn.ssu.ac.kr/v1' and owner_reference['kind'] == 'Podmigration' \
+                and owner_reference['name'] == checkpoint_id:
+            continue
+        owner_references.append(owner_reference)
+    owner_references = owner_references or None
+    return client.CoreV1Api().patch_namespaced_pod(name, namespace, {'metadata': {'ownerReferences': owner_references}})
+
+
+def delete_ssu_custom_resource(name, namespace):
+    return client.CustomObjectsApi().delete_namespaced_custom_object(
+        group='podmig.dcn.ssu.ac.kr',
+        version='v1',
+        plural='podmigrations',
+        name=name,
+        namespace=namespace
+    )
+
+
+def wait_pod_ready_ssu(namespace, migration_id):
+    name = 'Unknown'
+    w = watch.Watch()
+    for event in w.stream(func=client.CoreV1Api().list_namespaced_pod,
+                          namespace=namespace,
+                          timeout_seconds=60):
+        # event.type: ADDED, MODIFIED, DELETED
+        if event['object'].metadata.annotations.get(MIGRATION_ID_ANNOTATION) == migration_id:
+            name = event['object'].metadata.name
+            if event["object"].status.phase == "Running":
+                w.stop()
+                return name
+            if event["type"] == "DELETED":
+                # Pod was deleted while we were waiting for it to start.
+                w.stop()
+                abort(500, f'{name} deleted before it started')
+    abort(504, f'Timeout while waiting {name} to be ready')
+
+
 def wait_pod_ready(pod):
     name = pod['metadata']['name']
     namespace = pod['metadata']['namespace']
