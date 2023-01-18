@@ -30,9 +30,5 @@ def send_error_event(body, name, error):
     }))
 
 
-def code_should_not_reach_here():
-    raise kopf.PermanentError('Code should not reach here')
-
-
 async def gather(fn_list):
     return await asyncio.gather(*fn_list)

@@ -19,7 +19,7 @@ create_api_blueprint = Blueprint('create_api', __name__)
 def create_api():
     body = request.get_json()
     new_pod = create_new_pod(body)
-    if body['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
+    if body['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:  # todo
         msg = wait_pod_ready(new_pod)
         response = requests.get(f"http://{msg['ip']}:8888/list")
         response.raise_for_status()

@@ -65,6 +65,7 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
     await imageWatcher.close()
 
     reply.code(204)
+    // todo lock and cleanup
 }
 
 async function transferContainerImage(interfacePort: string, queue: AsyncBlockingQueue<string>, sourcePath: string,

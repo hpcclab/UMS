@@ -1,8 +1,6 @@
-import kopf
 import logging
 
-from share.env import HOST_NAME
-
+import kopf
 
 logging.getLogger('aiohttp.access').setLevel(logging.ERROR)
 

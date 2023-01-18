@@ -29,9 +29,8 @@ def create_des_pod(des_pod_template, des_info, delete_des_pod):
         try:
             delete_des_pod(des_pod_template, des_info['url'], True)
         except HTTPError as http_error:
-            if http_error.response.status_code == 404:
-                pass
-            raise http_error
+            if http_error.response.status_code != 404:
+                raise http_error
         raise e
     response.raise_for_status()
     return True, response.json()
@@ -64,21 +63,21 @@ def restore(body):
     if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
         abort(409, "Pod is being migrated")
     update_pod_restart(name, namespace, START_MODE_ACTIVE)
-    wait_pod_ready_ff(des_pod)
+    wait_pod_ready(des_pod)
     release_pod(name, namespace)
 
 
-def wait_pod_ready_ff(pod):
+def wait_pod_ready(pod):
     name = pod['metadata']['name']
     namespace = pod['metadata'].get('namespace', 'default')
-    asyncio.run(gather([wait_container_ready_ff(
+    asyncio.run(gather([wait_container_ready(
         name,
         namespace,
         container['name'],
     ) for container in pod['spec']['containers']]))
 
 
-async def wait_container_ready_ff(pod_name, namespace, container_name):
+async def wait_container_ready(pod_name, namespace, container_name):
     found = False
     while not found:
         log = log_pod(pod_name, namespace, container_name).split('\n')

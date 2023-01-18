@@ -8,7 +8,7 @@ from kubernetes.client import ApiException
 from share.const import MIGRATABLE_ANNOTATION, SYNC_PORT_ANNOTATION, SYNC_HOST_ANNOTATION, \
     VOLUME_LIST_ANNOTATION, INTERFACE_ANNOTATION, INTERFACE_DIND, INTERFACE_FF, INTERFACE_PIND, \
     MIGRATABLE_TRUE, MIGRATABLE_POSSIBLE, MIGRATABLE_FALSE
-from share.env import HOST_NAME
+from share.env import SYNC_HOST
 from share.lib import send_event, send_error_event, inject_service, gather
 
 
@@ -45,13 +45,13 @@ def report_failure(name, body, patch, **_):
 
 @kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_DIND})
 @kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_PIND})
-def expose_service(logger, name, meta, namespace, spec, body, patch, **_):
+def expose_service(logger, name, meta, namespace, body, patch, status, **_):
     try:
         service_template = inject_service('../template/service.yml', name, meta['labels'])
         service = client.CoreV1Api().create_namespaced_service(namespace, service_template)
         logger.info(f"creating Service: {service.metadata.name}")
 
-        node = HOST_NAME if HOST_NAME else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
+        node = SYNC_HOST or status['hostIP']
 
         patch.metadata['annotations'] = {
             SYNC_HOST_ANNOTATION: f'{node}.nip.io',
@@ -75,13 +75,13 @@ async def expose_one_service_ff(logger, name, meta, namespace, container_name):
 
 
 @kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_FF})
-def expose_service_ff(logger, name, meta, namespace, spec, body, patch, **_):
+def expose_service_ff(logger, name, meta, namespace, spec, body, patch, status, **_):
     try:
         results = asyncio.run(gather([expose_one_service_ff(
             logger, name, meta, namespace, container['name']
         ) for container in spec['containers']]))
 
-        node = HOST_NAME if HOST_NAME else client.CoreV1Api().read_node(spec['nodeName']).status.addresses[0].address
+        node = SYNC_HOST or status['hostIP']
 
         patch.metadata['annotations'] = {
             SYNC_HOST_ANNOTATION: f'{node}.nip.io',

@@ -35,9 +35,8 @@ def create_des_pod(des_pod_template, des_info, delete_des_pod):
         try:
             delete_des_pod(des_pod_template, des_info['url'], True)
         except HTTPError as http_error:
-            if http_error.response.status_code == 404:
-                pass
-            raise http_error
+            if http_error.response.status_code != 404:
+                raise http_error
         raise e
     response.raise_for_status()
     return True, response.json()

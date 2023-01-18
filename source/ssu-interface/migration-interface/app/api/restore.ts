@@ -20,6 +20,7 @@ async function restore(request: FastifyRequest<{ Body: BaseRequestType }>, reply
     }, request.log)
     request.log.info(response)
     reply.code(204)
+    // todo lock and cleanup
 }
 
 export {restore}

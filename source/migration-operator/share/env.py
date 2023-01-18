@@ -1,6 +1,6 @@
 from os import getenv
 
-HOST_NAME = getenv('HOST_NAME', None)
+SYNC_HOST = getenv('SYNC_HOST', None)
 
 DIND_IMAGE = getenv('DIND_IMAGE', 'migration-dind')
 PIND_IMAGE = getenv('PIND_IMAGE', 'migration-pind')
