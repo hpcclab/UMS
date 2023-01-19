@@ -14,5 +14,5 @@ def delete_api():
 
     namespace = body.get('namespace', 'default')
 
-    delete_pod(name, namespace)
+    delete_pod(name, namespace)  # todo delete src pod
     return 'deleted!'

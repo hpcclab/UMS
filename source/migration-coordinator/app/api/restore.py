@@ -1,10 +1,6 @@
 from flask import Blueprint, request, abort, Response
 
-import app.interface.dind as dind
-import app.interface.ff as ff
-import app.interface.pind as pind
-import app.interface.ssu as ssu
-from app.const import INTERFACE_DIND, INTERFACE_PIND, INTERFACE_FF, INTERFACE_SSU
+from app.lib import select_interface
 
 restore_api_blueprint = Blueprint('restore_api', __name__)
 
@@ -33,15 +29,3 @@ def restore_api():
 
     interface.restore(body)
     return Response(status = 200)
-
-
-def select_interface(selected_interface):
-    if selected_interface == INTERFACE_DIND:
-        return dind
-    if selected_interface == INTERFACE_PIND:
-        return pind
-    if selected_interface == INTERFACE_FF:
-        return ff
-    if selected_interface == INTERFACE_SSU:
-        return ssu
-    abort(404, f'Interface {selected_interface} not found')

@@ -17,11 +17,11 @@ import app.interface.pind as pind
 import app.interface.ssu as ssu
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
     INTERFACE_ANNOTATION, INTERFACE_DIND, LAST_APPLIED_CONFIG, INTERFACE_PIND, \
-    INTERFACE_FF, BYPASS_ANNOTATION, INTERFACE_SSU
-from app.env import env, FRONTMAN_IMAGE, SSU_INTERFACE_ENABLE
+    BYPASS_ANNOTATION
+from app.env import env, FRONTMAN_IMAGE
 from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready
 from app.lib import get_information, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect, \
-    delete_pod
+    delete_pod, select_interface
 
 migrate_api_blueprint = Blueprint('migrate_api', __name__)
 
@@ -71,8 +71,7 @@ def migrate(body, migration_id):
 
     try:
         des_info = ping_destination(destination_url)
-        interface = select_interface(src_pod, des_info, selected_interface)
-        interface.get_name()
+        interface = select_migration_interface(src_pod, des_info, selected_interface)
 
         des_pod_template = interface.generate_des_pod_template(src_pod)
         des_pod_created, des_pod_info = interface.create_des_pod(des_pod_template, des_info, delete_des_pod)
@@ -86,8 +85,9 @@ def migrate(body, migration_id):
 
         restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface, des_pod_template)
     except Exception as e:
+        # todo src pod delete
         if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
-            update_pod_restart(name, namespace, START_MODE_ACTIVE)
+            update_pod_restart(name, namespace, START_MODE_ACTIVE)  # todo
         delete_frontman(src_pod, frontman_created)
         delete_des_pod(src_pod, destination_url, des_pod_created)
         release_pod(name, namespace)
@@ -115,24 +115,17 @@ def ping_destination(destination_url):
     return response
 
 
-def select_interface(src_pod, des_info, selected_interface):
-    interfaces = {
-        INTERFACE_DIND: dind,
-        INTERFACE_PIND: pind,
-        INTERFACE_FF: ff,
-        INTERFACE_SSU: ssu
-    }
+def select_migration_interface(src_pod, des_info, selected_interface):
     if selected_interface is not None:
-        interface = interfaces.get(selected_interface)
-        if interface is not None:
-            return interface
-        else:
-            abort(400, f'Incompatible interface {selected_interface}')
+        return select_interface(selected_interface)
     if ssu.is_compatible(src_pod, des_info):
         return ssu
-    interface = interfaces.get(src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION))
-    if interface is not None:
-        return interface
+    try:
+        interface = select_interface(src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION))
+        if interface.is_compatible(src_pod, des_info):
+            return interface
+    except HTTPException:
+        pass
     if ff.is_compatible(src_pod, des_info):
         return ff
     if pind.is_compatible(src_pod, des_info):
@@ -147,8 +140,7 @@ def delete_des_pod(src_pod, destination_url, des_pod_created):
         return
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    response = requests.post(f'http://{destination_url}/delete',
-                             json={'name': name, 'namespace': namespace})
+    response = requests.post(f'http://{destination_url}/delete', json={'name': name, 'namespace': namespace})
     response.raise_for_status()
 
 
@@ -156,14 +148,15 @@ def restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoi
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     try:
-        response = requests.post(f"http://{destination_url}/restore",
-                                 json={'migrationId': migration_id,
-                                       'checkpointId': checkpoint_id,
-                                       'name': name,
-                                       'namespace': namespace,
-                                       'interface': interface.get_name(),
-                                       'template': des_pod_template})
-    except Timeout as e:
+        response = requests.post(f"http://{destination_url}/restore", json={
+            'migrationId': migration_id,
+            'checkpointId': checkpoint_id,
+            'name': name,
+            'namespace': namespace,
+            'interface': interface.get_name(),
+            'template': des_pod_template
+        })
+    except (Timeout, HTTPException) as e:  # todo only ssu?
         try:
             delete_des_pod(des_pod_template, destination_url, True)
         except HTTPError as http_error:

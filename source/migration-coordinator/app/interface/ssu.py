@@ -5,7 +5,8 @@ import requests
 from app.const import MIGRATION_ID_ANNOTATION, SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, \
     INTERFACE_SSU
 from app.env import SSU_INTERFACE_SERVICE, SSU_INTERFACE_ENABLE
-from app.kubernetes_client import delete_ssu_custom_resource, delete_pod_owner_reference, wait_pod_ready_ssu
+from app.kubernetes_client import delete_ssu_custom_resource, delete_pod_owner_reference, wait_pod_ready_ssu, \
+    create_pod, release_pod
 
 
 def get_name():
@@ -27,6 +28,14 @@ def generate_des_pod_template(src_pod):
 
 def create_des_pod(des_pod_template, des_info, delete_des_pod):
     return False, {SYNC_HOST_ANNOTATION: des_info['ssu_host'], SYNC_PORT_ANNOTATION: des_info['ssu_port']}
+
+
+def create_new_pod(template):
+    namespace = template.get('metadata', {}).get('namespace', 'default')
+    create_pod(namespace, template)
+    return {
+        'current-containers': None
+    }
 
 
 def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
@@ -58,6 +67,7 @@ def restore(body):
     pod_name = wait_pod_ready_ssu(namespace, migration_id)
     delete_pod_owner_reference(pod_name, namespace, checkpoint_id)
     delete_ssu_custom_resource(checkpoint_id, namespace)
+    release_pod(pod_name, namespace)
 
 
 def delete_src_pod(src_pod):
