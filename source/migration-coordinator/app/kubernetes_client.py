@@ -116,7 +116,7 @@ def wait_pod_ready_ssu(namespace, migration_id):
     abort(504, f'Timeout while waiting {name} to be ready')
 
 
-def wait_pod_ready(pod):
+def wait_pod_ready_frontman(pod, migration_state):
     name = pod['metadata']['name']
     namespace = pod['metadata']['namespace']
     w = watch.Watch()
@@ -131,6 +131,7 @@ def wait_pod_ready(pod):
         if event["type"] == "DELETED":
             # Pod was deleted while we were waiting for it to start.
             w.stop()
+            migration_state['frontmant_exist'] = False
             abort(500, f'{name} deleted before it started')
     abort(504, f'Timeout while waiting {name} to be ready')
 
@@ -149,7 +150,7 @@ def wait_pod_ready_ff(pod):
                     return msg
                 if event['object'].reason == 'error':
                     w.stop()
-                    abort(500, msg['error'])
+                    abort(500, msg['error'])  # todo type DELETED
     abort(504, 'Timeout while waiting pod to be ready')
 
 

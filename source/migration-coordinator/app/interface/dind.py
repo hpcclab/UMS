@@ -6,13 +6,12 @@ from time import sleep
 import requests
 from dateutil.tz import tzlocal
 from flask import abort
-from requests import HTTPError, RequestException, Timeout
-from werkzeug.exceptions import HTTPException
+from requests import HTTPError, RequestException
 
 from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_PASSIVE, \
     VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, START_MODE_NULL, \
-    INTERFACE_DIND, START_MODE_ACTIVE
+    INTERFACE_DIND, START_MODE_ACTIVE, INTERFACE_ANNOTATION
 from app.env import ORCHESTRATOR_TYPE
 from app.kubernetes_client import create_pod
 from app.kubernetes_client import delete_pod, get_pod, update_pod_restart, release_pod  # todo
@@ -42,21 +41,19 @@ def generate_des_pod_template(src_pod):
     return body
 
 
-def create_des_pod(des_pod_template, des_info, delete_des_pod):
+def create_des_pod(des_pod_template, des_info, migration_state):
     try:
         response = requests.post(f"http://{des_info['url']}/create", json={
             'interface': get_name(),
             'template': des_pod_template
         })
-    except (Timeout, HTTPException) as e:
-        try:
-            delete_des_pod(des_pod_template, des_info['url'], True)
-        except HTTPError as http_error:
-            if http_error.response.status_code != 404:
-                raise http_error
+        response.raise_for_status()
+        migration_state['des_pod_exist'] = True
+        return response.json()
+    except HTTPError as e:
+        if e.response.status_code == 504:
+            migration_state['des_pod_exist'] = True
         raise e
-    response.raise_for_status()
-    return True, response.json()
 
 
 def create_new_pod(template):
@@ -104,7 +101,7 @@ def probe_all(pod_ip):
     return 1
 
 
-def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
+def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     src_pod = update_pod_restart(name, namespace, START_MODE_NULL)
@@ -155,3 +152,15 @@ def delete_src_pod(src_pod):
     delete_pod(name, namespace)
     if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS:
         delete_pod(f"{name}-monitor", namespace)
+
+
+def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod, release_pod):
+    name = src_pod['metadata']['name']
+    namespace = src_pod['metadata'].get('namespace', 'default')
+    if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) != START_MODE_ACTIVE:
+        update_pod_restart(name, namespace, START_MODE_ACTIVE)
+    if migration_state['frontmant_exist']:
+        delete_frontman(src_pod)
+    if migration_state['des_pod_exist']:
+        delete_des_pod(src_pod, destination_url)
+    release_pod(name, namespace)

@@ -3,8 +3,7 @@ import json
 
 import requests
 from flask import abort
-from requests import Timeout, HTTPError
-from werkzeug.exceptions import HTTPException
+from requests import HTTPError
 
 from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_PASSIVE, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, INTERFACE_FF, START_MODE_ACTIVE
@@ -41,21 +40,19 @@ def generate_des_pod_template(src_pod):
     return body
 
 
-def create_des_pod(des_pod_template, des_info, delete_des_pod):
+def create_des_pod(des_pod_template, des_info, migration_state):
     try:
         response = requests.post(f"http://{des_info['url']}/create", json={
             'interface': get_name(),
             'template': des_pod_template
         })
-    except (Timeout, HTTPException) as e:
-        try:
-            delete_des_pod(des_pod_template, des_info['url'], True)
-        except HTTPError as http_error:
-            if http_error.response.status_code != 404:
-                raise http_error
+        response.raise_for_status()
+        migration_state['des_pod_exist'] = True
+        return response.json()
+    except HTTPError as e:
+        if e.response.status_code == 504:
+            migration_state['des_pod_exist'] = True
         raise e
-    response.raise_for_status()
-    return True, response.json()
 
 
 def create_new_pod(template):
@@ -68,7 +65,7 @@ def create_new_pod(template):
     }
 
 
-def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
+def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state):
     volume_list = json.loads(src_pod['metadata']['annotations'][VOLUME_LIST_ANNOTATION])
     interface_host = des_pod_annotations[SYNC_HOST_ANNOTATION]
     interface_port = json.loads(des_pod_annotations[SYNC_PORT_ANNOTATION])
@@ -123,3 +120,13 @@ def delete_src_pod(src_pod):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     delete_pod(name, namespace)
+
+
+def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod, release_pod):
+    name = src_pod['metadata']['name']
+    namespace = src_pod['metadata'].get('namespace', 'default')
+    if migration_state['frontmant_exist']:
+        delete_frontman(src_pod)
+    if migration_state['des_pod_exist']:
+        delete_des_pod(src_pod, destination_url)
+    release_pod(name, namespace)

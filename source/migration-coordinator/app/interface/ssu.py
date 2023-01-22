@@ -26,8 +26,8 @@ def generate_des_pod_template(src_pod):
     return body
 
 
-def create_des_pod(des_pod_template, des_info, delete_des_pod):
-    return False, {SYNC_HOST_ANNOTATION: des_info['ssu_host'], SYNC_PORT_ANNOTATION: des_info['ssu_port']}
+def create_des_pod(des_pod_template, des_info, migration_state):
+    return {SYNC_HOST_ANNOTATION: des_info['ssu_host'], SYNC_PORT_ANNOTATION: des_info['ssu_port']}
 
 
 def create_new_pod(template):
@@ -38,7 +38,7 @@ def create_new_pod(template):
     }
 
 
-def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
+def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state):
     response = requests.post(f"http://{SSU_INTERFACE_SERVICE}:8888/migrate", json={
         'checkpointId': checkpoint_id,
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
@@ -48,6 +48,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
         #todo check if volume is migrated
     })
     response.raise_for_status()    # todo forward body
+    migration_state['src_pod_exist'] = False
     delete_ssu_custom_resource(checkpoint_id, src_pod['metadata'].get('namespace', 'default'))
     return src_pod
 
@@ -72,3 +73,15 @@ def restore(body):
 
 def delete_src_pod(src_pod):
     pass
+
+
+def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod, release_pod):
+    name = src_pod['metadata']['name']
+    namespace = src_pod['metadata'].get('namespace', 'default')
+    if not migration_state['src_pod_exist']:
+        create_new_pod(generate_des_pod_template(src_pod))
+    if migration_state['frontmant_exist']:
+        delete_frontman(src_pod)
+    if migration_state['des_pod_exist']:
+        delete_des_pod(src_pod, destination_url)
+    release_pod(name, namespace)
