@@ -57,10 +57,10 @@ def create_des_pod(des_pod_template, des_info, migration_state):
         raise e
 
 
-def create_new_pod(template):
+def do_create_pod(template):
     namespace = template.get('metadata', {}).get('namespace', 'default')
     new_pod = client.create_pod(namespace, template)
-    msg = client.wait_pod_ready_ff(new_pod)
+    msg = client.wait_created_pod_ready_ff(new_pod)
     return {
         **msg['annotations'],
         'current-containers': None
@@ -121,6 +121,10 @@ async def wait_restored_container_ready(pod_name, namespace, container_name):
 def delete_src_pod(src_pod):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
+    do_delete_pod(name, namespace)
+
+
+def do_delete_pod(name, namespace):
     client.delete_pod(name, namespace)
 
 
@@ -128,4 +132,4 @@ def recover(src_pod, destination_url, migration_state, delete_frontman, delete_d
     if migration_state['frontmant_exist']:
         delete_frontman(src_pod)
     if migration_state['des_pod_exist']:
-        delete_des_pod(src_pod, destination_url)
+        delete_des_pod(src_pod, destination_url, get_name())

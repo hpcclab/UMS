@@ -220,7 +220,7 @@ def create_frontman(src_pod, redirect_uri=None):
     if not frontman_template['spec']['containers']:
         return False
 
-    client.wait_pod_ready_frontman(client.create_pod(src['metadata']['namespace'], frontman_template))
+    client.wait_created_pod_ready_frontman(client.create_pod(src['metadata']['namespace'], frontman_template))
     client.update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
                             {k: None for k in src['metadata']['labels']})
     return True

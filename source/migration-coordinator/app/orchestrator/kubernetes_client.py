@@ -39,7 +39,7 @@ def create_pod(namespace, body):
     return pod_to_dict(client.CoreV1Api().create_namespaced_pod(namespace, dict_to_pod(body)))
 
 
-def delete_pod(name, namespace):
+def delete_pod(name, namespace, delete_ambassador=False):
     client.CoreV1Api().delete_namespaced_pod(name, namespace)
 
 
@@ -101,7 +101,7 @@ def delete_ssu_custom_resource(name, namespace):
     )
 
 
-def wait_pod_ready_ssu(namespace, migration_id):
+def wait_restored_pod_ready_ssu(namespace, migration_id):
     name = 'Unknown'
     w = watch.Watch()
     for event in w.stream(func=client.CoreV1Api().list_namespaced_pod,
@@ -120,7 +120,25 @@ def wait_pod_ready_ssu(namespace, migration_id):
     abort(504, f'Timeout while waiting {name} to be ready')
 
 
-def wait_pod_ready_frontman(pod, migration_state):
+def wait_created_pod_ready_ff(pod):
+    name = pod['metadata']['name']
+    current_time = datetime.now(tz=tzlocal())
+    w = watch.Watch()
+    for event in w.stream(func=client.CoreV1Api().list_event_for_all_namespaces, timeout_seconds=60):
+        if event['type'] == 'ADDED' and event['object'].type == 'migration' and \
+                event['object'].event_time > current_time:
+            msg = json.loads(event['object'].message)
+            if msg['pod'] == name:
+                if event['object'].reason == 'ready':
+                    w.stop()
+                    return msg
+                if event['object'].reason == 'error':
+                    w.stop()
+                    abort(500, msg['error'])
+    abort(504, 'Timeout while waiting pod to be ready')
+
+
+def wait_created_pod_ready_frontman(pod, migration_state):
     name = pod['metadata']['name']
     namespace = pod['metadata']['namespace']
     w = watch.Watch()
@@ -138,31 +156,3 @@ def wait_pod_ready_frontman(pod, migration_state):
             migration_state['frontmant_exist'] = False
             abort(500, f'{name} deleted before it started')
     abort(504, f'Timeout while waiting {name} to be ready')
-
-
-def wait_pod_ready_ff(pod):
-    name = pod['metadata']['name']
-    current_time = datetime.now(tz=tzlocal())
-    w = watch.Watch()
-    for event in w.stream(func=client.CoreV1Api().list_event_for_all_namespaces, timeout_seconds=60):
-        if event['type'] == 'ADDED' and event['object'].type == 'migration' and \
-                event['object'].event_time > current_time:
-            msg = json.loads(event['object'].message)
-            if msg['pod'] == name:
-                if event['object'].reason == 'ready':
-                    w.stop()
-                    return msg
-                if event['object'].reason == 'error':
-                    w.stop()
-                    abort(500, msg['error'])  # todo type DELETED
-    abort(504, 'Timeout while waiting pod to be ready')
-
-
-def check_error_event(name, namespace, last_checked_time):
-    events = client.CoreV1Api().list_namespaced_event(namespace)
-    for event in events.items:
-        if event.event_time is not None and event.type == 'migration' and event.event_time > last_checked_time:
-            msg = json.loads(event.message)
-            if msg['pod'] == name and event.reason == 'error':
-                abort(500, msg['error'])
-    return datetime.now(tz=tzlocal())

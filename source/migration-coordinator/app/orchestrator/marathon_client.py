@@ -11,6 +11,14 @@ client = MarathonClient(MARATHON_URL)
 docker_client = from_env()
 
 
+def load_incluster_config():
+    pass
+
+
+def list_pod():
+    raise NotImplementedError()
+
+
 def get_docker_id(name, namespace):
     return docker_client.containers.list(filters={'label': f'{DOMAIN}-app={namespace}-{name}'})[0].id
 
@@ -49,8 +57,18 @@ def get_pod(name, namespace):
     return app_kubernetes_format
 
 
-def delete_pod(name, namespace):
+def create_pod(namespace, body):
+    raise NotImplementedError()
+
+
+def delete_pod(name, namespace, delete_ambassador=False):
     client.delete_app(f'{namespace}-{name}')
+    if delete_ambassador:
+        delete_pod(f"{name}-monitor", namespace)
+
+
+def update_pod_label(name, namespace, body):
+    raise NotImplementedError()
 
 
 def lock_pod(name, namespace, migration_id):
@@ -94,5 +112,21 @@ def log_pod(pod_name, namespace, container_name):
     ).logs()
 
 
-def check_error_event(name, namespace, last_checked_time):
-    return datetime.now(tz=tzlocal())
+def delete_pod_owner_reference(name, namespace, checkpoint_id):
+    raise NotImplementedError()
+
+
+def delete_ssu_custom_resource(name, namespace):
+    raise Exception('Code should not reach here')
+
+
+def wait_restored_pod_ready_ssu(namespace, migration_id):
+    raise NotImplementedError()
+
+
+def wait_created_pod_ready_ff(pod):
+    raise NotImplementedError()
+
+
+def wait_created_pod_ready_frontman(pod, migration_state):
+    raise NotImplementedError()

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, abort
 
+from app.interface import select_interface
 from app.orchestrator import select_orchestrator
 
 client = select_orchestrator()
@@ -13,7 +14,13 @@ def delete_api():
     if name is None:
         abort(400, 'name is null')
 
+    selected_interface = body.get('interface')
+    if selected_interface is None:
+        abort(400, 'interface is null')
+
+    interface = select_interface(selected_interface)
+
     namespace = body.get('namespace', 'default')
 
-    client.delete_pod(name, namespace)  # todo delete src pod
+    interface.do_delete_pod(name, namespace)
     return 'deleted!'

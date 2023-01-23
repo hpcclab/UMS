@@ -114,10 +114,14 @@ def ping_destination(destination_url):
     return response
 
 
-def delete_des_pod(src_pod, destination_url):
+def delete_des_pod(src_pod, destination_url, interface_name):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    response = requests.post(f'http://{destination_url}/delete', json={'name': name, 'namespace': namespace})
+    response = requests.post(f'http://{destination_url}/delete', json={
+        'name': name,
+        'namespace': namespace,
+        'interface': interface_name
+    })
     response.raise_for_status()
 
 
@@ -179,7 +183,7 @@ def create_frontman(src_pod, migration_state, redirect_uri=None):
 
     frontman_pod = client.create_pod(src['metadata']['namespace'], frontman_template)
     migration_state['frontmant_exist'] = True
-    client.wait_pod_ready_frontman(frontman_pod, migration_state)
+    client.wait_created_pod_ready_frontman(frontman_pod, migration_state)
 
     client.update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
                             {k: None for k in src['metadata']['labels']})

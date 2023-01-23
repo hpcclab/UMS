@@ -19,4 +19,4 @@ def create_api():
 
     interface = select_interface(selected_interface)
 
-    return interface.create_new_pod(template)
+    return interface.do_create_pod(template)
