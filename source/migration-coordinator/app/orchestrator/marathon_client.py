@@ -31,7 +31,7 @@ def get_pod(name, namespace):
                 'env': [{'name': param['value'].split('=')[0], 'value': param['value'].split('=')[1]}
                         for param in marathon_app.container.docker.parameters if param['key'] == 'env'],
                 'volumeMounts': [
-                    {'name': volume.host_path .replace('/', ''), 'mountPath': volume.container_path}
+                    {'name': volume.host_path.replace('/', ''), 'mountPath': volume.container_path}
                     for volume in marathon_app.container.volumes
                 ]
             }],

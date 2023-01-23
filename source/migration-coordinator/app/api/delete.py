@@ -1,7 +1,8 @@
 from flask import Blueprint, request, abort
 
-from app.lib import delete_pod
+from app.orchestrator import select_orchestrator
 
+client = select_orchestrator()
 delete_api_blueprint = Blueprint('delete_api', __name__)
 
 
@@ -14,5 +15,5 @@ def delete_api():
 
     namespace = body.get('namespace', 'default')
 
-    delete_pod(name, namespace)  # todo delete src pod
+    client.delete_pod(name, namespace)  # todo delete src pod
     return 'deleted!'

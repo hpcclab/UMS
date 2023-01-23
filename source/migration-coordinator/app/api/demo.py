@@ -9,16 +9,21 @@ import yaml
 from dateutil.tz import tzlocal
 from flask import Blueprint, request, abort, Response, current_app
 
+from app.api.ping import get_information
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
     START_MODE_PASSIVE, INTERFACE_ANNOTATION, INTERFACE_DIND, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, INTERFACE_PIND, \
     INTERFACE_FF, START_MODE_NULL, BYPASS_ANNOTATION
 from app.env import env, FRONTMAN_IMAGE, ORCHESTRATOR_TYPE
-from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready_frontman
-from app.lib import get_information, gather, get_pod, lock_pod, release_pod, update_pod_restart, update_pod_redirect,\
-    delete_pod, exec_pod, check_error_event
 
+from app.orchestrator import select_orchestrator
+
+client = select_orchestrator()
 demo_api_blueprint = Blueprint('demo_api', __name__)
+
+
+async def gather(fn_list):
+    return await asyncio.gather(*fn_list)
 
 
 @demo_api_blueprint.route("/demo", methods=['GET'])
@@ -45,7 +50,7 @@ def migrate(body, migration_id, context):
         destination_url = body['destinationUrl']
         keep = False
         last_checked_time = datetime.now(tz=tzlocal())
-        src_pod = get_pod(name, namespace)
+        src_pod = client.get_pod(name, namespace)
         if not bool(src_pod['metadata']['annotations'].get(MIGRATABLE_ANNOTATION)):
             abort(400, "pod is not migratable")
         if src_pod['metadata']['annotations'][START_MODE_ANNOTATION] != START_MODE_ACTIVE:
@@ -53,7 +58,7 @@ def migrate(body, migration_id, context):
         if src_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION):
             abort(409, "Pod is being migrated")
         # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
-        src_pod = lock_pod(name, namespace, migration_id)
+        src_pod = client.lock_pod(name, namespace, migration_id)
         try:
             # last_checked_time = abort_if_error_exists(migration_id, name, namespace, last_checked_time)
             ping_destination(destination_url)
@@ -79,18 +84,19 @@ def migrate(body, migration_id, context):
             raise e
         finally:
             if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
-                update_pod_restart(name, namespace, START_MODE_ACTIVE)
-            release_pod(name, namespace)
+                client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
+            client.release_pod(name, namespace)
         try:
             if body.get('redirect'):
                 if keep:
                     update_frontman(src_pod, body.get('redirect'))
                 else:
                     create_frontman(src_pod, body.get('redirect'))
-            delete_pod(name, namespace)
+            client.delete_pod(name, namespace)
             if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS \
-                    and src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
-                delete_pod(f"{name}-monitor", namespace)
+                    and src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND,
+                                                                                         INTERFACE_PIND]:
+                client.delete_pod(f"{name}-monitor", namespace)
         except Exception as e:
             abort(500, f"Error occurs at post-migration step: {e}")
         yield 'data: DONE\n\n'
@@ -130,7 +136,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) in [INTERFACE_DIND, INTERFACE_PIND]:
-        src_pod = update_pod_restart(name, namespace, START_MODE_NULL)
+        src_pod = client.update_pod_restart(name, namespace, START_MODE_NULL)
         checkpoint_and_transfer_dind(src_pod, checkpoint_id, des_pod_annotations)
     elif src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) == INTERFACE_FF:
         checkpoint_and_transfer_ff(src_pod, des_pod_annotations)
@@ -145,7 +151,7 @@ def checkpoint_and_transfer_ff(src_pod, des_pod_annotations):
     interface_port = json.loads(des_pod_annotations[SYNC_PORT_ANNOTATION])
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    asyncio.run(gather([exec_pod(
+    asyncio.run(gather([client.exec_pod(
         name,
         namespace,
         f'''
@@ -214,17 +220,18 @@ def create_frontman(src_pod, redirect_uri=None):
     if not frontman_template['spec']['containers']:
         return False
 
-    wait_pod_ready_frontman(create_pod(src['metadata']['namespace'], frontman_template))
-    update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
-                     {k: None for k in src['metadata']['labels']})
+    client.wait_pod_ready_frontman(client.create_pod(src['metadata']['namespace'], frontman_template))
+    client.update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
+                            {k: None for k in src['metadata']['labels']})
     return True
 
 
 def update_frontman(src_pod, redirect_uri):
-    update_pod_redirect(f"{src_pod['metadata']['name']}-frontman", src_pod['metadata']['namespace'], redirect_uri)
+    client.update_pod_redirect(f"{src_pod['metadata']['name']}-frontman", src_pod['metadata']['namespace'],
+                               redirect_uri)
 
 
 def delete_frontman(src_pod):
     src = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
-    update_pod_label(src['metadata']['name'], src['metadata']['namespace'], src['metadata']['labels'])
-    delete_pod(f"{src['metadata']['name']}-frontman", src['metadata']['namespace'])
+    client.update_pod_label(src['metadata']['name'], src['metadata']['namespace'], src['metadata']['labels'])
+    client.delete_pod(f"{src['metadata']['name']}-frontman", src['metadata']['namespace'])

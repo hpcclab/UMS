@@ -3,7 +3,6 @@ from urllib.parse import urlparse
 from flask import Blueprint, request
 
 from app.env import SSU_INTERFACE_ENABLE, SSU_INTERFACE_NODEPORT, SSU_INTERFACE_HOST
-from app.lib import get_information
 
 ping_api_blueprint = Blueprint('ping_api', __name__)
 
@@ -22,3 +21,8 @@ def ping_api():
         response['ssu_host'] = SSU_INTERFACE_HOST or host
         response['ssu_port'] = SSU_INTERFACE_NODEPORT
     return response
+
+
+def get_information():
+    with open('/etc/os-release') as f:
+        return f.read()

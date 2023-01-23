@@ -3,7 +3,7 @@ from datetime import datetime
 
 from dateutil.tz import tzlocal
 from flask import abort
-from kubernetes import client
+from kubernetes import client, config
 from kubernetes.stream import stream
 from kubernetes.watch import watch
 
@@ -13,6 +13,10 @@ from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION
 class FakeKubeResponse:
     def __init__(self, obj):
         self.data = json.dumps(obj)
+
+
+def load_incluster_config():
+    config.load_incluster_config()
 
 
 def pod_to_dict(pod):

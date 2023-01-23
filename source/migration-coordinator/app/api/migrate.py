@@ -8,19 +8,15 @@ import yaml
 from dateutil.tz import tzlocal
 from flask import Blueprint, request, abort
 from requests import HTTPError
-from werkzeug.exceptions import HTTPException
 
-import app.interface.dind as dind
-import app.interface.ff as ff
-import app.interface.pind as pind
-import app.interface.ssu as ssu
+from app.api.ping import get_information
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
     INTERFACE_ANNOTATION, LAST_APPLIED_CONFIG, BYPASS_ANNOTATION
 from app.env import env, FRONTMAN_IMAGE
-from app.kubernetes_client import create_pod, update_pod_label, wait_pod_ready_frontman
-from app.lib import get_information, get_pod, lock_pod, release_pod, update_pod_redirect, \
-    delete_pod, select_interface
+from app.interface import select_migration_interface
+from app.orchestrator import select_orchestrator
 
+client = select_orchestrator()
 migrate_api_blueprint = Blueprint('migrate_api', __name__)
 
 
@@ -58,7 +54,7 @@ def migrate(body, migration_id):
     destination_url = body['destinationUrl']
     selected_interface = body.get('interface')
 
-    src_pod = get_pod(name, namespace)
+    src_pod = client.get_pod(name, namespace)
     if not bool(src_pod['metadata']['annotations'].get(MIGRATABLE_ANNOTATION)):
         abort(400, "pod is not migratable")
     if src_pod['metadata']['annotations'][START_MODE_ANNOTATION] != START_MODE_ACTIVE:
@@ -66,7 +62,7 @@ def migrate(body, migration_id):
     if src_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION):
         abort(409, "Pod is being migrated")
 
-    src_pod = lock_pod(name, namespace, migration_id)
+    src_pod = client.lock_pod(name, namespace, migration_id)
     migration_state = {
         'src_pod_exist': True,
         'des_pod_exist': False,
@@ -88,10 +84,12 @@ def migrate(body, migration_id):
         # todo actual checkpoint time (interface)
         checkpointed_time = datetime.now(tz=tzlocal())
 
-        restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface, des_pod_template, migration_state)
+        restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface, des_pod_template,
+                                    migration_state)
     except Exception as e:
         if interface:
-            interface.recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod, release_pod)
+            interface.recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod)
+        client.release_pod(name, namespace)
         raise e
 
     create_or_update_frontman(src_pod, migration_state, redirect_uri=body.get('redirect'))
@@ -116,36 +114,15 @@ def ping_destination(destination_url):
     return response
 
 
-def select_migration_interface(src_pod, des_info, selected_interface):
-    if selected_interface is not None:
-        return select_interface(selected_interface)
-    if ssu.is_compatible(src_pod, des_info):
-        return ssu
-    try:
-        interface = select_interface(src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION))
-        if interface.is_compatible(src_pod, des_info):
-            return interface
-    except HTTPException:
-        pass
-    if ff.is_compatible(src_pod, des_info):
-        return ff
-    if pind.is_compatible(src_pod, des_info):
-        return pind
-    if dind.is_compatible(src_pod, des_info):
-        return dind
-    abort(409, 'Cannot migrate to incompatible destination')
-
-
-def delete_des_pod(src_pod, destination_url, des_pod_created):
-    if not des_pod_created:
-        return
+def delete_des_pod(src_pod, destination_url):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     response = requests.post(f'http://{destination_url}/delete', json={'name': name, 'namespace': namespace})
     response.raise_for_status()
 
 
-def restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface, des_pod_template, migration_state):
+def restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface, des_pod_template,
+                                migration_state):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     try:
@@ -200,22 +177,23 @@ def create_frontman(src_pod, migration_state, redirect_uri=None):
     if not frontman_template['spec']['containers']:
         return False
 
-    frontman_pod = create_pod(src['metadata']['namespace'], frontman_template)
+    frontman_pod = client.create_pod(src['metadata']['namespace'], frontman_template)
     migration_state['frontmant_exist'] = True
-    wait_pod_ready_frontman(frontman_pod, migration_state)
+    client.wait_pod_ready_frontman(frontman_pod, migration_state)
 
-    update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
-                     {k: None for k in src['metadata']['labels']})
+    client.update_pod_label(src['metadata']['name'], src['metadata']['namespace'],
+                            {k: None for k in src['metadata']['labels']})
     return True
 
 
 def update_frontman(src_pod, redirect_uri):
-    update_pod_redirect(f"{src_pod['metadata']['name']}-frontman", src_pod['metadata']['namespace'], redirect_uri)
+    client.update_pod_redirect(f"{src_pod['metadata']['name']}-frontman", src_pod['metadata']['namespace'],
+                               redirect_uri)
 
 
 def delete_frontman(src_pod, frontman_created):
     if not frontman_created:
         return
     src = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
-    update_pod_label(src['metadata']['name'], src['metadata']['namespace'], src['metadata']['labels'])
-    delete_pod(f"{src['metadata']['name']}-frontman", src['metadata']['namespace'])
+    client.update_pod_label(src['metadata']['name'], src['metadata']['namespace'], src['metadata']['labels'])
+    client.delete_pod(f"{src['metadata']['name']}-frontman", src['metadata']['namespace'])

@@ -7,8 +7,9 @@ from requests import HTTPError
 
 from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_PASSIVE, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, INTERFACE_FF, START_MODE_ACTIVE
-from app.kubernetes_client import create_pod, wait_pod_ready_ff
-from app.kubernetes_client import delete_pod, exec_pod, get_pod, update_pod_restart, release_pod, log_pod
+from app.orchestrator import select_orchestrator
+
+client = select_orchestrator()
 
 
 async def gather(fn_list):
@@ -20,14 +21,14 @@ def get_name():
 
 
 def is_compatible(src_pod, des_info):
-    ff_processes = asyncio.run(gather([exec_pod(
+    ff_processes = asyncio.run(gather([client.exec_pod(
         src_pod['metadata']['name'],
         src_pod['metadata'].get('namespace', 'default'),
         f"ps -A -ww | grep -c [^]]fastfreeze",
         container['name'],
     ) for container in src_pod['spec']['containers']]))
     for process in ff_processes:
-        if int(process) < 1:
+        if not process.isdigit() or int(process) < 1:
             return False
     return True
 
@@ -36,7 +37,8 @@ def generate_des_pod_template(src_pod):
     body = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     body['metadata']['annotations'][LAST_APPLIED_CONFIG] = src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG)
     body['metadata']['annotations'][START_MODE_ANNOTATION] = START_MODE_PASSIVE
-    body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][MIGRATION_ID_ANNOTATION]
+    body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][
+        MIGRATION_ID_ANNOTATION]
     return body
 
 
@@ -57,8 +59,8 @@ def create_des_pod(des_pod_template, des_info, migration_state):
 
 def create_new_pod(template):
     namespace = template.get('metadata', {}).get('namespace', 'default')
-    new_pod = create_pod(namespace, template)
-    msg = wait_pod_ready_ff(new_pod)
+    new_pod = client.create_pod(namespace, template)
+    msg = client.wait_pod_ready_ff(new_pod)
     return {
         **msg['annotations'],
         'current-containers': None
@@ -71,7 +73,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
     interface_port = json.loads(des_pod_annotations[SYNC_PORT_ANNOTATION])
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    asyncio.run(gather([exec_pod(
+    asyncio.run(gather([client.exec_pod(
         name,
         namespace,
         f'''
@@ -87,12 +89,12 @@ def restore(body):
     name = body['name']
     namespace = body.get('namespace', 'default')
     migration_id = body['migrationId']
-    des_pod = get_pod(name, namespace)
+    des_pod = client.get_pod(name, namespace)
     if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
         abort(409, "Pod is being migrated")
-    update_pod_restart(name, namespace, START_MODE_ACTIVE)
+    client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
     wait_restored_pod_ready(des_pod)
-    release_pod(name, namespace)
+    client.release_pod(name, namespace)
 
 
 def wait_restored_pod_ready(pod):
@@ -108,7 +110,7 @@ def wait_restored_pod_ready(pod):
 async def wait_restored_container_ready(pod_name, namespace, container_name):
     found = False
     while not found:
-        log = log_pod(pod_name, namespace, container_name).split('\n')
+        log = client.log_pod(pod_name, namespace, container_name).split('\n')
         for line in log:
             if 'Application is ready, restore took' in line:
                 found = True
@@ -119,14 +121,11 @@ async def wait_restored_container_ready(pod_name, namespace, container_name):
 def delete_src_pod(src_pod):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    delete_pod(name, namespace)
+    client.delete_pod(name, namespace)
 
 
-def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod, release_pod):
-    name = src_pod['metadata']['name']
-    namespace = src_pod['metadata'].get('namespace', 'default')
+def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod):
     if migration_state['frontmant_exist']:
         delete_frontman(src_pod)
     if migration_state['des_pod_exist']:
         delete_des_pod(src_pod, destination_url)
-    release_pod(name, namespace)

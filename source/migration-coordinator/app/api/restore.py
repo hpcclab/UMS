@@ -1,6 +1,6 @@
 from flask import Blueprint, request, abort, Response
 
-from app.lib import select_interface
+from app.interface import select_interface
 
 restore_api_blueprint = Blueprint('restore_api', __name__)
 

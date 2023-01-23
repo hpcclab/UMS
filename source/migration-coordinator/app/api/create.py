@@ -1,6 +1,6 @@
 from flask import Blueprint, request, abort
 
-from app.lib import select_interface
+from app.interface import select_interface
 
 create_api_blueprint = Blueprint('create_api', __name__)
 

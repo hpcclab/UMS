@@ -12,8 +12,9 @@ from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, VOLUME_LIS
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, START_MODE_NULL, \
     INTERFACE_PIND, START_MODE_ACTIVE, START_MODE_PASSIVE, INTERFACE_ANNOTATION
 from app.env import ORCHESTRATOR_TYPE
-from app.kubernetes_client import create_pod
-from app.kubernetes_client import delete_pod, get_pod, update_pod_restart, release_pod
+from app.orchestrator import select_orchestrator
+
+client = select_orchestrator()
 
 
 def get_name():
@@ -35,7 +36,8 @@ def generate_des_pod_template(src_pod):
     body = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     body['metadata']['annotations'][LAST_APPLIED_CONFIG] = src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG)
     body['metadata']['annotations'][START_MODE_ANNOTATION] = START_MODE_NULL
-    body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][MIGRATION_ID_ANNOTATION]
+    body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][
+        MIGRATION_ID_ANNOTATION]
     return body
 
 
@@ -56,7 +58,7 @@ def create_des_pod(des_pod_template, des_info, migration_state):
 
 def create_new_pod(template):
     namespace = template.get('metadata', {}).get('namespace', 'default')
-    new_pod = create_pod(namespace, template)
+    new_pod = client.create_pod(namespace, template)
     msg = wait_created_pod_ready(new_pod)
     response = requests.get(f"http://{msg['ip']}:8888/list")
     response.raise_for_status()
@@ -82,9 +84,9 @@ def wait_created_pod_ready(pod):
                         SYNC_PORT_ANNOTATION: annotations[SYNC_PORT_ANNOTATION]
                     }, 'ip': pod['status']['podIP']}
                 else:
-                    pod = get_pod(pod['metadata']['name'], pod['metadata']['namespace'])
+                    pod = client.get_pod(pod['metadata']['name'], pod['metadata']['namespace'])
         else:
-            pod = get_pod(pod['metadata']['name'], pod['metadata']['namespace'])
+            pod = client.get_pod(pod['metadata']['name'], pod['metadata']['namespace'])
 
         if datetime.now(tz=tzlocal()) - start_time > timedelta(minutes=1):
             abort(504, 'Timeout while waiting pod to be ready')
@@ -102,7 +104,7 @@ def probe_all(pod_ip):
 def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    src_pod = update_pod_restart(name, namespace, START_MODE_NULL)
+    src_pod = client.update_pod_restart(name, namespace, START_MODE_NULL)
     response = requests.post(f"http://{src_pod['status']['podIP']}:8888/migrate", json={
         'checkpointId': checkpoint_id,
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
@@ -119,7 +121,7 @@ def restore(body):
     namespace = body.get('namespace', 'default')
     migration_id = body['migrationId']
     checkpoint_id = body['checkpointId']
-    des_pod = get_pod(name, namespace)
+    des_pod = client.get_pod(name, namespace)
     if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
         abort(409, "Pod is being migrated")
     response = requests.post(f"http://{des_pod['status']['podIP']}:8888/restore", json={
@@ -127,8 +129,8 @@ def restore(body):
     })
     response.raise_for_status()
     wait_restored_pod_ready(des_pod)
-    update_pod_restart(name, namespace, START_MODE_ACTIVE)
-    release_pod(name, namespace)
+    client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
+    client.release_pod(name, namespace)
 
 
 def wait_restored_pod_ready(pod):
@@ -147,18 +149,17 @@ def wait_restored_pod_ready(pod):
 def delete_src_pod(src_pod):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    delete_pod(name, namespace)
+    client.delete_pod(name, namespace)
     if ORCHESTRATOR_TYPE == ORCHESTRATOR_TYPE_MESOS:
-        delete_pod(f"{name}-monitor", namespace)
+        client.delete_pod(f"{name}-monitor", namespace)
 
 
-def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod, release_pod):
+def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) != START_MODE_ACTIVE:
-        update_pod_restart(name, namespace, START_MODE_ACTIVE)
+        client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
     if migration_state['frontmant_exist']:
         delete_frontman(src_pod)
     if migration_state['des_pod_exist']:
         delete_des_pod(src_pod, destination_url)
-    release_pod(name, namespace)
