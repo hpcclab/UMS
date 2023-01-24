@@ -10,7 +10,9 @@ from requests import HTTPError, RequestException
 
 from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, VOLUME_LIST_ANNOTATION, \
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, START_MODE_NULL, \
-    INTERFACE_PIND, START_MODE_ACTIVE, START_MODE_PASSIVE, INTERFACE_ANNOTATION
+    INTERFACE_PIND, START_MODE_ACTIVE, START_MODE_PASSIVE, INTERFACE_ANNOTATION, MIGRATION_POSITION_ANNOTATION, \
+    MIGRATION_STEP_ANNOTATION, MIGRATION_POSITION_DES, MIGRATION_STEP_RESERVED, MIGRATION_STEP_DELETING, \
+    MIGRATION_STEP_RESTORING
 from app.env import ORCHESTRATOR_TYPE
 from app.orchestrator import select_orchestrator
 
@@ -38,6 +40,8 @@ def generate_des_pod_template(src_pod):
     body['metadata']['annotations'][START_MODE_ANNOTATION] = START_MODE_NULL
     body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][
         MIGRATION_ID_ANNOTATION]
+    body['metadata']['annotations'][MIGRATION_POSITION_ANNOTATION] = MIGRATION_POSITION_DES
+    body['metadata']['annotations'][MIGRATION_STEP_ANNOTATION] = MIGRATION_STEP_RESERVED
     return body
 
 
@@ -124,6 +128,7 @@ def restore(body):
     des_pod = client.get_pod(name, namespace)
     if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
         abort(409, "Pod is being migrated")
+    client.update_migration_step(name, namespace, MIGRATION_STEP_RESTORING)
     response = requests.post(f"http://{des_pod['status']['podIP']}:8888/restore", json={
         'checkpointId': checkpoint_id
     })
@@ -149,6 +154,7 @@ def wait_restored_pod_ready(pod):
 def delete_src_pod(src_pod):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
+    client.update_migration_step(name, namespace, MIGRATION_STEP_DELETING)
     do_delete_pod(name, namespace)
 
 

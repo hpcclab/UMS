@@ -11,16 +11,14 @@ from requests import HTTPError
 
 from app.api.ping import get_information
 from app.const import MIGRATABLE_ANNOTATION, MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, \
-    INTERFACE_ANNOTATION, LAST_APPLIED_CONFIG, BYPASS_ANNOTATION
+    INTERFACE_ANNOTATION, LAST_APPLIED_CONFIG, BYPASS_ANNOTATION, MIGRATION_STEP_CHECKPOINTING, \
+    MIGRATION_STEP_CONFIRMING
 from app.env import env, FRONTMAN_IMAGE
 from app.interface import select_migration_interface
 from app.orchestrator import select_orchestrator
 
 client = select_orchestrator()
 migrate_api_blueprint = Blueprint('migrate_api', __name__)
-
-
-# todo bypass interceptor, migration position, migration phase/status
 
 
 @migrate_api_blueprint.route("/migrate", methods=['POST'])
@@ -80,17 +78,20 @@ def migrate(body, migration_id):
         created_time = datetime.now(tz=tzlocal())
 
         checkpoint_id = uuid4().hex[:8]
+        client.update_migration_step(name, namespace, MIGRATION_STEP_CHECKPOINTING)
         src_pod = interface.checkpoint_and_transfer(src_pod, des_pod_info, checkpoint_id, migration_state)
         # todo actual checkpoint time (interface)
         checkpointed_time = datetime.now(tz=tzlocal())
 
+        client.update_migration_step(name, namespace, MIGRATION_STEP_CONFIRMING)
         restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface, des_pod_template,
                                     migration_state)
     except Exception as e:
         if interface:
             interface.recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod)
-        client.release_pod(name, namespace)
         raise e
+    finally:
+        client.release_pod(name, namespace)
 
     create_or_update_frontman(src_pod, migration_state, redirect_uri=body.get('redirect'))
     interface.delete_src_pod(src_pod)

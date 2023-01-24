@@ -3,7 +3,8 @@ import json
 import requests
 
 from app.const import MIGRATION_ID_ANNOTATION, SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, \
-    INTERFACE_SSU
+    INTERFACE_SSU, MIGRATION_POSITION_ANNOTATION, MIGRATION_POSITION_DES, MIGRATION_STEP_ANNOTATION, \
+    MIGRATION_STEP_RESTORING
 from app.env import SSU_INTERFACE_SERVICE, SSU_INTERFACE_ENABLE
 from app.orchestrator import select_orchestrator
 
@@ -25,6 +26,8 @@ def generate_des_pod_template(src_pod):
     body['metadata']['annotations'][LAST_APPLIED_CONFIG] = src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG)
     body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][
         MIGRATION_ID_ANNOTATION]
+    body['metadata']['annotations'][MIGRATION_POSITION_ANNOTATION] = MIGRATION_POSITION_DES
+    body['metadata']['annotations'][MIGRATION_STEP_ANNOTATION] = MIGRATION_STEP_RESTORING
     return body
 
 

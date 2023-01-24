@@ -4,7 +4,8 @@ from dateutil.tz import tzlocal
 from marathon import MarathonClient
 from docker import from_env
 from docker.errors import DockerException
-from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, DOMAIN
+from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, DOMAIN, MIGRATION_POSITION_ANNOTATION, \
+    MIGRATION_POSITION_SRC, MIGRATION_STEP_ANNOTATION, MIGRATION_STEP_RESERVED
 from app.env import MARATHON_URL
 
 client = MarathonClient(MARATHON_URL)
@@ -75,7 +76,13 @@ def lock_pod(name, namespace, migration_id):
     # This does not really update the app (leave to future work)
     app = get_pod(name, namespace)
     app['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = migration_id
+    app['metadata']['annotations'][MIGRATION_POSITION_ANNOTATION] = MIGRATION_POSITION_SRC
+    app['metadata']['annotations'][MIGRATION_STEP_ANNOTATION] = MIGRATION_STEP_RESERVED
     return app
+
+
+def update_migration_step(name, namespace, migration_step):
+    raise NotImplementedError()
 
 
 def release_pod(name, namespace):

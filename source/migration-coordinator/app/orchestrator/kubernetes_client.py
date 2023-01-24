@@ -7,7 +7,8 @@ from kubernetes import client, config
 from kubernetes.stream import stream
 from kubernetes.watch import watch
 
-from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION
+from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, MIGRATION_POSITION_ANNOTATION, \
+    MIGRATION_STEP_ANNOTATION, MIGRATION_POSITION_SRC, MIGRATION_STEP_RESERVED
 
 
 class FakeKubeResponse:
@@ -44,17 +45,25 @@ def delete_pod(name, namespace, delete_ambassador=False):
 
 
 def update_pod_label(name, namespace, body):
-    return pod_to_dict(client.CoreV1Api().patch_namespaced_pod(name, namespace, body))
+    return pod_to_dict(client.CoreV1Api().patch_namespaced_pod(name, namespace, {'metadata': {'labels': body}}))
 
 
 def lock_pod(name, namespace, migration_id):
     return pod_to_dict(client.CoreV1Api().patch_namespaced_pod(name, namespace, {'metadata': {'annotations': {
-        MIGRATION_ID_ANNOTATION: migration_id}}}))
+        MIGRATION_ID_ANNOTATION: migration_id,
+        MIGRATION_POSITION_ANNOTATION: MIGRATION_POSITION_SRC,
+        MIGRATION_STEP_ANNOTATION: MIGRATION_STEP_RESERVED
+    }}}))
+
+
+def update_migration_step(name, namespace, migration_step):
+    return pod_to_dict(client.CoreV1Api().patch_namespaced_pod(name, namespace, {'metadata': {'annotations': {
+        MIGRATION_STEP_ANNOTATION: migration_step}}}))
 
 
 def release_pod(name, namespace):
     return pod_to_dict(client.CoreV1Api().patch_namespaced_pod(name, namespace, {'metadata': {'annotations': {
-        MIGRATION_ID_ANNOTATION: None}}}))
+        MIGRATION_ID_ANNOTATION: None, MIGRATION_POSITION_ANNOTATION: None, MIGRATION_STEP_ANNOTATION: None}}}))
 
 
 def update_pod_restart(name, namespace, start_mode):
