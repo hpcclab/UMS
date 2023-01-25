@@ -27,5 +27,4 @@ def restore_api():
 
     interface = select_interface(selected_interface)
 
-    interface.restore(body)
-    return Response(status = 200)
+    return interface.restore(body)

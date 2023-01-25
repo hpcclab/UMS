@@ -1,5 +1,11 @@
 import {FastifyReply, FastifyRequest} from "fastify"
-import {checkpointContainerDind, checkpointContainerPind, ContainerInfo, inspectContainer, listContainer} from "../docker"
+import {
+    checkpointContainerDind,
+    checkpointContainerPind,
+    ContainerInfo,
+    inspectContainer,
+    listContainer
+} from "../docker"
 import {MigrateRequestType} from "../schema"
 import {execRsync, findDestinationFileSystemId, waitForIt} from "../lib"
 import {FastifyBaseLogger} from "fastify/types/logger"
@@ -10,6 +16,7 @@ import {AsyncBlockingQueue} from "../queue"
 
 
 async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, reply: FastifyReply) {
+    const start = Date.now()
     const {checkpointId, interfaceHost, interfacePort, containers, volumes} = request.body
 
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
@@ -17,37 +24,37 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 
-    await waitForIt(interfaceHost, interfacePort, request.log)
+    const waitDestination = waitForIt(interfaceHost, interfacePort, request.log)
 
     let responses
     if (pind) {
         responses = await Promise.all([
             ...containerInfos.map(
-                containerInfo => migrateOneContainerPind(checkpointId, interfaceHost, interfacePort,
-                    containerInfo, exit, request.log)
+                containerInfo => migrateOneContainerPind(waitDestination, start, checkpointId, interfaceHost,
+                    interfacePort, containerInfo, exit, request.log)
             ),
             ...volumes.map(
-                volume => transferVolume(interfaceHost, interfacePort, volume, request.log)
+                volume => transferVolume(waitDestination, start, interfaceHost, interfacePort, volume, request.log)
             )
         ])
     } else {
         responses = await Promise.all([
             ...containerInfos.map(
-                containerInfo => migrateOneContainerDind(checkpointId, interfaceHost, interfacePort,
-                    containers, containerInfo, exit, request.log)
+                containerInfo => migrateOneContainerDind(waitDestination, start, checkpointId, interfaceHost,
+                    interfacePort, containers, containerInfo, exit, request.log)
             ),
             ...volumes.map(
-                volume => transferVolume(interfaceHost, interfacePort, volume, request.log)
+                volume => transferVolume(waitDestination, start, interfaceHost, interfacePort, volume, request.log)
             )
         ])
     }
     request.log.info(responses)
-    reply.code(204)
+    return responses
 }
 
-async function migrateOneContainerDind(checkpointId: string, interfaceHost: string, interfacePort: string, containers: any,
-                                   containerInfo: ContainerInfo, exit: boolean,
-                                   log: FastifyBaseLogger) {
+async function migrateOneContainerDind(waitDestination: Promise<void>, start: number, checkpointId: string,
+                                       interfaceHost: string, interfacePort: string, containers: any,
+                                       containerInfo: ContainerInfo, exit: boolean, log: FastifyBaseLogger) {
     const {destinationId, destinationFs} = findDestinationFileSystemId(containers, containerInfo)
 
     const sourceImagePath = `/var/lib/docker/containers/${containerInfo.Id}/checkpoints/${checkpointId}`
@@ -70,18 +77,20 @@ async function migrateOneContainerDind(checkpointId: string, interfaceHost: stri
 
     await imageQueueInitPromise
 
-    await Promise.all([
-        transferContainerImage(interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
-        transferContainerFS(interfaceHost, interfacePort, containerInfo, destinationFs, log),
-        checkpointContainerDind(containerInfo.Id, checkpointId, exit, imageQueue, log)
+    const responses = await Promise.all([
+        transferContainerImage(waitDestination, start, interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
+        transferContainerFS(waitDestination, start, interfaceHost, interfacePort, containerInfo, destinationFs, log),
+        checkpointContainerDind(start, containerInfo.Id, checkpointId, exit, imageQueue, log)
     ])
 
     await imageWatcher.close()
+
+    return responses.reduce((prev: { [key: string]: number }, curr: any) => ({...prev, ...curr}), {})
 }
 
-async function migrateOneContainerPind(checkpointId: string, interfaceHost: string, interfacePort: string,
-                                   containerInfo: ContainerInfo, exit: boolean,
-                                   log: FastifyBaseLogger) {
+async function migrateOneContainerPind(waitDestination: Promise<void>, start: number, checkpointId: string,
+                                       interfaceHost: string, interfacePort: string, containerInfo: ContainerInfo,
+                                       exit: boolean, log: FastifyBaseLogger) {
     const sourceImagePath = `/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
     const destinationImagePath = `root@${interfaceHost}:/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
     const imageQueue = new AsyncBlockingQueue<string>()
@@ -102,19 +111,29 @@ async function migrateOneContainerPind(checkpointId: string, interfaceHost: stri
 
     await imageQueueInitPromise
 
-    await Promise.all([
-        transferContainerImage(interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
-        checkpointContainerPind(containerInfo.Id, checkpointId, exit, imageQueue, log)
+    const responses = await Promise.all([
+        transferContainerImage(waitDestination, start, interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
+        checkpointContainerPind(start, containerInfo.Id, checkpointId, exit, imageQueue, log)
     ])
 
     await imageWatcher.close()
+
+    return responses.reduce((prev: { [key: string]: number }, curr: any) => ({...prev, ...curr}), {})
 }
 
-async function transferContainerImage(interfacePort: string, queue: AsyncBlockingQueue<string>, sourcePath: string,
-                                      destinationPath: string, log: FastifyBaseLogger) {
+async function transferContainerImage(waitDestination: Promise<void>, start: number, interfacePort: string,
+                                      queue: AsyncBlockingQueue<string>, sourcePath: string, destinationPath: string,
+                                      log: FastifyBaseLogger) {
+    let exist = false
+    let delay = 0
+    await waitDestination
     while (true) {
         if (queue.done) break
         await queue.dequeue()
+        if (!exist) {
+            exist = true
+            delay = (Date.now() - start) / 1000
+        }
         await execRsync(interfacePort, sourcePath, destinationPath, log)
     }
 
@@ -123,18 +142,27 @@ async function transferContainerImage(interfacePort: string, queue: AsyncBlockin
     }
 
     await execRsync(interfacePort, sourcePath, destinationPath, log)
+    return {checkpoint_files_transfer: (Date.now() - start) / 1000, checkpoint_files_delay: delay}
 }
 
-async function transferContainerFS(interfaceHost: string, interfacePort: string, containerInfo: ContainerInfo,
-                                   destinationFs: string, log: FastifyBaseLogger) {
+async function transferContainerFS(waitDestination: Promise<void>, start: number, interfaceHost: string,
+                                   interfacePort: string, containerInfo: ContainerInfo, destinationFs: string,
+                                   log: FastifyBaseLogger) {
+    await waitDestination
+    const delay = (Date.now() - start) / 1000
     const {GraphDriver: {Name, Data: {UpperDir}}} = await inspectContainer(containerInfo.Id, log)
     if (Name === 'overlay2' && destinationFs !== null) {
         await execRsync(interfacePort, UpperDir, `root@${interfaceHost}:${destinationFs}`.slice(0, -5), log)
     }
+    return {file_system_transfer: (Date.now() - start) / 1000, file_system_delay: delay}
 }
 
-async function transferVolume(interfaceHost: string, interfacePort: string, volume: any, log: FastifyBaseLogger) {
+async function transferVolume(waitDestination: Promise<void>, start: number, interfaceHost: string, interfacePort: string,
+                              volume: any, log: FastifyBaseLogger) {
+    await waitDestination
+    const delay = (Date.now() - start) / 1000
     await execRsync(interfacePort, volume, `root@${interfaceHost}:/mount`, log)
+    return {volume_transfer: (Date.now() - start) / 1000, volume_delay: delay}
 }
 
 export {migrate}

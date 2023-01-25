@@ -55,7 +55,17 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
     response.raise_for_status()  # todo forward body
     migration_state['src_pod_exist'] = False
     client.delete_ssu_custom_resource(checkpoint_id, src_pod['metadata'].get('namespace', 'default'))
-    return src_pod
+    return src_pod, {
+        'checkpoint': 'todo',
+        'checkpoint_files_transfer': 'todo',
+        'checkpoint_files_delay': 'todo',
+        'image_layers_transfer': 'todo',
+        'image_layers_dealy': 'todo',
+        'file_system_transfer': 'todo',
+        'file_system_delay': 'todo',
+        'volume_transfer': 'todo',
+        'volume_delay': 'todo'
+    }
 
 
 def restore(body):
@@ -73,7 +83,7 @@ def restore(body):
     pod_name = client.wait_restored_pod_ready_ssu(namespace, migration_id)
     client.delete_pod_owner_reference(pod_name, namespace, checkpoint_id)
     client.delete_ssu_custom_resource(checkpoint_id, namespace)
-    client.release_pod(pod_name, namespace)
+    return client.release_pod(pod_name, namespace)
 
 
 def delete_src_pod(src_pod):

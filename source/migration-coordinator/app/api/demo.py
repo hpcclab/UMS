@@ -79,9 +79,8 @@ def migrate(body, migration_id, context):
         except Exception as e:
             if interface:
                 interface.recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod)
-            raise e
-        finally:
             client.release_pod(name, namespace)
+            raise e
 
         create_or_update_frontman(src_pod, migration_state, redirect_uri=body.get('redirect'))
         interface.delete_src_pod(src_pod)

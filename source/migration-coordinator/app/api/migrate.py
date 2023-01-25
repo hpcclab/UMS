@@ -79,30 +79,32 @@ def migrate(body, migration_id):
 
         checkpoint_id = uuid4().hex[:8]
         client.update_migration_step(name, namespace, MIGRATION_STEP_CHECKPOINTING)
-        src_pod = interface.checkpoint_and_transfer(src_pod, des_pod_info, checkpoint_id, migration_state)
-        # todo actual checkpoint time (interface)
+        src_pod, checkpoint_and_transfer_overhead = interface.checkpoint_and_transfer(src_pod, des_pod_info, checkpoint_id, migration_state)
         checkpointed_time = datetime.now(tz=tzlocal())
 
-        client.update_migration_step(name, namespace, MIGRATION_STEP_CONFIRMING)
-        restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface, des_pod_template,
-                                    migration_state)
+        if migration_state['src_pod_exist']:
+            client.update_migration_step(name, namespace, MIGRATION_STEP_CONFIRMING)
+        des_pod = restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoint_id, interface,
+                                              des_pod_template, migration_state)
     except Exception as e:
         if interface:
             interface.recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod)
-        raise e
-    finally:
         client.release_pod(name, namespace)
+        raise e
 
     create_or_update_frontman(src_pod, migration_state, redirect_uri=body.get('redirect'))
     interface.delete_src_pod(src_pod)
     restored_time = datetime.now(tz=tzlocal())
     return {
-        'creation': (created_time - start_time).total_seconds(),
-        'checkpoint': 'todo',
-        'transfer': 'todo',
-        'checkpoint_and_transfer': (checkpointed_time - created_time).total_seconds(),
-        'restoration': (restored_time - checkpointed_time).total_seconds(),
-        'total': (restored_time - start_time).total_seconds()
+        'overhead': {
+            'creation': (created_time - start_time).total_seconds(),
+            'checkpoint_and_transfer': checkpoint_and_transfer_overhead,
+            'checkpoint_and_transfer_total': checkpoint_and_transfer_overhead.get('checkpoint_files_transfer', (checkpointed_time - created_time).total_seconds()),
+            'restoration': (restored_time - checkpointed_time).total_seconds(),
+            'total': (restored_time - start_time).total_seconds()
+        },
+        'migration_interface': interface.get_name(),
+        'des_pod': des_pod
     }
 
 
@@ -141,6 +143,7 @@ def restore_and_release_des_pod(src_pod, destination_url, migration_id, checkpoi
         })
         response.raise_for_status()
         migration_state['des_pod_exist'] = True
+        return response.json()
     except HTTPError as e:
         if e.response.status_code == 504:
             migration_state['des_pod_exist'] = True

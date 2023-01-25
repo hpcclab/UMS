@@ -10,10 +10,9 @@ from requests import HTTPError, RequestException
 
 from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE_PASSIVE, \
     VOLUME_LIST_ANNOTATION, \
-    SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, ORCHESTRATOR_TYPE_MESOS, START_MODE_NULL, \
+    SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, START_MODE_NULL, \
     INTERFACE_DIND, START_MODE_ACTIVE, INTERFACE_ANNOTATION, MIGRATION_POSITION_ANNOTATION, MIGRATION_STEP_ANNOTATION, \
     MIGRATION_POSITION_DES, MIGRATION_STEP_RESERVED, MIGRATION_STEP_DELETING, MIGRATION_STEP_RESTORING
-from app.env import ORCHESTRATOR_TYPE
 from app.orchestrator import select_orchestrator
 
 client = select_orchestrator()
@@ -117,7 +116,15 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
     })
     response.raise_for_status()
-    return src_pod
+    fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
+              'image_layers_dealy', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
+    checkpoint_and_transfer_overhead = {
+        field: max([overhead.get(field, -1) for overhead in response.json()]) for field in fields
+    }
+    return src_pod, {
+        field: checkpoint_and_transfer_overhead[field] if checkpoint_and_transfer_overhead[field] > -1 else None
+        for field in fields
+    }
 
 
 def restore(body):
@@ -135,7 +142,7 @@ def restore(body):
     response.raise_for_status()
     wait_restored_pod_ready(des_pod)
     client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
-    client.release_pod(name, namespace)
+    return client.release_pod(name, namespace)
 
 
 def wait_restored_pod_ready(pod):

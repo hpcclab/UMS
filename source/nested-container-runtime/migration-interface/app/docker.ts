@@ -116,30 +116,24 @@ async function startContainer(name: string, log: FastifyBaseLogger, params: any 
     return response.message
 }
 
-async function checkpointContainerDind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyBaseLogger): Promise<any> {
-    const start = Date.now()
-    const response = await requestDocker({
+async function checkpointContainerDind(start: number, name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyBaseLogger): Promise<any> {
+    await requestDocker({
         method: 'post',
         url: `/containers/${name}/checkpoints`,
         data: {CheckpointID: checkpointId, Exit: exit}
     }, log)
-    console.log(`checkpoint: ${Date.now() - start}`)
     imageQueue.done = true
-    return response.message
+    return {checkpoint: (Date.now() - start) / 1000}
 }
 
-async function checkpointContainerPind(name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyBaseLogger): Promise<any> {
-    const start = Date.now()
+async function checkpointContainerPind(start: number, name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>, log: FastifyBaseLogger): Promise<any> {
     await execBash(`docker container checkpoint ${name} -e /var/lib/containers/storage/${checkpointId}-${name}.tar.gz --tcp-established --file-locks${exit ? "" : " -R"}`, log)
-    console.log(`checkpoint: ${Date.now() - start}`)
     imageQueue.done = true
-    return ""
+    return {checkpoint: (Date.now() - start) / 1000}
 }
 
 async function restoreContainer(fileName: string, log: FastifyBaseLogger) {
-    const start = Date.now()
     await execBash(`docker container restore -i /var/lib/containers/storage/${fileName} --tcp-established --file-locks`, log)
-    console.log(`restore: ${Date.now() - start}`)
     return ""
 }
 

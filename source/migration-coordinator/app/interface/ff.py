@@ -86,7 +86,17 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         ''',
         container['name'],
     ) for container in src_pod['spec']['containers']]))
-    return src_pod
+    return src_pod, {
+        'checkpoint': 'todo',
+        'checkpoint_files_transfer': 'todo',
+        'checkpoint_files_delay': 'todo',
+        'image_layers_transfer': 'todo',
+        'image_layers_dealy': 'todo',
+        'file_system_transfer': 'todo',
+        'file_system_delay': 'todo',
+        'volume_transfer': 'todo',
+        'volume_delay': 'todo'
+    }
 
 
 def restore(body):
@@ -99,7 +109,7 @@ def restore(body):
     client.update_migration_step(name, namespace, MIGRATION_STEP_RESTORING)
     client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
     wait_restored_pod_ready(des_pod)
-    client.release_pod(name, namespace)
+    return client.release_pod(name, namespace)
 
 
 def wait_restored_pod_ready(pod):
