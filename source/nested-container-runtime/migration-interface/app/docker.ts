@@ -1,7 +1,8 @@
 import {AxiosInstance, AxiosRequestConfig} from "axios"
 import {FastifyBaseLogger} from "fastify/types/logger"
-import {execBash, HttpError, waitForIt} from "./lib"
+import {execBash, HttpError, server, waitForIt} from "./lib"
 import {AsyncBlockingQueue} from "./queue"
+import * as fs from "fs";
 
 const axios: AxiosInstance = require("axios").default.create({
     baseURL: `http://${process.env.DOCKER_HOST}`
@@ -31,6 +32,31 @@ async function requestDocker(config: AxiosRequestConfig, log: FastifyBaseLogger)
             // Something happened in setting up the request that triggered an Error
             throw new HttpError(error.message, 500)
         }
+    }
+}
+
+const buildScratchImagePromise = buildScratchImage(server.log)
+
+async function buildScratchImage(log: FastifyBaseLogger) {
+    try {
+        await requestDocker({
+            method: 'get',
+            url: `/images/${process.env.SCRATCH_IMAGE}/json`,
+        }, log);
+    } catch (error: any) {
+        if (error.statusCode == 404) {
+            await requestDocker({
+                method: 'post',
+                url: `/build`,
+                params: {t: process.env.SCRATCH_IMAGE, q: true},
+                headers: {
+                    'Content-Type': 'application/tar'
+                },
+                data: fs.createReadStream('/app/Dockerfile.tar.gz')
+            }, log);
+            return
+        }
+        throw error
     }
 }
 
@@ -163,6 +189,7 @@ type ContainerInfo = {
 }
 
 export {
+    buildScratchImagePromise,
     requestDocker,
     pullImage,
     listContainer,

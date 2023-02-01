@@ -1,13 +1,6 @@
 loadDefaultConfig()
-import fastify from 'fastify'
 import {registerPath} from './app'
-
-
-const server = fastify({
-    logger: {
-        level: process.env.LOG_LEVEL
-    }
-})
+import {server} from "./app/lib";
 
 registerPath(server)
 
@@ -24,6 +17,8 @@ server.listen({ port: 8888, host: '0.0.0.0' }, (err, address) => {
 })
 
 function loadDefaultConfig() {
+    process.env.DOCKER_HOST = process.env.DOCKER_HOST || '127.0.0.1:2375'
+    process.env.SCRATCH_IMAGE = process.env.SCRATCH_IMAGE || 'nims/scratch'
     process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'info'
     process.env.DOMAIN = 'migration'
     process.env.SPEC_CONTAINER_ANNOTATION = `${process.env.DOMAIN}-containers`

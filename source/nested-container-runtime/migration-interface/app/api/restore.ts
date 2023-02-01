@@ -1,7 +1,6 @@
 import {FastifyReply, FastifyRequest} from "fastify"
 import {BaseRequestType} from "../schema"
 import {listContainer, startContainer, restoreContainer, stopContainer, removeContainer} from "../docker"
-import {HttpError} from "../lib"
 import dotenv from "dotenv"
 import {readFileSync} from "fs"
 import * as fs from "fs"
@@ -10,6 +9,7 @@ async function restore(request: FastifyRequest<{ Body: BaseRequestType }>, reply
     const {checkpointId} = request.body
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
+    // todo check start annotations
 
     let responses
     if (pind) {
@@ -31,10 +31,7 @@ async function restore(request: FastifyRequest<{ Body: BaseRequestType }>, reply
             .map(fileName => restoreContainer(fileName, request.log))
         )
     } else {
-        const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log, {filters: {status: ["created", "exited"]}})
-        if (containerInfos.length === 0) {
-            throw new HttpError('No container found', 404)
-        }
+        const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log, {all: true})
         responses = await Promise.all(containerInfos.map(
             containerInfo => startContainer(containerInfo.Id, request.log, {checkpoint: checkpointId}))
         )

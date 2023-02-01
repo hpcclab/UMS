@@ -1,5 +1,12 @@
 import {FastifyReply, FastifyRequest} from "fastify"
-import {createContainer, pullImage, removeContainer, startContainer, stopContainer} from "../docker"
+import {
+    buildScratchImagePromise,
+    createContainer,
+    pullImage,
+    removeContainer,
+    startContainer,
+    stopContainer
+} from "../docker"
 import {CreateRequestType} from "../schema"
 import dotenv from "dotenv"
 import {readFileSync} from "fs"
@@ -31,7 +38,9 @@ async function create(request: FastifyRequest<{ Params: CreateRequestType }>, re
         .replace(/\\\"/g, "\"").replace(/\\\\/g, "\\"))
         .find((container: { name: string }) => container.name === containerName)
 
-    if (containerSpec.imagePullPolicy === 'Always') {
+    if (containerSpec.image.split(':')[0] === process.env.SCRATCH_IMAGE) {
+        await buildScratchImagePromise
+    } else if (containerSpec.imagePullPolicy === 'Always') {
         await pullImage(containerSpec.image, request.log)
     }
 

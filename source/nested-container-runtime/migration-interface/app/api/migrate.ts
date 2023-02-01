@@ -150,9 +150,9 @@ async function transferContainerFS(waitDestination: Promise<void>, start: number
                                    log: FastifyBaseLogger) {
     await waitDestination
     const delay = (Date.now() - start) / 1000
-    const {GraphDriver: {Name, Data: {UpperDir}}} = await inspectContainer(containerInfo.Id, log)
+    const {GraphDriver: {Name, Data: {MergedDir}}} = await inspectContainer(containerInfo.Id, log)
     if (Name === 'overlay2' && destinationFs !== null) {
-        await execRsync(interfacePort, UpperDir, `root@${interfaceHost}:${destinationFs}`.slice(0, -5), log)
+        await execRsync(interfacePort, `${MergedDir}/*`, `root@${interfaceHost}:${destinationFs}`, log)
     }
     return {file_system_transfer: (Date.now() - start) / 1000, file_system_delay: delay}
 }

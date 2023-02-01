@@ -13,6 +13,7 @@ from app.const import MIGRATION_ID_ANNOTATION, START_MODE_ANNOTATION, START_MODE
     SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, START_MODE_NULL, \
     INTERFACE_DIND, START_MODE_ACTIVE, INTERFACE_ANNOTATION, MIGRATION_POSITION_ANNOTATION, MIGRATION_STEP_ANNOTATION, \
     MIGRATION_POSITION_DES, MIGRATION_STEP_RESERVED, MIGRATION_STEP_DELETING, MIGRATION_STEP_RESTORING
+from app.env import SCRATCH_IMAGE
 from app.orchestrator import select_orchestrator
 
 client = select_orchestrator()
@@ -35,7 +36,9 @@ def is_compatible(src_pod, des_info):
 
 def generate_des_pod_template(src_pod):
     body = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
-    body['metadata']['annotations'][LAST_APPLIED_CONFIG] = src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG)
+    for container in body['spec']['containers']:
+        container['image'] = SCRATCH_IMAGE
+    body['metadata']['annotations'][LAST_APPLIED_CONFIG] = json.dumps(body)
     body['metadata']['annotations'][START_MODE_ANNOTATION] = START_MODE_PASSIVE
     body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][
         MIGRATION_ID_ANNOTATION]

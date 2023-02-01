@@ -2,6 +2,13 @@ import {FastifyBaseLogger} from "fastify/types/logger"
 import {exec as childExec} from 'child_process'
 import util from "util"
 import Rsync from "rsync"
+import fastify from "fastify";
+
+const server = fastify({
+    logger: {
+        level: process.env.LOG_LEVEL
+    }
+})
 
 const exec = util.promisify(childExec)
 
@@ -83,6 +90,7 @@ function execRsync(port: string, source: string, destination: string, log: Fasti
 }
 
 export {
+    server,
     findDestinationFileSystemId,
     waitForIt,
     execBash,

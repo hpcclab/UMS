@@ -52,7 +52,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         # 'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
         # todo check if volume is migrated
     })
-    response.raise_for_status()  # todo forward body
+    response.raise_for_status()  # todo forward body and add migration id, checkpoint id
     migration_state['src_pod_exist'] = False
     client.delete_ssu_custom_resource(checkpoint_id, src_pod['metadata'].get('namespace', 'default'))
     return src_pod, {
