@@ -23,8 +23,6 @@ def select_interface(selected_interface):
 def select_migration_interface(src_pod, des_info, selected_interface):
     if selected_interface is not None:
         return select_interface(selected_interface)
-    if ssu.is_compatible(src_pod, des_info):
-        return ssu
     try:
         interface = select_interface(src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION))
         if interface.is_compatible(src_pod, des_info):
@@ -37,4 +35,6 @@ def select_migration_interface(src_pod, des_info, selected_interface):
         return pind
     if dind.is_compatible(src_pod, des_info):
         return dind
+    if ssu.is_compatible(src_pod, des_info):
+        return ssu
     abort(409, 'Cannot find the compatible interface')

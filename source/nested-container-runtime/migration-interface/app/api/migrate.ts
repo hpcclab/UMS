@@ -1,18 +1,12 @@
 import {FastifyReply, FastifyRequest} from "fastify"
-import {
-    checkpointContainerDind,
-    checkpointContainerPind,
-    ContainerInfo,
-    inspectContainer,
-    listContainer
-} from "../docker"
 import {MigrateRequestType} from "../schema"
-import {execRsync, findDestinationFileSystemId, waitForIt} from "../lib"
+import {ContainerInfo, execRsync, findDestinationFileSystemId, waitForIt} from "../lib"
 import {FastifyBaseLogger} from "fastify/types/logger"
 import dotenv from "dotenv"
 import {readFileSync} from "fs"
 import chokidar from "chokidar"
 import {AsyncBlockingQueue} from "../queue"
+import {migrationInterface} from "../interface";
 
 
 async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, reply: FastifyReply) {
@@ -20,7 +14,7 @@ async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, re
     const {checkpointId, interfaceHost, interfacePort, containers, volumes} = request.body
 
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
-    const containerInfos: any[] = await listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log)
+    const containerInfos: any[] = await migrationInterface.listContainer(config[process.env.SPEC_CONTAINER_ANNOTATION!], request.log)
     const exit = config[process.env.START_MODE_ANNOTATION!] !== process.env.START_MODE_ACTIVE
     const pind = config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND
 
@@ -80,7 +74,7 @@ async function migrateOneContainerDind(waitDestination: Promise<void>, start: nu
     const responses = await Promise.all([
         transferContainerImage(waitDestination, start, interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
         transferContainerFS(waitDestination, start, interfaceHost, interfacePort, containerInfo, destinationFs, log),
-        checkpointContainerDind(start, containerInfo.Id, checkpointId, exit, imageQueue, log)
+        migrationInterface.checkpointContainer(start, containerInfo.Id, checkpointId, exit, imageQueue, log)
     ])
 
     await imageWatcher.close()
@@ -113,7 +107,7 @@ async function migrateOneContainerPind(waitDestination: Promise<void>, start: nu
 
     const responses = await Promise.all([
         transferContainerImage(waitDestination, start, interfacePort, imageQueue, sourceImagePath, destinationImagePath, log),
-        checkpointContainerPind(start, containerInfo.Id, checkpointId, exit, imageQueue, log)
+        migrationInterface.checkpointContainer(start, containerInfo.Id, checkpointId, exit, imageQueue, log)
     ])
 
     await imageWatcher.close()
@@ -150,7 +144,7 @@ async function transferContainerFS(waitDestination: Promise<void>, start: number
                                    log: FastifyBaseLogger) {
     await waitDestination
     const delay = (Date.now() - start) / 1000
-    const {GraphDriver: {Name, Data: {MergedDir}}} = await inspectContainer(containerInfo.Id, log)
+    const {GraphDriver: {Name, Data: {MergedDir}}} = await migrationInterface.inspectContainer(containerInfo.Id, log)
     if (Name === 'overlay2' && destinationFs !== null) {
         await execRsync(interfacePort, `${MergedDir}/*`, `root@${interfaceHost}:${destinationFs}`, log)
     }

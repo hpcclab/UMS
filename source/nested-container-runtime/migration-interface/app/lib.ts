@@ -3,6 +3,7 @@ import {exec as childExec} from 'child_process'
 import util from "util"
 import Rsync from "rsync"
 import fastify from "fastify";
+import axios, {AxiosRequestConfig} from "axios";
 
 const server = fastify({
     logger: {
@@ -22,6 +23,43 @@ class HttpError extends Error {
     }
 }
 
+type ContainerInfo = {
+    Id: string
+}
+
+
+
+const axiosInstance = axios.create({
+    baseURL: `http://${process.env.DOCKER_HOST}`
+})
+
+
+async function requestDocker(config: AxiosRequestConfig, log: FastifyBaseLogger, timeout: number = 0) {
+    try {
+        const dockerHost = `${process.env.DOCKER_HOST}`.split(':')
+        await waitForIt(dockerHost[0], dockerHost[1], log, timeout)
+        const response = await axiosInstance(config)
+        log.debug(JSON.stringify(response.data))
+        return {statusCode: response.status, message: response.data, headers: response.headers}
+    } catch (error: any) {
+        log.debug(JSON.stringify(error))
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            if (error.response.status > 399) throw new HttpError(JSON.stringify(error.response.data), error.response.status)
+            return {statusCode: error.response.status, message: JSON.stringify(error.response.data)}
+        } else if (error.request) {
+            // The request was made but no response was received
+            // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+            // http.ClientRequest in node.js
+            throw new HttpError('The request was made but no response was received', 502)
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            throw new HttpError(error.message, 500)
+        }
+    }
+}
+
 function findDestinationFileSystemId(containers: any, containerInfo: any) {
     let destinationId, destinationFs
     for (const container of containers) {
@@ -37,8 +75,8 @@ function findDestinationFileSystemId(containers: any, containerInfo: any) {
     return {destinationId, destinationFs}
 }
 
-async function waitForIt(interfaceHost: string, interfacePort: string, log: FastifyBaseLogger) {
-    await execBash(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t 0`, log)
+async function waitForIt(interfaceHost: string, interfacePort: string, log: FastifyBaseLogger, timeout: number = 0) {
+    await execBash(`/app/wait-for-it.sh ${interfaceHost}:${interfacePort} -t ${timeout}`, log)
 }
 
 async function execBash(command: string, log: FastifyBaseLogger) {
@@ -49,6 +87,7 @@ async function execBash(command: string, log: FastifyBaseLogger) {
         } = await exec(command)
         log.debug(stdout)
         log.error(stderr)
+        return stdout
     } catch (error: any) {
         throw new HttpError(error.message, 500)
     }
@@ -91,9 +130,11 @@ function execRsync(port: string, source: string, destination: string, log: Fasti
 
 export {
     server,
+    HttpError,
+    ContainerInfo,
+    requestDocker,
     findDestinationFileSystemId,
     waitForIt,
     execBash,
-    execRsync,
-    HttpError
+    execRsync
 }

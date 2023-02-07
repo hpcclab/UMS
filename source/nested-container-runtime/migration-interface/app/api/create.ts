@@ -1,22 +1,15 @@
 import {FastifyReply, FastifyRequest} from "fastify"
-import {
-    buildScratchImagePromise,
-    createContainer,
-    pullImage,
-    removeContainer,
-    startContainer,
-    stopContainer
-} from "../docker"
 import {CreateRequestType} from "../schema"
 import dotenv from "dotenv"
 import {readFileSync} from "fs"
+import {migrationInterface} from "../interface";
 
 async function create(request: FastifyRequest<{ Params: CreateRequestType }>, reply: FastifyReply) {
     const {containerName} = request.params
 
     try {
-        await stopContainer(containerName, request.log)
-        await removeContainer(containerName, request.log)
+        await migrationInterface.stopContainer(containerName, request.log)
+        await migrationInterface.removeContainer(containerName, request.log)
     } catch (error: any) {
         if (error.statusCode !== 404) {
             throw error
@@ -39,15 +32,15 @@ async function create(request: FastifyRequest<{ Params: CreateRequestType }>, re
         .find((container: { name: string }) => container.name === containerName)
 
     if (containerSpec.image.split(':')[0] === process.env.SCRATCH_IMAGE) {
-        await buildScratchImagePromise
+        await migrationInterface.buildScratchImagePromise
     } else if (containerSpec.imagePullPolicy === 'Always') {
-        await pullImage(containerSpec.image, request.log)
+        await migrationInterface.pullImage(containerSpec.image, request.log)
     }
 
-    await createContainer(containerSpec, request.log)
+    await migrationInterface.createContainer(containerSpec, request.log)
 
     if (startMode === process.env.START_MODE_ACTIVE) {
-        return startContainer(containerName, request.log)
+        return migrationInterface.startContainer(containerName, request.log)
     } else {
         reply.code(204)
     }

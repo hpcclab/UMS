@@ -1,13 +1,30 @@
 import {FastifyBaseLogger} from "fastify/types/logger"
-import { requestDocker } from "../docker"
 import {MigrationInterface} from "./index";
 import {AsyncBlockingQueue} from "../queue";
-import {execBash, server} from "../lib";
+import {execBash, requestDocker} from "../lib";
 import fs from "fs";
 
 
 class DinD implements MigrationInterface {
-    buildScratchImagePromise = this.buildScratchImage(server.log)
+    name
+    buildScratchImagePromise
+
+    constructor(log: FastifyBaseLogger) {
+        this.name = process.env.INTERFACE_DIND || 'dind'
+        this.buildScratchImagePromise = this.buildScratchImage(log)
+    }
+
+    static async isCompatible(log: FastifyBaseLogger): Promise<boolean> {
+        try {
+            const response = await requestDocker({
+                method: 'get',
+                url: '/_ping'
+            }, log)
+            return !!(response.headers && response.headers['server'] && response.headers['server'].includes('Docker'))
+        } catch (e) {
+            return false
+        }
+    }
 
     async buildScratchImage(log: FastifyBaseLogger) {
         try {

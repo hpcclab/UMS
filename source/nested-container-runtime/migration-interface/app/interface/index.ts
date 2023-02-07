@@ -1,7 +1,14 @@
 import {FastifyBaseLogger} from "fastify/types/logger";
 import {AsyncBlockingQueue} from "../queue";
+import {HttpError, server} from "../lib";
+import {DinD} from "./dind";
+import dotenv from "dotenv";
+import {readFileSync} from "fs";
+import {PinD} from "./pind";
+import {FF} from "./ff";
 
 interface MigrationInterface {
+    name: string;
     buildScratchImagePromise: Promise<any>;
 
     buildScratchImage(log: FastifyBaseLogger): Promise<any>;
@@ -25,7 +32,23 @@ interface MigrationInterface {
     removeContainer(name: string, log: FastifyBaseLogger): Promise<any>;
 }
 
+async function createMigrationInterface(log: FastifyBaseLogger) {
+    const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
+    if (config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_PIND) return new PinD(log)
+    if (config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_DIND) return new DinD(log)
+    if (config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_FF) return new DinD(log)
+    if (config[process.env.INTERFACE_ANNOTATION!] === process.env.INTERFACE_SSU) return new DinD(log)
+    if (await PinD.isCompatible(log)) return new PinD(log)
+    if (await DinD.isCompatible(log)) return new DinD(log)
+    if (await FF.isCompatible(log)) return new FF(log)
+    throw new HttpError('Interface not found', 404)
+}
+
+
+const migrationInterface = await createMigrationInterface(server.log)
+
 
 export {
-    MigrationInterface
+    MigrationInterface,
+    migrationInterface
 }

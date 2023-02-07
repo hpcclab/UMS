@@ -30,4 +30,6 @@ function loadDefaultConfig() {
     process.env.INTERFACE_ANNOTATION = 'migration-interface'
     process.env.INTERFACE_DIND = 'dind'
     process.env.INTERFACE_PIND = 'pind'
+    process.env.INTERFACE_FF = 'ff'
+    process.env.INTERFACE_SSU = 'ssu'
 }

@@ -1,8 +1,8 @@
 import {FastifyReply, FastifyRequest} from "fastify"
-import {inspectContainer} from "../docker"
 import {CreateRequestType} from "../schema"
 import dotenv from "dotenv"
 import {readFileSync} from "fs"
+import {migrationInterface} from "../interface";
 
 async function probe(request: FastifyRequest<{ Params: CreateRequestType }>, reply: FastifyReply) {
     const {containerName} = request.params
@@ -18,7 +18,7 @@ async function probe(request: FastifyRequest<{ Params: CreateRequestType }>, rep
         return
     }
 
-    const {State} = await inspectContainer(containerName, request.log)
+    const {State} = await migrationInterface.inspectContainer(containerName, request.log)
     const {Status, ExitCode} = State
 
     if (Status === "created") {

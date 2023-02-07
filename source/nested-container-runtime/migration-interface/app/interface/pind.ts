@@ -1,12 +1,29 @@
 import {MigrationInterface} from "./index";
 import {FastifyBaseLogger} from "fastify/types/logger";
 import {AsyncBlockingQueue} from "../queue";
-import {execBash, server} from "../lib";
-import {requestDocker} from "../docker";
+import {execBash, requestDocker} from "../lib";
 import fs from "fs";
 
 class PinD implements MigrationInterface {
-    buildScratchImagePromise = this.buildScratchImage(server.log)
+    name
+    buildScratchImagePromise
+
+    constructor(log: FastifyBaseLogger) {
+        this.name = process.env.INTERFACE_PIND || 'pind'
+        this.buildScratchImagePromise = this.buildScratchImage(log)
+    }
+
+    static async isCompatible(log: FastifyBaseLogger): Promise<boolean> {
+        try {
+            const response = await requestDocker({
+                method: 'get',
+                url: '/_ping'
+            }, log)
+            return !!(response.headers && response.headers['server'] && response.headers['server'].includes('Libpod'))
+        } catch (e) {
+            return false
+        }
+    }
 
     async buildScratchImage(log: FastifyBaseLogger) {
         try {
