@@ -1,4 +1,4 @@
-FROM docker:dind as build
+FROM docker:20.10.21-dind-alpine3.16 as build
 ARG CRIU_VERSION=3.17.1
 
 RUN apk update && apk add \
@@ -32,7 +32,9 @@ RUN apk update && apk add \
   && make -j4 \
   && make install
 
-FROM docker:dind
+FROM ghcr.io/hpcclab/live_service_migration/migration-interface:development as interface
+
+FROM docker:20.10.21-dind-alpine3.16
 ARG S6_OVERLAY_VERSION=3.1.0.1
 
 ENV DOCKER_HOST=127.0.0.1:2375 \
@@ -75,12 +77,11 @@ RUN update-ca-certificates
 
 WORKDIR /app
 
-COPY migration-interface/package.json .
+COPY --from=interface /app/package*.json ./
 
-RUN npm install
+RUN npm ci --omit=dev
 
-COPY migration-interface .
+COPY --from=interface /app .
 
-RUN npm run build \
-    && chmod 400 /app/id_rsa \
+RUN chmod 400 /app/id_rsa \
     && chmod +x /app/wait-for-it.sh

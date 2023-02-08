@@ -48,8 +48,8 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         'checkpointId': checkpoint_id,
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
         'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
-        'containers': {},
-        'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION]),  # todo check if volume is migrated
+        'containers': [],
+        'volumes': [],  # todo check if volume is migrated
         'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     })
     response.raise_for_status()  # todo forward body and add migration id, checkpoint id

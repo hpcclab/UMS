@@ -1,4 +1,6 @@
-FROM alpine
+FROM ghcr.io/hpcclab/live_service_migration/migration-interface:development as interface
+
+FROM node:18-alpine
 ARG S6_OVERLAY_VERSION=3.1.0.1
 
 # s6-overlay installation assume using x86_64 architecture
@@ -6,12 +8,9 @@ ENTRYPOINT ["/init"]
 RUN apk update && apk add  \
     bash \
     curl \
-    npm \
     openssh \
     openssh-client-default \
     rsync \
-    tar \
-    xz \
   && curl -SL https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz \
     | tar xJf - -C / \
   && curl -SL https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz \
@@ -25,14 +24,13 @@ COPY id_rsa.pub /root/.ssh/authorized_keys
 
 WORKDIR /app
 
-COPY migration-interface/package.json .
+COPY --from=interface /app/package*.json ./
 
-RUN npm install
+RUN npm ci --omit=dev
 
-COPY migration-interface .
+COPY --from=interface /app .
 
-RUN npm run build \
-    && chmod 400 /app/id_rsa \
+RUN chmod 400 /app/id_rsa \
     && chmod +x /app/wait-for-it.sh
 
 VOLUME /var/lib/kubelet/migration

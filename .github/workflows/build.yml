@@ -174,7 +174,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  build-and-push-ncr:
+  build-and-push-dind:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -200,12 +200,12 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: source/nested-container-runtime
+          context: source/dind
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  build-and-push-ncr-podman:
+  build-and-push-pind:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -231,8 +231,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: source/nested-container-runtime
-          file: source/nested-container-runtime/Dockerfile.podman
+          context: source/pind
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -325,7 +324,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: source/ssu-interface
+          context: source/ssu-podmigration-operator/interface
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -356,8 +355,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: source/ssu-podmigration-operator
-          file: source/ssu-podmigration-operator/Dockerfile.operator
+          context: source/ssu-podmigration-operator/operator
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -388,8 +386,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: source/ssu-podmigration-operator
-          file: source/ssu-podmigration-operator/Dockerfile.apiserver
+          context: source/ssu-podmigration-operator/apiserver
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

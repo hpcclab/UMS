@@ -1,4 +1,4 @@
-FROM mgoltzsche/podman AS build
+FROM mgoltzsche/podman:4.2.1 AS build
 ARG CRIU_VERSION=3.17.1
 
 RUN apk update && apk add \
@@ -32,7 +32,9 @@ RUN apk update && apk add \
   && make -j4 \
   && make install
 
-FROM mgoltzsche/podman
+FROM ghcr.io/hpcclab/live_service_migration/migration-interface:development as interface
+
+FROM mgoltzsche/podman:4.2.1
 ARG S6_OVERLAY_VERSION=3.1.0.1
 
 ENV DOCKER_HOST=127.0.0.1:2375
@@ -65,7 +67,7 @@ RUN apk update && apk add  \
   && sed -i '/LogLevel/c\LogLevel QUIET' /etc/ssh/sshd_config \
   && sed -i 's/^root:!/root:#/' /etc/shadow
 
-COPY s6-rc.podman.d /etc/s6-overlay/s6-rc.d/
+COPY s6-rc.d /etc/s6-overlay/s6-rc.d/
 COPY --from=build /usr/local/sbin/criu /usr/local/sbin/
 COPY id_rsa.pub /root/.ssh/authorized_keys
 COPY ca.crt /usr/local/share/ca-certificates/harbor-ca.crt
@@ -73,12 +75,11 @@ RUN update-ca-certificates
 
 WORKDIR /app
 
-COPY migration-interface/package.json .
+COPY --from=interface /app/package*.json ./
 
-RUN npm install
+RUN npm ci --omit=dev
 
-COPY migration-interface .
+COPY --from=interface /app .
 
-RUN npm run build \
-    && chmod 400 /app/id_rsa \
+RUN chmod 400 /app/id_rsa \
     && chmod +x /app/wait-for-it.sh

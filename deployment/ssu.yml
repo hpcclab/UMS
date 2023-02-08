@@ -155,6 +155,7 @@ spec:
         app: ssu-interface
       annotations:
         migration-bypass: 'True'
+        migration-interface: 'ssu'
     spec:
       serviceAccountName: ssu
       containers:
@@ -164,9 +165,14 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/kubelet/migration
               name: migration
+            - mountPath: /etc/podinfo
+              name: podinfo
           envFrom:
             - configMapRef:
                 name: migration-env
+          env:
+            - name: HOST
+              value: "ssu-apiserver:5000"
           startupProbe:
             httpGet:
               port: 8888
@@ -178,6 +184,12 @@ spec:
           hostPath:
             path: /var/lib/kubelet/migration
             type: Directory
+        - name: podinfo
+          downwardAPI:
+            items:
+              - path: "annotations"
+                fieldRef:
+                  fieldPath: metadata.annotations
 ---
 apiVersion: v1
 kind: Service
