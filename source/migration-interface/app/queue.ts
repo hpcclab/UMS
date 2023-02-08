@@ -47,6 +47,31 @@ class AsyncBlockingQueue<T> {
     }
 }
 
+class Lock {
+    private locked: boolean;
+
+    constructor() {
+        this.locked = false;
+    }
+
+    async lock(timeout: number = 5000): Promise<void> {
+        const start = Date.now();
+        while (this.locked) {
+            if (Date.now() - start >= timeout) {
+                throw new Error(`Could not obtain lock within ${timeout}ms`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        this.locked = true;
+    }
+
+
+    unlock(): void {
+        this.locked = false;
+    }
+}
+
 export {
-    AsyncBlockingQueue
+    AsyncBlockingQueue,
+    Lock
 }

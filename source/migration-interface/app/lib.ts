@@ -4,10 +4,11 @@ import util from "util"
 import Rsync from "rsync"
 import fastify from "fastify";
 import axios, {AxiosRequestConfig} from "axios";
+import {HOST, LOG_LEVEL} from "./const";
 
 const server = fastify({
     logger: {
-        level: process.env.LOG_LEVEL
+        level: LOG_LEVEL
     }
 })
 
@@ -28,16 +29,15 @@ type ContainerInfo = {
 }
 
 
-
 const axiosInstance = axios.create({
-    baseURL: `http://${process.env.DOCKER_HOST}`
+    baseURL: `http://${HOST}`
 })
 
 
-async function requestDocker(config: AxiosRequestConfig, log: FastifyBaseLogger, timeout: number = 0) {
+async function requestAxios(config: AxiosRequestConfig, log: FastifyBaseLogger, timeout: number = 0) {
     try {
-        const dockerHost = `${process.env.DOCKER_HOST}`.split(':')
-        await waitForIt(dockerHost[0], dockerHost[1], log, timeout)
+        const host = `${HOST}`.split(':')
+        await waitForIt(host[0], host[1], log, timeout)
         const response = await axiosInstance(config)
         log.debug(JSON.stringify(response.data))
         return {statusCode: response.status, message: response.data, headers: response.headers}
@@ -132,7 +132,7 @@ export {
     server,
     HttpError,
     ContainerInfo,
-    requestDocker,
+    requestAxios,
     findDestinationFileSystemId,
     waitForIt,
     execBash,

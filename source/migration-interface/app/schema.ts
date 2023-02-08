@@ -1,55 +1,46 @@
 import {Static, Type} from '@sinclair/typebox'
 
-const BaseRequestProperties = {
-    checkpointId: Type.String()
-}
 
 const CreateRequestProperties = {
     containerName: Type.String()
 }
 
-const CheckpointProperties = {
-    ...BaseRequestProperties,
-    volumes: Type.Array(Type.Any())
-}
-
 const MigrateRequestProperties = {
-    ...CheckpointProperties,
+    checkpointId: Type.String(),
     interfaceHost: Type.String(),
     interfacePort: Type.String(),
-    containers: Type.Array(Type.Any())
+    containers: Type.Array(Type.Any()),
+    volumes: Type.Array(Type.Any()),
+    template: Type.Any()
 }
 
-const BaseRequest = Type.Object(BaseRequestProperties)
-const CreateRequest = Type.Object(CreateRequestProperties)
-const CheckpointRequest = Type.Object(CheckpointProperties)
-const MigrateRequest = Type.Object(MigrateRequestProperties)
+const RestoreRequestProperties = {
+    checkpointId: Type.String(),
+    template: Type.Any()
+    // volumes: Type.Array(Type.Any())
+}
 
-export type BaseRequestType = Static<typeof BaseRequest>
+const CreateRequest = Type.Object(CreateRequestProperties)
+const MigrateRequest = Type.Object(MigrateRequestProperties)
+const RestoreRequest = Type.Object(RestoreRequestProperties)
+
 export type CreateRequestType = Static<typeof CreateRequest>
-export type CheckpointRequestType = Static<typeof CheckpointRequest>
 export type MigrateRequestType = Static<typeof MigrateRequest>
+export type RestoreRequestType = Static<typeof RestoreRequest>
 
 export const CreateRequestSchema = {
     schema: {
         params: CreateRequest
     }
 }
-
-export const CheckpointRequestSchema = {
-    schema: {
-        body: CheckpointRequest
-    }
-}
-
 export const MigrateRequestSchema = {
     schema: {
         body: MigrateRequest
     }
 }
 
-export const BaseRequestSchema = {
+export const RestoreRequestSchema = {
     schema: {
-        body: BaseRequest
+        body: RestoreRequest
     }
 }

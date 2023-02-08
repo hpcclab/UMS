@@ -7,12 +7,12 @@ import {migrate} from "./api/migrate"
 import {restore} from "./api/restore"
 import {stop} from "./api/stop"
 import {
-    BaseRequestSchema,
-    BaseRequestType,
     CreateRequestSchema,
     CreateRequestType,
     MigrateRequestSchema,
-    MigrateRequestType
+    MigrateRequestType,
+    RestoreRequestSchema,
+    RestoreRequestType,
 } from "./schema"
 
 function registerPath(server: FastifyInstance) {
@@ -24,7 +24,7 @@ function registerPath(server: FastifyInstance) {
     server.get('/probeAll', probeAll)
     server.get<{ Params: CreateRequestType }>('/probe/:containerName', CreateRequestSchema, probe)
     server.post<{ Body: MigrateRequestType }>('/migrate', MigrateRequestSchema, migrate)
-    server.post<{ Body: BaseRequestType }>('/restore', BaseRequestSchema, restore)
+    server.post<{ Body: RestoreRequestType }>('/restore', RestoreRequestSchema, restore)
     server.post('/stop', stop)
 }
 

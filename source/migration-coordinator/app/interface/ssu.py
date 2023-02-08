@@ -4,7 +4,7 @@ import requests
 
 from app.const import MIGRATION_ID_ANNOTATION, SYNC_HOST_ANNOTATION, SYNC_PORT_ANNOTATION, LAST_APPLIED_CONFIG, \
     INTERFACE_SSU, MIGRATION_POSITION_ANNOTATION, MIGRATION_POSITION_DES, MIGRATION_STEP_ANNOTATION, \
-    MIGRATION_STEP_RESTORING
+    MIGRATION_STEP_RESTORING, VOLUME_LIST_ANNOTATION
 from app.env import SSU_INTERFACE_SERVICE, SSU_INTERFACE_ENABLE
 from app.orchestrator import select_orchestrator
 
@@ -48,9 +48,9 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         'checkpointId': checkpoint_id,
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
         'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
+        'containers': {},
+        'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION]),  # todo check if volume is migrated
         'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
-        # 'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
-        # todo check if volume is migrated
     })
     response.raise_for_status()  # todo forward body and add migration id, checkpoint id
     migration_state['src_pod_exist'] = False

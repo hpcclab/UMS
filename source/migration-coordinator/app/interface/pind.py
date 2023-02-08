@@ -113,7 +113,8 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
         'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
         'containers': des_pod_annotations['current-containers'],
-        'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION])
+        'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION]),
+        'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     })
     response.raise_for_status()
     fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
@@ -131,13 +132,13 @@ def restore(body):
     name = body['name']
     namespace = body.get('namespace', 'default')
     migration_id = body['migrationId']
-    checkpoint_id = body['checkpointId']
     des_pod = client.get_pod(name, namespace)
     if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
         abort(409, "Pod is being migrated")
     client.update_migration_step(name, namespace, MIGRATION_STEP_RESTORING)
     response = requests.post(f"http://{des_pod['status']['podIP']}:8888/restore", json={
-        'checkpointId': checkpoint_id
+        'checkpointId': body['checkpointId'],
+        'template': body.get('template')
     })
     response.raise_for_status()
     wait_restored_pod_ready(des_pod)
