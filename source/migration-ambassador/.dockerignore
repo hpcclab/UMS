@@ -6,3 +6,7 @@
 *.iml
 out
 gen
+/.dockerignore
+/.editorconfig
+/.gitignore
+/Dockerfile

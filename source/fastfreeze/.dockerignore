@@ -9,6 +9,9 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+# AWS User-specific
+.idea/**/aws.xml
+
 # Generated files
 .idea/**/contentModel.xml
 
@@ -59,6 +62,9 @@ atlassian-ide-plugin.xml
 # Cursive Clojure plugin
 .idea/replstate.xml
 
+# SonarLint plugin
+.idea/sonarlint/
+
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
 crashlytics.properties
@@ -71,28 +77,6 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-### VirtualEnv template
-# Virtualenv
-# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
-.Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
-pip-selfcheck.json
-
-### Example user template template
-### Example user template
-
-# IntelliJ project files
-.idea
-*.iml
-out
-gen
 ### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -190,7 +174,22 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#pdm.lock
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm.fming.dev/#use-with-ide
+.pdm.toml
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
 # Celery stuff
@@ -233,7 +232,16 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
+
 /.dockerignore
-/.editorconfig
-/.gitignore
 /Dockerfile
+/Dockerfile.test-centos
+/Dockerfile.test-debian
+/Dockerfile.test-sleep
+/Dockerfile.test-tini
