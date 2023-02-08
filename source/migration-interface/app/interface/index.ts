@@ -5,15 +5,15 @@ import {DinD} from "./dind";
 import dotenv from "dotenv";
 import {readFileSync} from "fs";
 import {PinD} from "./pind";
-import {FF} from "./ff";
 import {SSU} from "./ssu";
 import {MigrateRequestType, RestoreRequestType} from "../schema";
-import {INTERFACE_ANNOTATION, INTERFACE_DIND, INTERFACE_FF, INTERFACE_PIND, INTERFACE_SSU} from "../const";
+import {INTERFACE_ANNOTATION, INTERFACE_DIND, INTERFACE_PIND, INTERFACE_SSU} from "../const";
 
 interface MigrationInterface {
     log: FastifyBaseLogger;
     name: string;
     buildScratchImagePromise: Promise<any>;
+    creatingContainers: string[];
 
     buildScratchImage(): Promise<any>;
 
@@ -47,11 +47,9 @@ async function createMigrationInterface(log: FastifyBaseLogger) {
     const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
     if (config[INTERFACE_ANNOTATION] === INTERFACE_PIND) return new PinD(log)
     if (config[INTERFACE_ANNOTATION] === INTERFACE_DIND) return new DinD(log)
-    if (config[INTERFACE_ANNOTATION] === INTERFACE_FF) return new FF(log)
     if (config[INTERFACE_ANNOTATION] === INTERFACE_SSU) return new SSU(log)
     if (await PinD.isCompatible(log)) return new PinD(log)
     if (await DinD.isCompatible(log)) return new DinD(log)
-    if (await FF.isCompatible(log)) return new FF(log)
     throw new HttpError('Interface not found', 404)
 }
 

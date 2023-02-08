@@ -12,12 +12,14 @@ class SSU implements MigrationInterface {
     log
     name
     buildScratchImagePromise
+    creatingContainers: string[]
     lock
 
     constructor(log: FastifyBaseLogger) {
         this.log = log
         this.name = INTERFACE_SSU
         this.buildScratchImagePromise = Promise.resolve()
+        this.creatingContainers = []
         this.lock = new Lock()
     }
 
@@ -89,11 +91,20 @@ class SSU implements MigrationInterface {
             const imageQueueInitPromise = new Promise(resolve => {
                 imageQueueInit = resolve
             })
+            let checkpointDone: (value: unknown) => void
+            const checkpointDonePromise = new Promise(resolve => {
+                checkpointDone = resolve
+            })
+            let checkpointing = template.spec.containers.length
             const imageWatcher = chokidar.watch(sourceImagePath)
             imageWatcher
                 .on('all', (event, path) => {
-                    if ((event === 'add' || event == 'change') && imageQueue.isEmpty()) {
+                    if ((event === 'add' || event === 'change') && imageQueue.isEmpty()) {
                         imageQueue.enqueue(path)
+                    }
+                    if (event === 'change' && path.includes('seccomp.img')) {
+                        checkpointing -= 1
+                        if (checkpointing == 0) checkpointDone(null)
                     }
                 })
                 .on('ready', () => {
@@ -102,7 +113,7 @@ class SSU implements MigrationInterface {
 
             await imageQueueInitPromise
 
-            await Promise.all([
+            const responses = await Promise.all([
                 transferContainerImage(waitDestination, start, interfacePort, imageQueue, sourceImagePath, destinationImagePath, this.log),
                 requestAxios({
                     method: 'post',
@@ -116,13 +127,16 @@ class SSU implements MigrationInterface {
                             spec: template.spec
                         }
                     }
-                }, this.log).then(() => {
-                    // todo check if checkpointing is done
+                }, this.log).then(async () => {
+                    await checkpointDonePromise
                     imageQueue.done = true
+                    return {checkpoint: (Date.now() - start) / 1000}
                 })
             ])
 
             await imageWatcher.close()
+
+            return responses.reduce((prev: { [key: string]: number }, curr: any) => ({...prev, ...curr}), {})
         } finally {
             this.lock.unlock();
         }

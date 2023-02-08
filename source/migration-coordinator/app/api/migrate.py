@@ -61,7 +61,7 @@ def migrate(body, migration_id):
         abort(409, "Pod is being migrated")
 
     src_pod = client.lock_pod(name, namespace, migration_id)
-    migration_state = {
+    migration_state = {  # todo data transferred (unify/reuse) case
         'src_pod_exist': True,
         'des_pod_exist': False,
         'frontmant_exist': False

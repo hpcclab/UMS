@@ -20,11 +20,13 @@ class DinD implements MigrationInterface {
     log
     name
     buildScratchImagePromise
+    creatingContainers: string[]
 
     constructor(log: FastifyBaseLogger) {
         this.log = log
         this.name = INTERFACE_DIND
         this.buildScratchImagePromise = this.buildScratchImage()
+        this.creatingContainers = []
     }
 
     static async isCompatible(log: FastifyBaseLogger): Promise<boolean> {
@@ -181,6 +183,7 @@ class DinD implements MigrationInterface {
     }
 
     async migrate(start: number, body: MigrateRequestType): Promise<any> {
+        // todo image migration api (and disable at migrate step)
         const waitDestination = waitForIt(body.interfaceHost, body.interfacePort, this.log)
 
         const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))

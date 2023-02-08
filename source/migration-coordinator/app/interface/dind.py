@@ -55,6 +55,8 @@ def create_des_pod(des_pod_template, des_info, migration_state):
         })
         response.raise_for_status()
         migration_state['des_pod_exist'] = True
+        # todo image migration api (and disable at migrate step)
+        # todo start api (just change annotations)
         return response.json()
     except HTTPError as e:
         if e.response.status_code == 504:
@@ -174,11 +176,14 @@ def do_delete_pod(name, namespace):
 
 
 def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod):
-    name = src_pod['metadata']['name']
-    namespace = src_pod['metadata'].get('namespace', 'default')
-    if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) != START_MODE_ACTIVE:
-        client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
-    if migration_state['frontmant_exist']:
-        delete_frontman(src_pod)
-    if migration_state['des_pod_exist']:
-        delete_des_pod(src_pod, destination_url, get_name())
+    try:
+        name = src_pod['metadata']['name']
+        namespace = src_pod['metadata'].get('namespace', 'default')
+        if src_pod['metadata']['annotations'].get(INTERFACE_ANNOTATION) != START_MODE_ACTIVE:
+            client.update_pod_restart(name, namespace, START_MODE_ACTIVE)
+        if migration_state['frontmant_exist']:
+            delete_frontman(src_pod)
+        if migration_state['des_pod_exist']:
+            delete_des_pod(src_pod, destination_url, get_name())
+    except Exception:
+        pass

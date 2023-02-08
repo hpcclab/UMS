@@ -86,6 +86,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         ''',
         container['name'],
     ) for container in src_pod['spec']['containers']]))
+    # todo breakdown from log
     return src_pod, {
         'checkpoint': 'todo',
         'checkpoint_files_transfer': 'todo',
@@ -145,7 +146,10 @@ def do_delete_pod(name, namespace):
 
 
 def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod):
-    if migration_state['frontmant_exist']:
-        delete_frontman(src_pod)
-    if migration_state['des_pod_exist']:
-        delete_des_pod(src_pod, destination_url, get_name())
+    try:
+        if migration_state['frontmant_exist']:
+            delete_frontman(src_pod)
+        if migration_state['des_pod_exist']:
+            delete_des_pod(src_pod, destination_url, get_name())
+    except Exception:
+        pass

@@ -55,16 +55,11 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
     response.raise_for_status()  # todo forward body and add migration id, checkpoint id
     migration_state['src_pod_exist'] = False
     client.delete_ssu_custom_resource(checkpoint_id, src_pod['metadata'].get('namespace', 'default'))
+    response_body = response.json()
+    fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
+              'image_layers_dealy', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
     return src_pod, {
-        'checkpoint': 'todo',
-        'checkpoint_files_transfer': 'todo',
-        'checkpoint_files_delay': 'todo',
-        'image_layers_transfer': 'todo',
-        'image_layers_dealy': 'todo',
-        'file_system_transfer': 'todo',
-        'file_system_delay': 'todo',
-        'volume_transfer': 'todo',
-        'volume_delay': 'todo'
+        field: response_body.get(field) for field in fields
     }
 
 
@@ -95,9 +90,12 @@ def do_delete_pod(name, namespace):
 
 
 def recover(src_pod, destination_url, migration_state, delete_frontman, delete_des_pod):
-    if not migration_state['src_pod_exist']:
-        do_create_pod(generate_des_pod_template(src_pod))
-    if migration_state['frontmant_exist']:
-        delete_frontman(src_pod)
-    if migration_state['des_pod_exist']:
-        delete_des_pod(src_pod, destination_url, get_name())
+    try:
+        if not migration_state['src_pod_exist']:
+            do_create_pod(generate_des_pod_template(src_pod))  # todo check if it is going to be deleted / deleting
+        if migration_state['frontmant_exist']:
+            delete_frontman(src_pod)
+        if migration_state['des_pod_exist']:
+            delete_des_pod(src_pod, destination_url, get_name())
+    except Exception:
+        pass  # todo forward body and add migration id, checkpoint id

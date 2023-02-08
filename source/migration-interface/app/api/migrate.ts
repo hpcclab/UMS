@@ -8,7 +8,7 @@ import {migrationInterface} from "../interface";
 
 async function migrate(request: FastifyRequest<{ Body: MigrateRequestType }>, reply: FastifyReply) {
     const start = Date.now()
-    const responses = migrationInterface.migrate(start, request.body)
+    const responses = await migrationInterface.migrate(start, request.body)
     request.log.info(responses)
     return responses
 }

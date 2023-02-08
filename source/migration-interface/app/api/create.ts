@@ -34,22 +34,34 @@ async function create(request: FastifyRequest<{ Params: CreateRequestType }>, re
         return
     }
 
-    const containerSpec = JSON.parse(config[SPEC_CONTAINER_ANNOTATION]
-        .replace(/\\\"/g, "\"").replace(/\\\\/g, "\\"))
-        .find((container: { name: string }) => container.name === containerName)
-
-    if (containerSpec.image.split(':')[0] === SCRATCH_IMAGE) {
-        await migrationInterface.buildScratchImagePromise
-    } else if (containerSpec.imagePullPolicy === 'Always') {
-        await migrationInterface.pullImage(containerSpec.image)
+    if (migrationInterface.creatingContainers.includes(containerName)) {
+        reply.code(204)
+        return
+    } else {
+        migrationInterface.creatingContainers.push(containerName)
     }
 
-    await migrationInterface.createContainer(containerSpec)
+    try {
+        const containerSpec = JSON.parse(config[SPEC_CONTAINER_ANNOTATION]
+            .replace(/\\\"/g, "\"").replace(/\\\\/g, "\\"))
+            .find((container: { name: string }) => container.name === containerName)
 
-    if (startMode === START_MODE_ACTIVE) {
-        return migrationInterface.startContainer(containerName)
-    } else {
-        reply.code(204)
+        if (containerSpec.image.split(':')[0] === SCRATCH_IMAGE) {
+            await migrationInterface.buildScratchImagePromise
+        } else if (containerSpec.imagePullPolicy === 'Always') {
+            await migrationInterface.pullImage(containerSpec.image)
+        }
+
+        await migrationInterface.createContainer(containerSpec)
+
+        if (startMode === START_MODE_ACTIVE) {
+            return migrationInterface.startContainer(containerName)
+        } else {
+            reply.code(204)
+        }
+    } finally {
+        const index = migrationInterface.creatingContainers.indexOf(containerName);
+        migrationInterface.creatingContainers.splice(index, 1)
     }
 }
 

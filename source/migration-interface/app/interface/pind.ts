@@ -19,11 +19,13 @@ class PinD implements MigrationInterface {
     log
     name
     buildScratchImagePromise
+    creatingContainers: string[]
 
     constructor(log: FastifyBaseLogger) {
         this.log = log
         this.name = INTERFACE_PIND
         this.buildScratchImagePromise = this.buildScratchImage()
+        this.creatingContainers = []
     }
 
     static async isCompatible(log: FastifyBaseLogger): Promise<boolean> {
@@ -194,6 +196,7 @@ class PinD implements MigrationInterface {
     async migrateContainer(waitDestination: Promise<void>, start: number, {checkpointId, interfaceHost, interfacePort, containers}:
                                MigrateRequestType,
                            containerInfo: ContainerInfo, exit: boolean) {
+        // todo pre->stop + image migration
         const sourceImagePath = `/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
         const destinationImagePath = `root@${interfaceHost}:/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
         const imageQueue = new AsyncBlockingQueue<string>()

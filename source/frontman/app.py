@@ -10,7 +10,7 @@ def catch_all(path):
     config = dotenv_values('/etc/podinfo/annotations')
     if config.get('redirect') is not None:
         return redirect(config['redirect'], 301)
-    return Response(status=425)
+    return Response(status=425) # todo 503 + Retry-After 0 header
 
 
 if __name__ == '__main__':

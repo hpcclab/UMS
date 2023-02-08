@@ -19,6 +19,11 @@ async function probe(request: FastifyRequest<{ Params: CreateRequestType }>, rep
         return
     }
 
+    if (migrationInterface.creatingContainers.includes(containerName)) {
+        reply.code(204)
+        return
+    }
+
     const {State} = await migrationInterface.inspectContainer(containerName)
     const {Status, ExitCode} = State
 
