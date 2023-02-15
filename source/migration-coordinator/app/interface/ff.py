@@ -77,26 +77,35 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
     interface_port = json.loads(des_pod_annotations[SYNC_PORT_ANNOTATION])
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
-    asyncio.run(gather([client.exec_pod(
+    responses = asyncio.run(gather([client.exec_pod(
         name,
         namespace,
         f'''
         mc alias set migration http://{interface_host}:{interface_port[container['name']]} minioadmin minioadmin &&
-        S3_CMD='/root/s3 migration' fastfreeze checkpoint --leave-running {'--preserve-path' + volume_list[container['name']] if container['name'] in volume_list else ''}
+        S3_CMD='/root/s3 migration' CRIU_OPTS='' fastfreeze checkpoint --leave-running -vv {'--preserve-path' + volume_list[container['name']] if container['name'] in volume_list else ''}
         ''',
         container['name'],
     ) for container in src_pod['spec']['containers']]))
-    # todo breakdown from log
+    checkpoint_and_transfer_overhead = []
+    for response in responses:
+        checkpoint_overhead = None
+        checkpoint_files_transfer_overhead = None
+        for line in response.split('\n'):
+            if 'Dumping finished successfully' in line:
+                checkpoint_overhead = float(line.split()[1].replace('(', '').replace('s)', ''))
+            if 'Checkpoint completed in' in line:
+                checkpoint_files_transfer_overhead = float(line.split()[1].replace('(', '').replace('s)', ''))
+        checkpoint_and_transfer_overhead.append({'checkpoint': checkpoint_overhead,
+                                                 'checkpoint_files_transfer': checkpoint_files_transfer_overhead,
+                                                 'checkpoint_files_delay': 0})
+    fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
+              'image_layers_dealy', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
+    checkpoint_and_transfer_overhead = {
+        field: max([overhead.get(field, -1) for overhead in checkpoint_and_transfer_overhead]) for field in fields
+    }
     return src_pod, {
-        'checkpoint': 'todo',
-        'checkpoint_files_transfer': 'todo',
-        'checkpoint_files_delay': 'todo',
-        'image_layers_transfer': 'todo',
-        'image_layers_dealy': 'todo',
-        'file_system_transfer': 'todo',
-        'file_system_delay': 'todo',
-        'volume_transfer': 'todo',
-        'volume_delay': 'todo'
+        field: checkpoint_and_transfer_overhead[field] if checkpoint_and_transfer_overhead[field] > -1 else None
+        for field in fields
     }
 
 
