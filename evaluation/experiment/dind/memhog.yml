@@ -15,5 +15,5 @@ spec:
       env:
         - name: MEMORY_LIMIT
           value: '128'
-        # - name: MEMORY_INCREMENT
-        #   value: '0'
+        - name: MEMORY_INCREMENT
+          value: '64'

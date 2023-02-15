@@ -99,7 +99,7 @@ def migrate(body, migration_id):
         'overhead': {
             'creation': (created_time - start_time).total_seconds(),
             'checkpoint_and_transfer': checkpoint_and_transfer_overhead,
-            'checkpoint_and_transfer_total': checkpoint_and_transfer_overhead.get('checkpoint_files_transfer', (checkpointed_time - created_time).total_seconds()),
+            'checkpoint_and_transfer_total': calculate_checkpoint_and_transfer_total(checkpoint_and_transfer_overhead, checkpointed_time, created_time),
             'restoration': (restored_time - checkpointed_time).total_seconds(),
             'total': (restored_time - start_time).total_seconds()
         },
@@ -205,3 +205,10 @@ def delete_frontman(src_pod, frontman_created):
     src = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     client.update_pod_label(src['metadata']['name'], src['metadata']['namespace'], src['metadata']['labels'])
     client.delete_pod(f"{src['metadata']['name']}-frontman", src['metadata']['namespace'])
+
+
+def calculate_checkpoint_and_transfer_total(checkpoint_and_transfer_overhead, checkpointed_time, created_time):
+    checkpoint_and_transfer_total = max([v or -1 for k, v in checkpoint_and_transfer_overhead.items()])
+    if checkpoint_and_transfer_total < 0:
+        return (checkpointed_time - created_time).total_seconds()
+    return checkpoint_and_transfer_total
