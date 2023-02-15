@@ -118,7 +118,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
     })
     response.raise_for_status()
     fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
-              'image_layers_dealy', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
+              'image_layers_delay', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
     checkpoint_and_transfer_overhead = {
         field: max([overhead.get(field, -1) for overhead in response.json()]) for field in fields
     }

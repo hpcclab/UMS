@@ -1,3 +1,4 @@
+import json
 import subprocess
 from time import sleep
 
@@ -20,9 +21,12 @@ def get_pod(config_file, name, namespace):
 
 def test(n):
     i = 0
+    results = []
     while True:
         if i >= n:
-            break
+            with open('/example/path.json', 'w') as f:
+                json.dump(results, f)
+            return
         print(f'round {i + 1}', end=' ')
         (src, des, config_file) = (SRC, DES, DES_CONFIG) if i % 2 == 0 else (DES, SRC, SRC_CONFIG)
         while True:
@@ -35,13 +39,13 @@ def test(n):
             'destinationUrl': des
         })
         if response.status_code == 200:
-            print(response.json())
+            result = response.json()
+            print(result)
+            results.append(result)
             i += 1
         else:
             print(f'error: [{response.status_code}] {response.text}')
             break
-        # subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
-        #                capture_output=True)
 
 
 if __name__ == '__main__':
