@@ -4,13 +4,12 @@ from time import sleep
 
 import requests as requests
 
-
 MEMHOG_CONFIG = './memhog.yml'
 SRC_CONFIG = '/example/path'
 DES_CONFIG = '/example/path'
 SRC = 'example.url'
 DES = 'example.url'
-NAME = 'memhogff'
+NAME = 'memhog'
 NAMESPACE = 'default'
 
 
@@ -24,7 +23,7 @@ def test(n):
     results = []
     while True:
         if i >= n:
-            with open('./ff.json', 'w') as f:
+            with open('./ssu.json', 'w') as f:
                 json.dump(results, f)
             return
         print(f'round {i + 1}', end=' ')
@@ -36,7 +35,6 @@ def test(n):
                        capture_output=True)
         subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" wait --for=condition=ready pod -l app={NAME} ',
                        capture_output=True)
-        sleep(3)
         response = requests.post(f'http://{SRC}/migrate', json={
             'name': NAME,
             'namespace': NAMESPACE,

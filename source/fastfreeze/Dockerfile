@@ -35,4 +35,5 @@ RUN apt-get update && apt-get install -y  \
 COPY s6-rc.d /etc/s6-overlay/s6-rc.d/
 COPY config.json /root/.mc/
 COPY wait run s3 /root/
-RUN chmod +x /root/run /root/wait /root/s3 /usr/sbin/minio /usr/sbin/mc
+COPY wait-for-it.sh /root/
+RUN chmod +x /root/run /root/wait /root/s3 /root/wait-for-it.sh /usr/sbin/minio /usr/sbin/mc

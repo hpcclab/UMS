@@ -81,6 +81,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         name,
         namespace,
         f'''
+        /root/wait-for-it.sh {interface_host}:{interface_port[container['name']]} -t 0 &&
         mc alias set migration http://{interface_host}:{interface_port[container['name']]} minioadmin minioadmin &&
         S3_CMD='/root/s3 migration' CRIU_OPTS='' fastfreeze checkpoint --leave-running -vv {'--preserve-path' + volume_list[container['name']] if container['name'] in volume_list else ''}
         ''',
@@ -95,6 +96,8 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
                 checkpoint_overhead = float(line.split()[1].replace('(', '').replace('s)', ''))
             if 'Checkpoint completed in' in line:
                 checkpoint_files_transfer_overhead = float(line.split()[1].replace('(', '').replace('s)', ''))
+        if checkpoint_overhead is None or checkpoint_files_transfer_overhead is None:
+            abort(500, f"No checkpoint log found in {response}")
         checkpoint_and_transfer_overhead.append({'checkpoint': checkpoint_overhead,
                                                  'checkpoint_files_transfer': checkpoint_files_transfer_overhead,
                                                  'checkpoint_files_delay': 0})

@@ -24,7 +24,7 @@ def test(n):
     results = []
     while True:
         if i >= n:
-            with open('/example/path.json', 'w') as f:
+            with open('./pind.json', 'w') as f:
                 json.dump(results, f)
             return
         print(f'round {i + 1}', end=' ')
@@ -49,7 +49,9 @@ def test(n):
 
 
 if __name__ == '__main__':
-    # subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" apply -f {MEMHOG_CONFIG}',
+    # subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" apply -f {MEMHOG_CONFIG}',
+    #                capture_output=True)
+    # subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" wait --for=condition=ready pod -l app={NAME} ',
     #                capture_output=True)
     test(1)
     # subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
