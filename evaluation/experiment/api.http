@@ -35,7 +35,7 @@ Content-Type: application/json
     "redirect": "{{des_ip}}"
 }
 
-### # todo answer why we dont use external docker
+###
 #@name full migration destination to source
 POST http://{{des}}/migrate
 Content-Type: application/json

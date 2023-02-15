@@ -1,0 +1,30 @@
+#@name ping coordinator source
+GET http://{{src}}/
+Accept: application/json
+
+###
+#@name ping coordinator destination
+GET http://{{des}}/
+Accept: application/json
+
+###
+#@name full migration source to destination
+POST http://{{src}}/migrate
+Content-Type: application/json
+
+{
+    "name": "memhogff",
+    "namespace": "{{namespace}}",
+    "destinationUrl": "{{des}}"
+}
+
+###
+#@name full migration destination to source
+POST http://{{des}}/migrate
+Content-Type: application/json
+
+{
+    "name": "memhogff",
+    "namespace": "{{namespace}}",
+    "destinationUrl": "{{src}}"
+}

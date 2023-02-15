@@ -4,17 +4,11 @@ metadata:
   name: memhog
   labels:
     app: memhog
-    # namespace: myproject
-  annotations:
-    # migration-interface: 'dind'
-    # migration-interface: 'pind'
-    migration-interface: 'ff'
 spec:
   serviceAccountName: migration-coordinator
   containers:
     - name: memhog
       image: ghcr.io/hpcclab/live_service_migration/memhog:main
-#      image: ghcr.io/hpcclab/live_service_migration/memhogff:main
       env:
         - name: MEMORY_LIMIT
           value: '128'
