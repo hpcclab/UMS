@@ -28,7 +28,7 @@ POST http://{{src}}/migrate
 Content-Type: application/json
 
 {
-    "name": "memhog",
+    "name": "yoloff",
     "namespace": "{{namespace}}",
     "destinationUrl": "{{des}}",
     "keep": "true",
@@ -41,7 +41,7 @@ POST http://{{des}}/migrate
 Content-Type: application/json
 
 {
-    "name": "memhog",
+    "name": "yoloff",
     "namespace": "{{namespace}}",
     "destinationUrl": "{{src}}",
     "keep": "true",
