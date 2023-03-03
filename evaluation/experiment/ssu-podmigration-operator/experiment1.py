@@ -46,7 +46,8 @@ def test(n, memory_footprint):
         })
         if response.status_code == 200:
             result = response.json()
-            print(result)
+            del result['des_pod']
+            print(result['message'], result['overhead']['total'])
             results[str(memory_footprint)].append(result)
             subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {result["des_pod"]["metadata"]["name"]}',
                            capture_output=True)

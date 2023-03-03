@@ -23,16 +23,27 @@ def preprocess(path, key_list):
             field: sum([element['checkpoint_and_transfer'][field] for element in data[key]])/len(data[key])
             for field in checkpoint_and_transfer_fields if data[key][0]['checkpoint_and_transfer'][field] is not None
         }
+        if key == '128':
+            print(result[-1]['total'])
     return result
 
 
 barWidth = 0.1
 fig = plt.subplots(figsize=(12, 6))
 x = ['0', '4', '16', '64', '128', '256', '512', '1024']
+# x = [str(i) for i in range(1, 9)]
 
-dind = preprocess('./dind/dind.json', x)
-ff = preprocess('./fastfreeze/ff.json', x)
-ssu = preprocess('./ssu-podmigration-operator/ssu.json', x)
+dind = preprocess('./dind/experiment1.json', x)
+ff = preprocess('./fastfreeze/experiment1.json', x)
+ssu = preprocess('./ssu-podmigration-operator/experiment1.json', x)
+
+# dind = preprocess('./dind/experiment2.json', x)
+# ff = preprocess('./fastfreeze/experiment2.json', x)
+# ssu = preprocess('./ssu-podmigration-operator/experiment2.json', x)
+
+# dind = preprocess('./dind/experiment3.json', x)
+# ff = preprocess('./fastfreeze/experiment3.json', x)
+# ssu = preprocess('./ssu-podmigration-operator/experiment3.json', x)
 
 x = ['≈0', '4', '16', '64', '128', '256', '512', '1024']
 br1 = np.arange(len(x))
@@ -48,9 +59,9 @@ br9 = [x + barWidth/2 for x in br3]
 
 
 # Make the plot
-plt.bar(br8, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ff], color='lightgray', width=barWidth*2, edgecolor='gray')
-plt.bar(br9, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ssu], color='lightgray', width=barWidth*2, edgecolor='gray')
-plt.bar(br6, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in dind], color='lightgray', width=barWidth*3, edgecolor='gray')
+plt.bar(br8, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ff], color='none', width=barWidth*2, edgecolor='gray')
+plt.bar(br9, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ssu], color='none', width=barWidth*2, edgecolor='gray')
+plt.bar(br6, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in dind], color='none', width=barWidth*3, edgecolor='gray')
 
 plt.bar(br8, [element['creation'] for element in ff], color='white', width=barWidth*2, edgecolor='darkgreen', hatch='||')
 plt.bar(br1, [element['checkpoint_and_transfer']['checkpoint'] for element in ff], color='white', width=barWidth,
@@ -79,6 +90,7 @@ plt.bar(br6, [element['restoration'] for element in dind], color='white', width=
         edgecolor='darkblue', hatch='--', bottom=[element['creation'] + element['checkpoint_and_transfer_total'] for element in dind])
 
 plt.xlabel('Container memory footprint (MiB)', fontsize=24)
+# plt.xlabel('Number of processes', fontsize=24)
 plt.ylabel('Time (seconds)', fontsize=24, labelpad=0)
 plt.yticks(fontsize=18)
 plt.xticks([r + 3*barWidth for r in range(len(x))],
@@ -86,9 +98,9 @@ plt.xticks([r + 3*barWidth for r in range(len(x))],
 
 a_val = 0.6
 
-circ1 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='red', label='Baseline approach')
-circ2 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkblue', label='Container nesting approach')
-circ3 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkgreen', label='Init process approach')
+circ1 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='red', label='Orchestrator-level approach')
+circ2 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkblue', label='Container-level approach')
+circ3 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkgreen', label='Service-level approach')
 circ4 = mp.Patch(facecolor='white', alpha=a_val, hatch='||', label='Creating dest. container')
 circ5 = mp.Patch(facecolor='white', alpha=a_val, hatch=r'\\\\', label='Checkpointing')
 circ6 = mp.Patch(facecolor='white', alpha=a_val, hatch='//', label='Ckpt. files transfer')
@@ -96,9 +108,11 @@ circ8 = mp.Patch(facecolor='white', alpha=a_val, hatch='+', label='RW layers tra
 circ7 = mp.Patch(facecolor='white', alpha=a_val, hatch='--', label='Restoration')
 
 # plt.legend(handles=[circ1, circ2, circ3, circ4, circ5, circ6, circ7], loc=2, prop={'size': 24})
-plt.legend(handles=[circ1, circ2, circ3, circ4, circ5, circ6, circ8, circ7], loc=2, prop={'size': 24})
+plt.legend(handles=[circ3, circ1, circ2, circ4, circ5, circ6, circ8, circ7], loc=2, prop={'size': 20})
 
 
 plt.tight_layout()
 plt.savefig('./migration_time.pdf')
+# plt.savefig('./migration_time_2.pdf')
+# plt.savefig('./migration_time_3.pdf')
 plt.show()

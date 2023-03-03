@@ -17,3 +17,5 @@ spec:
           value: '128'
         - name: MEMORY_INCREMENT
           value: '64'
+        - name: PROCESS
+          value: '1'

@@ -11,6 +11,8 @@ spec:
       value: '0'
     - name: MEMORY_INCREMENT
       value: '64'
+    - name: PROCESS
+      value: '1'
     image: ghcr.io/hpcclab/live_service_migration/memhog:main
     name: memhog
   serviceAccountName: migration-coordinator

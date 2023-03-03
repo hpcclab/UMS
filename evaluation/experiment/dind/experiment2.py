@@ -6,7 +6,7 @@ from time import sleep
 import requests as requests
 import yaml
 
-
+OUTPUT = './experiment2.json'
 MEMHOG_CONFIG = './memhog.yml'
 SRC_CONFIG = '/example/path'
 DES_CONFIG = '/example/path'
@@ -18,11 +18,11 @@ NAMESPACE = 'default'
 
 def get_pod(config_file, name, namespace):
     return subprocess.run(f'kubectl --kubeconfig="{config_file}" -n {namespace} get pod {name}',
-                          capture_output=True).stderr
+                          capture_output=True, shell=True).stderr
 
 
-def test(n, memory_footprint):
-    with open('./dind.json') as f:
+def test(n, memory_footprint, memory_increment):
+    with open(OUTPUT) as f:
         results = json.load(f)
     i = len(results.get(str(memory_footprint), []))
     if i == 0:
@@ -36,10 +36,10 @@ def test(n, memory_footprint):
                 break
             sleep(1)
         subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" apply -f {MEMHOG_CONFIG}',
-                       capture_output=True)
+                       capture_output=True, shell=True)
         subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" wait --for=condition=ready pod -l app={NAME} ',
-                       capture_output=True)
-        sleep(3 + memory_footprint / 64)
+                       capture_output=True, shell=True)
+        sleep(3 + memory_footprint / memory_increment)
         response = requests.post(f'http://{SRC}/migrate', json={
             'name': NAME,
             'namespace': NAMESPACE,
@@ -47,30 +47,46 @@ def test(n, memory_footprint):
         })
         if response.status_code == 200:
             result = response.json()
-            print(result)
+            del result['des_pod']
+            print(result['message'], result['overhead']['total'])
             results[str(memory_footprint)].append(result)
             subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {result["des_pod"]["metadata"]["name"]}',
-                           capture_output=True)
+                           capture_output=True, shell=True)
             while True:
                 if get_pod(DES_CONFIG, result['des_pod']['metadata']['name'], NAMESPACE) != b'':
                     break
                 sleep(1)
             i += 1
         else:
-            print(f'error: [{response.status_code}] {response.text}')
-            break
-    with open('./dind.json', 'w') as f:
+            subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
+                           capture_output=True, shell=True)
+            subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" apply -f {MEMHOG_CONFIG}',
+                           capture_output=True, shell=True)
+            sleep(3 + memory_footprint / memory_increment)
+            subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
+                           capture_output=True, shell=True)
+            while True:
+                if get_pod(SRC_CONFIG, NAME, NAMESPACE) != b'':
+                    break
+                sleep(1)
+            while True:
+                if get_pod(DES_CONFIG, NAME, NAMESPACE) != b'':
+                    break
+                sleep(1)
+    with open(OUTPUT, 'w') as f:
         json.dump(results, f)
 
 
 if __name__ == '__main__':
-    if not os.path.exists('./dind.json'):
-        with open('./dind.json', 'w') as f:
+    if not os.path.exists(OUTPUT):
+        with open(OUTPUT, 'w') as f:
             json.dump({}, f)
-    for memory_footprint in [0, 4, 16, 64, 128, 256, 512, 1024]:
+    for num_process in range(1, 9):
         with open(MEMHOG_CONFIG) as f:
             memhog_spec = yaml.safe_load(f)
-        memhog_spec['spec']['containers'][0]['env'][0]['value'] = str(memory_footprint)
+        memhog_spec['spec']['containers'][0]['env'][0]['value'] = str(0)
+        memhog_spec['spec']['containers'][0]['env'][1]['value'] = str(64)
+        memhog_spec['spec']['containers'][0]['env'][2]['value'] = str(num_process)
         with open(MEMHOG_CONFIG, 'w') as f:
             yaml.dump(memhog_spec, f)
-        test(30, memory_footprint)
+        test(30, 0, 64)
