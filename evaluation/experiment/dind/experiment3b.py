@@ -6,16 +6,12 @@ from time import sleep
 import requests as requests
 import yaml
 
-OUTPUT = './experiment3.json'
-MEMHOG_CONFIG = './memhog.dev.yml'
-# SRC_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-3.yaml'
-# DES_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-4.yaml'
-SRC_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-1.yaml'
-DES_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-2.yaml'
-# SRC = '10.131.36.30.nip.io:30001'
-# DES = '10.131.36.31.nip.io:30001'
-SRC = '10.131.36.31.nip.io:30001'
-DES = '10.131.36.32.nip.io:30001'
+OUTPUT = './experiment3b.json'
+MEMHOG_CONFIG = './memhog.yml'
+SRC_CONFIG = '/example/path'
+DES_CONFIG = '/example/path'
+SRC = 'example.url'
+DES = 'example.url'
 NAME = 'memhog'
 NAMESPACE = 'default'
 
@@ -51,9 +47,7 @@ def test(n, memory_footprint, memory_increment):
         })
         if response.status_code == 200:
             result = response.json()
-            del result['des_pod']
             print(result['message'], result['overhead']['total'])
-            results[str(memory_footprint)].append(result)
             subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {result["des_pod"]["metadata"]["name"]}',
                            capture_output=True, shell=True)
             while True:
@@ -61,6 +55,8 @@ def test(n, memory_footprint, memory_increment):
                     break
                 sleep(1)
             i += 1
+            del result['des_pod']
+            results[str(memory_footprint)].append(result)
         else:
             subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
                            capture_output=True, shell=True)

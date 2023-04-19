@@ -6,13 +6,13 @@ from time import sleep
 import requests as requests
 import yaml
 
-OUTPUT = './experiment3.json'
-MEMHOG_CONFIG = './memhog.yml'
+OUTPUT = './experiment3b.json'
+MEMHOG_CONFIG = './memhog.dev.yml'
 SRC_CONFIG = '/example/path'
 DES_CONFIG = '/example/path'
 SRC = 'example.url'
 DES = 'example.url'
-NAME = 'memhogff'
+NAME = 'memhog'
 NAMESPACE = 'default'
 
 
@@ -47,9 +47,7 @@ def test(n, memory_footprint, memory_increment):
         })
         if response.status_code == 200:
             result = response.json()
-            del result['des_pod']
             print(result['message'], result['overhead']['total'])
-            results[str(memory_footprint)].append(result)
             subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {result["des_pod"]["metadata"]["name"]}',
                            capture_output=True, shell=True)
             while True:
@@ -57,13 +55,11 @@ def test(n, memory_footprint, memory_increment):
                     break
                 sleep(1)
             i += 1
+            del result['des_pod']
+            results[str(memory_footprint)].append(result)
         else:
-            subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
-                           capture_output=True, shell=True)
-            while True:
-                if get_pod(SRC_CONFIG, NAME, NAMESPACE) != b'':
-                    break
-                sleep(1)
+            print(f'error: [{response.status_code}] {response.text}')
+            break
     with open(OUTPUT, 'w') as f:
         json.dump(results, f)
 

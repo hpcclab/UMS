@@ -2,7 +2,7 @@ FROM debian:10
 WORKDIR /root
 RUN apt update \
     && apt install -y git wget make gcc g++ \
-    && wget https://pjreddie.com/media/files/yolov3.weights \
+    && wget https://pjreddie.com/media/files/yolov3-tiny.weights \
     && git clone https://github.com/pjreddie/darknet \
     && cd darknet \
     && make

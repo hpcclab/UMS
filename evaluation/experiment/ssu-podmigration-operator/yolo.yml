@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: yolo
+  labels:
+    app: yolo
+spec:
+  serviceAccountName: migration-coordinator
+  containers:
+    - name: yolo
+      image: ghcr.io/hpcclab/live_service_migration/yolo:main

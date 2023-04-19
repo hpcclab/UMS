@@ -28,11 +28,31 @@ POST http://{{src}}/migrate
 Content-Type: application/json
 
 {
-    "name": "yoloff",
+    "name": "memhog",
     "namespace": "{{namespace}}",
     "destinationUrl": "{{des}}",
     "keep": "true",
     "redirect": "{{des_ip}}"
+}
+
+###
+#@name todo new api design
+POST http://{{src}}/migrate
+Content-Type: application/json
+
+{
+    "name": "memhog",
+    "namespace": "{{namespace}}",
+    "destination": "{{des}}",
+    "interface": "optional",
+    "coordination": {
+      "checkpointAfter": "beginning|destinationCreated",
+      "deleteAfter": "checkpointing|restoration|manual",
+      "frontman": {
+        "downtimeHandling": "true",
+        "redirection": "{{des_ip}}"
+      }
+    }
 }
 
 ###

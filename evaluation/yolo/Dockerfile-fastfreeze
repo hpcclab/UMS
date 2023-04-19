@@ -1,9 +1,8 @@
-#FROM ghcr.io/hpcclab/live_service_migration/fastfreeze-base:development
-FROM core.harbor.10.131.36.2.nip.io/migration/fastfreeze-base
+FROM ghcr.io/hpcclab/live_service_migration/fastfreeze-base:development
 WORKDIR /root
 RUN apt update \
     && apt install -y git wget make gcc g++ \
-    && wget https://pjreddie.com/media/files/yolov3.weights \
+    && wget https://pjreddie.com/media/files/yolov3-tiny.weights \
     && git clone https://github.com/pjreddie/darknet \
     && cd darknet \
     && make
