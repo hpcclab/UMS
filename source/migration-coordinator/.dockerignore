@@ -233,3 +233,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+/.dockerignore
+/.editorconfig
+/.gitignore
+/Dockerfile

@@ -4,7 +4,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt \
     && pip install --pre --upgrade kubernetes \
     && npm install -g nodemon
-CMD nodemon -e py -L --exec "kopf run app/pods.py --verbose --all-namespaces --liveness=http://0.0.0.0:8080/healthz"
+CMD nodemon -e py -L --exec "kopf run app/startup.py app/pods.py --verbose --all-namespaces --liveness=http://0.0.0.0:8080/healthz"
 ENV PYTHONPATH /src
 COPY template template/
 COPY share share/

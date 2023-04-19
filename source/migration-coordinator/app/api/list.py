@@ -1,24 +1,15 @@
 from flask import Blueprint, jsonify
 
 from app.const import MIGRATABLE_ANNOTATION, START_MODE_ANNOTATION, START_MODE_ACTIVE, MIGRATION_ID_ANNOTATION
-from app.kubernetes_client import list_pod
+from app.orchestrator import select_orchestrator
 
+client = select_orchestrator()
 list_api_blueprint = Blueprint('list_api', __name__)
 
 
 @list_api_blueprint.route("/list", methods=['GET'])
 def list_api():
-    pods = list_pod().items
-
-    # connection = get_db()
-    #
-    # try:
-    #     connection.execute("INSERT INTO migration (id) VALUES (?)", (migration_id,))
-    #     connection.commit()
-    # finally:
-    #     connection.execute("DELETE FROM migration WHERE id = ?", (migration_id,))
-    #     connection.execute("DELETE FROM message WHERE migration_id = ?", (migration_id,))
-    #     connection.commit()
+    pods = client.list_pod().items
 
     return jsonify([{'name': pod.metadata.name, 'namespace': pod.metadata.namespace,
                      'migratable': determine_migratable(pod),

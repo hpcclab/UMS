@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    migration-interface: dind
+  labels:
+    app: memhog
+  name: memhog
+spec:
+  containers:
+  - env:
+    - name: MEMORY_LIMIT
+      value: '0'
+    - name: MEMORY_INCREMENT
+      value: '64'
+    - name: PROCESS
+      value: '8'
+    image: ghcr.io/hpcclab/live_service_migration/memhog:main
+    name: memhog
+  serviceAccountName: migration-coordinator
