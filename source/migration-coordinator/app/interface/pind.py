@@ -1,5 +1,6 @@
 import json
 import os
+from concurrent.futures import wait, ThreadPoolExecutor, FIRST_EXCEPTION  #todo move to aiohttp, kubernetes_asyncio
 from datetime import datetime, timedelta
 from time import sleep
 
@@ -80,7 +81,7 @@ def wait_created_pod_ready(pod):
             if (annotations[START_MODE_ANNOTATION] == START_MODE_ACTIVE and status_code == 200) \
                     or (annotations[START_MODE_ANNOTATION] == START_MODE_PASSIVE and status_code == 204) \
                     or (annotations[START_MODE_ANNOTATION] == START_MODE_NULL and status_code < 400):
-                if SYNC_PORT_ANNOTATION in annotations:
+                if SYNC_HOST_ANNOTATION in annotations and SYNC_PORT_ANNOTATION in annotations:
                     return {'annotations': {
                         VOLUME_LIST_ANNOTATION: annotations[VOLUME_LIST_ANNOTATION],
                         SYNC_HOST_ANNOTATION: annotations[SYNC_HOST_ANNOTATION],
@@ -108,7 +109,30 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     src_pod = client.update_pod_restart(name, namespace, START_MODE_NULL)
-    response = requests.post(f"http://{src_pod['status']['podIP']}:8888/migrate", json={  # todo image migration and pre-copy
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [executor.submit(checkpoint_and_transfer_container, src_pod, des_pod_annotations, checkpoint_id),
+                   executor.submit(checkpoint_and_transfer_image, name, namespace, src_pod, des_pod_annotations, checkpoint_id)]
+    done, _ = wait(futures, return_when=FIRST_EXCEPTION)
+    for task in done:
+        err = task.exception()
+        if err is not None:
+            raise err
+    container_overheads, image_overheads = futures[0].result(), futures[1].result()
+    fields = ['checkpoint', 'pre_checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay',
+              'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
+    checkpoint_and_transfer_overhead = {
+        field: max([overhead.get(field, -1) for overhead in container_overheads]) for field in fields
+    }
+    for field in ['save_image', 'image_layers_transfer', 'image_layers_delay', 'load_image']:
+        checkpoint_and_transfer_overhead[field] = max([overhead.get(field, -1) for overhead in image_overheads])
+    return src_pod, {
+        field: checkpoint_and_transfer_overhead[field] if checkpoint_and_transfer_overhead[field] > -1 else None
+        for field in fields
+    }
+
+
+def checkpoint_and_transfer_container(src_pod, des_pod_annotations, checkpoint_id):
+    response = requests.post(f"http://{src_pod['status']['podIP']}:8888/migrate", json={
         'checkpointId': checkpoint_id,
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
         'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
@@ -117,15 +141,48 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     })
     response.raise_for_status()
-    fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
-              'image_layers_delay', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
-    checkpoint_and_transfer_overhead = {
-        field: max([overhead.get(field, -1) for overhead in response.json()]) for field in fields
-    }
-    return src_pod, {
-        field: checkpoint_and_transfer_overhead[field] if checkpoint_and_transfer_overhead[field] > -1 else None
-        for field in fields
-    }
+    return response.json()
+
+
+def checkpoint_and_transfer_image(name, namespace, src_pod, des_pod_annotations, checkpoint_id, destination_url, migration_id, des_pod_template):
+    response = requests.post(f"http://{src_pod['status']['podIP']}:8888/save", json={
+        'checkpointId': checkpoint_id,
+        'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
+        'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
+        'containers': des_pod_annotations['current-containers'],
+        'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION]),
+        'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
+    })
+    response.raise_for_status()
+    results = response.json()
+    start = datetime.now(tz=tzlocal())
+    response = requests.post(f"http://{destination_url}/image", json={
+        'migrationId': migration_id,
+        'checkpointId': checkpoint_id,
+        'name': name,
+        'namespace': namespace,
+        'interface': INTERFACE_PIND,
+        'template': des_pod_template
+    })
+    response.raise_for_status()
+    load_image = (datetime.now(tz=tzlocal()) - start).total_seconds()
+    for result in results:
+        result['load_image'] = load_image
+    return results
+
+
+def load_image(body):
+    name = body['name']
+    namespace = body.get('namespace', 'default')
+    migration_id = body['migrationId']
+    des_pod = client.get_pod(name, namespace)
+    if des_pod['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION) != migration_id:
+        abort(409, "Pod is being migrated")
+    response = requests.post(f"http://{des_pod['status']['podIP']}:8888/load", json={
+        'checkpointId': body['checkpointId'],
+        'template': body.get('template')
+    })
+    response.raise_for_status()
 
 
 def restore(body):

@@ -1,0 +1,40 @@
+# nonk8s
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: example
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30001
+        hostPort: 30001
+      - containerPort: 30080
+        hostPort: 30080
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+            extraArgs:
+              enable-admission-plugins: NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook
+    # This option mounts the host docker registry folder into
+    # the control-plane node, allowing containerd to access them.
+    extraMounts:
+      - containerPath: /dev/shm/dind
+        hostPath: /dev/shm/dind
+      - containerPath: /dev/shm/pind
+        hostPath: /dev/shm/pind
+#      - containerPath: /etc/docker/certs.d/
+#        hostPath: /etc/docker/certs.d/
+#containerdConfigPatches:
+#  - |-
+#    [plugins."io.containerd.grpc.v1.cri".registry.configs."PRIVATE_REGISTRY_ADDRESS".tls]
+#      cert_file = "/etc/docker/certs.d/PRIVATE_REGISTRY_ADDRESS/PRIVATE_REGISTRY_ADDRESS.cert"
+#      key_file  = "/etc/docker/certs.d/PRIVATE_REGISTRY_ADDRESS/PRIVATE_REGISTRY_ADDRESS.key"
+#      ca_file = "/etc/docker/certs.d/PRIVATE_REGISTRY_ADDRESS/ca.crt"
+networking:
+  # WARNING: It is _strongly_ recommended that you keep this the default
+  # (127.0.0.1) for security reasons. However it is possible to change this.
+  apiServerAddress: "IP_ADDRESS"
+  # By default the API server listens on a random open port.
+  # You may choose a specific port but probably don't need to in most cases.
+  # Using a random port makes it easier to spin up multiple clusters.
+  apiServerPort: 6443

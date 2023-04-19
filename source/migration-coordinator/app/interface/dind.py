@@ -55,8 +55,6 @@ def create_des_pod(des_pod_template, des_info, migration_state):
         })
         response.raise_for_status()
         migration_state['des_pod_exist'] = True
-        # todo image migration api (and disable at migrate step)
-        # todo start api (just change annotations)
         return response.json()
     except HTTPError as e:
         if e.response.status_code == 504:
@@ -85,7 +83,7 @@ def wait_created_pod_ready(pod):
             if (annotations[START_MODE_ANNOTATION] == START_MODE_ACTIVE and status_code == 200) \
                     or (annotations[START_MODE_ANNOTATION] == START_MODE_PASSIVE and status_code == 204) \
                     or (annotations[START_MODE_ANNOTATION] == START_MODE_NULL and status_code < 400):
-                if SYNC_PORT_ANNOTATION in annotations:
+                if SYNC_HOST_ANNOTATION in annotations and SYNC_PORT_ANNOTATION in annotations:
                     return {'annotations': {
                         VOLUME_LIST_ANNOTATION: annotations[VOLUME_LIST_ANNOTATION],
                         SYNC_HOST_ANNOTATION: annotations[SYNC_HOST_ANNOTATION],
@@ -122,8 +120,9 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     })
     response.raise_for_status()
-    fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
-              'image_layers_delay', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
+    fields = ['checkpoint', 'pre_checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay',
+              'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay',
+              'save_image', 'image_layers_transfer', 'image_layers_delay', 'load_image']
     checkpoint_and_transfer_overhead = {
         field: max([overhead.get(field, -1) for overhead in response.json()]) for field in fields
     }
@@ -131,6 +130,10 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         field: checkpoint_and_transfer_overhead[field] if checkpoint_and_transfer_overhead[field] > -1 else None
         for field in fields
     }
+
+
+def load_image(body):
+    pass
 
 
 def restore(body):

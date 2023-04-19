@@ -8,7 +8,7 @@ import yaml
 from share.env import env
 
 
-def inject_service(template_file, name, selectors):
+def inject_service(template_file, name, selectors, node_port):
     with open(os.path.join(os.path.dirname(__file__), template_file), 'rt') as f:
         service_template = yaml.safe_load(f.read().format(**env))
     kopf.label(service_template)
@@ -16,6 +16,8 @@ def inject_service(template_file, name, selectors):
     kopf.harmonize_naming(service_template, name)
     kopf.adjust_namespace(service_template, forced=True)
     service_template['spec']['selector'] = selectors
+    if node_port is not None:
+        service_template['spec']['ports'][0]['nodePort'] = int(node_port)
     return service_template
 
 

@@ -65,11 +65,12 @@ class DinD implements MigrationInterface {
     }
 
     async pullImage(image: string) {
-        const [repo, tag] = image.split(':')
+        const repo = image.split(':')
+        const tag = repo.pop()
         await requestAxios({
             method: 'post',
             url: `/images/create`,
-            params: {fromImage: repo, tag: tag || 'latest'}
+            params: {fromImage: repo.join(':'), tag: tag || 'latest'}
         }, this.log)
     }
 
@@ -157,8 +158,15 @@ class DinD implements MigrationInterface {
     }
 
     async restoreContainer(fileName: string) {
-        await execBash(`docker container restore -i /var/lib/containers/storage/${fileName} --tcp-established --file-locks`, this.log)
-        return ""
+        throw new Error("Method not implemented.")
+    }
+
+    async saveImage(start: number, name: string, checkpointId: string, imageQueue: AsyncBlockingQueue<string>) {
+        throw new Error("Method not implemented.")
+    }
+
+    async loadImage(fileName: string) {
+        throw new Error("Method not implemented.")
     }
 
     async stopContainer(name: string) {
@@ -235,12 +243,25 @@ class DinD implements MigrationInterface {
         return responses.reduce((prev: { [key: string]: number }, curr: any) => ({...prev, ...curr}), {})
     }
 
+    async migrateImages(start: number, body: MigrateRequestType): Promise<any> {
+        throw new Error("Method not implemented.")
+    }
+
+    async migrateImage(waitDestination: Promise<void>, start: number, {checkpointId, interfaceHost, interfacePort, containers}:
+                           MigrateRequestType, containerInfo: ContainerInfo) {
+        throw new Error("Method not implemented.")
+    }
+
     async restore({checkpointId}: {checkpointId: string}): Promise<any> {
         const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
         const containerInfos: any[] = await migrationInterface.listContainer(config[SPEC_CONTAINER_ANNOTATION], {all: true})
         return Promise.all(containerInfos.map(
             containerInfo => migrationInterface.startContainer(containerInfo.Id, {checkpoint: checkpointId}))
         )
+    }
+
+    async loadImages({checkpointId}: {checkpointId: string}): Promise<any> {
+        throw new Error("Method not implemented.")
     }
 }
 

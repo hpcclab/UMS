@@ -52,6 +52,14 @@ class SSU implements MigrationInterface {
         throw new Error("Method not implemented.")
     }
 
+    async saveImage(start: number, name: string, checkpointId: string, imageQueue: AsyncBlockingQueue<string>) {
+        throw new Error("Method not implemented.")
+    }
+
+    async loadImage(fileName: string) {
+        throw new Error("Method not implemented.")
+    }
+
     async restoreContainer(_fileName: string) {
         throw new Error("Method not implemented.")
     }
@@ -147,6 +155,15 @@ class SSU implements MigrationInterface {
         throw new Error("Method not implemented.");
     }
 
+    async migrateImages(start: number, body: MigrateRequestType): Promise<any> {
+        throw new Error("Method not implemented.")
+    }
+
+    async migrateImage(waitDestination: Promise<void>, start: number, {checkpointId, interfaceHost, interfacePort, containers}:
+                           MigrateRequestType, containerInfo: ContainerInfo) {
+        throw new Error("Method not implemented.")
+    }
+
     async restore({checkpointId, template}: {checkpointId: string, template: any}): Promise<any> {
         return requestAxios({
             method: 'post',
@@ -161,6 +178,10 @@ class SSU implements MigrationInterface {
                 }
             }
         }, this.log)
+    }
+
+    async loadImages({checkpointId}: {checkpointId: string}): Promise<any> {
+        throw new Error("Method not implemented.")
     }
 }
 

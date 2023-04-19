@@ -24,7 +24,7 @@ def report_ready(name, annotations, body, patch, **_):
         patch.metadata['annotations'] = {MIGRATABLE_ANNOTATION: MIGRATABLE_POSSIBLE}
     else:
         patch.metadata['annotations'] = {MIGRATABLE_ANNOTATION: MIGRATABLE_TRUE}
-    if SYNC_PORT_ANNOTATION in annotations:
+    if SYNC_HOST_ANNOTATION in annotations and SYNC_PORT_ANNOTATION in annotations:
         send_event(body, 'ready', {'pod': name, 'annotations': {
             VOLUME_LIST_ANNOTATION: annotations[VOLUME_LIST_ANNOTATION],
             SYNC_HOST_ANNOTATION: annotations[SYNC_HOST_ANNOTATION],
@@ -45,9 +45,9 @@ def report_failure(name, body, patch, **_):
 
 @kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_DIND})
 @kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_PIND})
-def expose_service(logger, name, meta, namespace, body, patch, status, **_):
+def expose_service(logger, name, meta, annotations, namespace, body, patch, status, **_):
     try:
-        service_template = inject_service('../template/service.yml', name, meta['labels'])
+        service_template = inject_service('../template/service.yml', name, meta['labels'], annotations.get(SYNC_PORT_ANNOTATION))
         service = client.CoreV1Api().create_namespaced_service(namespace, service_template)
         logger.info(f"creating Service: {service.metadata.name}")
 
@@ -63,8 +63,8 @@ def expose_service(logger, name, meta, namespace, body, patch, status, **_):
         return
 
 
-async def expose_one_service_ff(logger, name, meta, namespace, container_name):
-    service_template = inject_service('../template/service-ff.yml', name, meta['labels'])
+async def expose_one_service_ff(logger, name, meta, namespace, container_name, node_port):
+    service_template = inject_service('../template/service-ff.yml', name, meta['labels'], node_port)
     container_names = container_name.split('__')
     if len(container_names) > 1:
         service_template['spec']['ports'][0]['targetPort'] = int(container_names[-1])
@@ -75,10 +75,10 @@ async def expose_one_service_ff(logger, name, meta, namespace, container_name):
 
 
 @kopf.on.create('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT, INTERFACE_ANNOTATION: INTERFACE_FF})
-def expose_service_ff(logger, name, meta, namespace, spec, body, patch, status, **_):
+def expose_service_ff(logger, name, meta, annotations, namespace, spec, body, patch, status, **_):
     try:
         results = asyncio.run(gather([expose_one_service_ff(
-            logger, name, meta, namespace, container['name']
+            logger, name, meta, namespace, container['name'], annotations.get(SYNC_PORT_ANNOTATION, {}).get(container['name'])
         ) for container in spec['containers']]))
 
         node = SYNC_HOST or status['hostIP']
@@ -93,7 +93,9 @@ def expose_service_ff(logger, name, meta, namespace, spec, body, patch, status, 
         return
 
 
-@kopf.on.update('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT}, field=f'metadata.annotations.{SYNC_PORT_ANNOTATION}', old=kopf.ABSENT, new=kopf.PRESENT)
+# todo check if there is a service instead of using SYNC_HOST_ANNOTATION
+# todo support proxy host and port
+@kopf.on.update('v1', 'pods', annotations={MIGRATABLE_ANNOTATION: kopf.PRESENT}, field=f'metadata.annotations.{SYNC_HOST_ANNOTATION}', old=kopf.ABSENT, new=kopf.PRESENT)
 def report_expose(name, annotations, body, **_):
     if 'podIP' in body['status']:
         send_event(body, 'ready', {'pod': name, 'annotations': {

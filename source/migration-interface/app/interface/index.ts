@@ -31,6 +31,10 @@ interface MigrationInterface {
 
     restoreContainer(fileName: string): Promise<any>;
 
+    saveImage(start: number, name: string, checkpointId: string, imageQueue: AsyncBlockingQueue<string>): Promise<any>;
+
+    loadImage(fileName: string): Promise<any>;
+
     stopContainer(name: string): Promise<any>;
 
     removeContainer(name: string): Promise<any>;
@@ -40,7 +44,14 @@ interface MigrationInterface {
     migrateContainer(waitDestination: Promise<void>, start: number, body: MigrateRequestType,
                      containerInfo: ContainerInfo, exit: boolean): Promise<any>;
 
+    migrateImages(start: number, body: MigrateRequestType): Promise<any>;
+
+    migrateImage(waitDestination: Promise<void>, start: number, body: MigrateRequestType,
+                     containerInfo: ContainerInfo): Promise<any>;
+
     restore(body: RestoreRequestType): Promise<any>;
+
+    loadImages(body: RestoreRequestType): Promise<any>;
 }
 
 async function createMigrationInterface(log: FastifyBaseLogger) {

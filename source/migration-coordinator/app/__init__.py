@@ -8,6 +8,7 @@ from app.api.create import create_api_blueprint
 from app.api.delete import delete_api_blueprint
 from app.api.demo import demo_api_blueprint
 from app.api.healthcheck import healthcheck_api_blueprint
+from app.api.image import image_api_blueprint
 from app.api.list import list_api_blueprint
 from app.api.migrate import migrate_api_blueprint
 from app.api.ping import ping_api_blueprint
@@ -46,6 +47,7 @@ def create_app():
     app.register_blueprint(create_api_blueprint)
     app.register_blueprint(migrate_api_blueprint)
     app.register_blueprint(demo_api_blueprint)
+    app.register_blueprint(image_api_blueprint)
     app.register_blueprint(restore_api_blueprint)
     app.register_blueprint(delete_api_blueprint)
 

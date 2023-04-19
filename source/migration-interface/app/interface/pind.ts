@@ -14,6 +14,7 @@ import {
     START_MODE_ACTIVE,
     START_MODE_ANNOTATION
 } from "../const";
+import {transferImage} from "../api/save";
 
 class PinD implements MigrationInterface {
     log
@@ -64,11 +65,12 @@ class PinD implements MigrationInterface {
     }
 
     async pullImage(image: string) {
-        const [repo, tag] = image.split(':')
+        const repo = image.split(':')
+        const tag = repo.pop()
         await requestAxios({
             method: 'post',
             url: `/images/create`,
-            params: {fromImage: repo, tag: tag || 'latest'}
+            params: {fromImage: repo.join(':'), tag: tag || 'latest'}
         }, this.log)
     }
 
@@ -146,13 +148,28 @@ class PinD implements MigrationInterface {
     }
 
     async checkpointContainer(start: number, name: string, checkpointId: string, exit: boolean, imageQueue: AsyncBlockingQueue<string>): Promise<any> {
-        await execBash(`docker container checkpoint ${name} -e /var/lib/containers/storage/${checkpointId}-${name}.tar.gz --tcp-established --file-locks${exit ? "" : " -R"}`, this.log)
+        await execBash(`docker container checkpoint ${name} -P -e /var/lib/containers/storage/${checkpointId}-${name}/pre.tar.gz --tcp-established --file-locks`, this.log)
+        const preCheckpoint = Date.now()
+        await execBash(`docker container checkpoint ${name} --with-previous -e /var/lib/containers/storage/${checkpointId}-${name}/checkpoint.tar.gz --tcp-established --file-locks${exit ? "" : " -R"}`, this.log)
         imageQueue.done = true
-        return {checkpoint: (Date.now() - start) / 1000}
+        return {checkpoint: (Date.now() - preCheckpoint) / 1000, pre_checkpoint: (preCheckpoint - start) / 1000}
     }
 
     async restoreContainer(fileName: string) {
-        await execBash(`docker container restore -i /var/lib/containers/storage/${fileName} --tcp-established --file-locks`, this.log)
+        await this.loadImage(fileName)
+        await execBash(`docker container restore --import-previous /var/lib/containers/storage/${fileName}/pre.tar.gz -i /var/lib/containers/storage/${fileName}/checkpoint.tar.gz --tcp-established --file-locks`, this.log)
+        return ""
+    }
+
+    async saveImage(start: number, name: string, checkpointId: string, imageQueue: AsyncBlockingQueue<string>) {
+        const {ImageName} = await this.inspectContainer(name)
+        await execBash(`docker save -q -o /var/lib/containers/storage/${checkpointId}-${name}/image.tar ${ImageName}`, this.log)
+        imageQueue.done = true
+        return {saveImage: (Date.now() - start) / 1000}
+    }
+
+    async loadImage(fileName: string) {
+        await execBash(`docker load -q -i /var/lib/containers/storage/${fileName}/image.tar`, this.log)
         return ""
     }
 
@@ -196,9 +213,9 @@ class PinD implements MigrationInterface {
     async migrateContainer(waitDestination: Promise<void>, start: number, {checkpointId, interfaceHost, interfacePort, containers}:
                                MigrateRequestType,
                            containerInfo: ContainerInfo, exit: boolean) {
-        // todo pre->stop + image migration
-        const sourceImagePath = `/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
-        const destinationImagePath = `root@${interfaceHost}:/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}.tar.gz`
+        const sourceImagePath = `/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}`
+        const destinationImagePath = `root@${interfaceHost}:/var/lib/containers/storage`
+        await fs.promises.mkdir(sourceImagePath)
         const imageQueue = new AsyncBlockingQueue<string>()
         let imageQueueInit: (value: unknown) => void
         const imageQueueInitPromise = new Promise(resolve => {
@@ -227,6 +244,49 @@ class PinD implements MigrationInterface {
         return responses.reduce((prev: { [key: string]: number }, curr: any) => ({...prev, ...curr}), {})
     }
 
+    async migrateImages(start: number, body: MigrateRequestType): Promise<any> {
+        const waitDestination = waitForIt(body.interfaceHost, body.interfacePort, this.log)
+
+        const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
+        const containerInfos: any[] = await migrationInterface.listContainer(config[SPEC_CONTAINER_ANNOTATION])
+        return Promise.all(containerInfos.map(
+                containerInfo => this.migrateImage(waitDestination, start, body, containerInfo)
+        ))
+    }
+
+    async migrateImage(waitDestination: Promise<void>, start: number, {checkpointId, interfaceHost, interfacePort, containers}:
+                               MigrateRequestType, containerInfo: ContainerInfo) {
+        const sourceImagePath = `/var/lib/containers/storage/${checkpointId}-${containerInfo.Id}-image`
+        const destinationImagePath = `root@${interfaceHost}:/var/lib/containers/storage`
+        await fs.promises.mkdir(sourceImagePath)
+        const imageQueue = new AsyncBlockingQueue<string>()
+        let imageQueueInit: (value: unknown) => void
+        const imageQueueInitPromise = new Promise(resolve => {
+            imageQueueInit = resolve
+        })
+        const imageWatcher = chokidar.watch(sourceImagePath)
+        imageWatcher
+            .on('all', (event, path) => {
+                if ((event === 'add' || event == 'change') && imageQueue.isEmpty()) {
+                    imageQueue.enqueue(path)
+                }
+            })
+            .on('ready', () => {
+                imageQueueInit(null)
+            })
+
+        await imageQueueInitPromise
+
+        const responses = await Promise.all([
+            transferImage(waitDestination, start, interfacePort, imageQueue, sourceImagePath, destinationImagePath, this.log),
+            this.saveImage(start, containerInfo.Id, checkpointId, imageQueue)
+        ])
+
+        await imageWatcher.close()
+
+        return responses.reduce((prev: { [key: string]: number }, curr: any) => ({...prev, ...curr}), {})
+    }
+
     async restore({checkpointId}: {checkpointId: string}): Promise<any> {
         const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
         const containerInfos: any[] = await this.listContainer(config[SPEC_CONTAINER_ANNOTATION], {all: true})
@@ -245,6 +305,14 @@ class PinD implements MigrationInterface {
         return Promise.all(fileList
             .filter(fileName => fileName.startsWith(checkpointId))
             .map(fileName => this.restoreContainer(fileName))
+        )
+    }
+
+    async loadImages({checkpointId}: {checkpointId: string}): Promise<any> {
+        const fileList = await fs.promises.readdir('/var/lib/containers/storage/')
+        return Promise.all(fileList
+            .filter(fileName => fileName.startsWith(checkpointId))
+            .map(fileName => this.loadImage(fileName))
         )
     }
 }

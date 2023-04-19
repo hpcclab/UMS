@@ -56,11 +56,16 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
     migration_state['src_pod_exist'] = False
     client.delete_ssu_custom_resource(checkpoint_id, src_pod['metadata'].get('namespace', 'default'))
     response_body = response.json()
-    fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
-              'image_layers_delay', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
+    fields = ['checkpoint', 'pre_checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay',
+              'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay',
+              'save_image', 'image_layers_transfer', 'image_layers_delay', 'load_image']
     return src_pod, {
         field: response_body.get(field) for field in fields
     }
+
+
+def load_image(body):
+    pass
 
 
 def restore(body):

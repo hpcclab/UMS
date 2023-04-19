@@ -21,6 +21,8 @@ spec:
           name: cgroup
         - mountPath: /etc/podinfo
           name: podinfo
+        - mountPath: /lib/modules
+          name: kernel
   volumes:
     - name: docker-storage
       hostPath:
@@ -36,3 +38,7 @@ spec:
           - path: "annotations"
             fieldRef:
               fieldPath: metadata.annotations
+    - name: kernel
+      hostPath:
+        path: /lib/modules
+        type: Directory

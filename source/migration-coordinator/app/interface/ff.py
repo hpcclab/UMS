@@ -101,8 +101,9 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         checkpoint_and_transfer_overhead.append({'checkpoint': checkpoint_overhead,
                                                  'checkpoint_files_transfer': checkpoint_files_transfer_overhead,
                                                  'checkpoint_files_delay': 0})
-    fields = ['checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay', 'image_layers_transfer',
-              'image_layers_delay', 'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay']
+    fields = ['checkpoint', 'pre_checkpoint', 'checkpoint_files_transfer', 'checkpoint_files_delay',
+              'file_system_transfer', 'file_system_delay', 'volume_transfer', 'volume_delay',
+              'save_image', 'image_layers_transfer', 'image_layers_delay', 'load_image']
     checkpoint_and_transfer_overhead = {
         field: max([overhead.get(field, -1) for overhead in checkpoint_and_transfer_overhead]) for field in fields
     }
@@ -110,6 +111,10 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         field: checkpoint_and_transfer_overhead[field] if checkpoint_and_transfer_overhead[field] > -1 else None
         for field in fields
     }
+
+
+def load_image(body):
+    pass
 
 
 def restore(body):
