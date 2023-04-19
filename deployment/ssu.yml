@@ -29,27 +29,27 @@ subjects:
   - kind: ServiceAccount
     name: ssu
     namespace: default
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ssu
-  namespace: myproject
-secrets:
-  - name: default-token
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: ssu-rolebinding-cluster-myproject
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ssu-role-cluster
-subjects:
-  - kind: ServiceAccount
-    name: ssu
-    namespace: myproject
+#---
+#apiVersion: v1
+#kind: ServiceAccount
+#metadata:
+#  name: ssu
+#  namespace: myproject
+#secrets:
+#  - name: default-token
+#---
+#apiVersion: rbac.authorization.k8s.io/v1
+#kind: ClusterRoleBinding
+#metadata:
+#  name: ssu-rolebinding-cluster-myproject
+#roleRef:
+#  apiGroup: rbac.authorization.k8s.io
+#  kind: ClusterRole
+#  name: ssu-role-cluster
+#subjects:
+#  - kind: ServiceAccount
+#    name: ssu
+#    namespace: myproject
 ---
 apiVersion: apps/v1
 kind: Deployment
