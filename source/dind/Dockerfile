@@ -59,7 +59,7 @@ RUN apk update && apk add  \
     | tar xJf - -C / \
   && curl -SL https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz \
     | tar xJf - -C / \
-  && apk add --repository https://dl-3.alpinelinux.org/alpine/edge/community/ containerd \
+  && apk add --repository https://dl-3.alpinelinux.org/alpine/v3.16/community/ containerd \
   && mv /usr/bin/runc /usr/local/bin/ \
   && mv /usr/bin/containerd* /usr/local/bin/ \
   && mv /usr/bin/ctr /usr/local/bin/ \
