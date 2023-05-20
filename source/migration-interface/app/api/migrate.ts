@@ -37,14 +37,19 @@ async function transferContainerImage(waitDestination: Promise<void>, start: num
     return {checkpoint_files_transfer: (Date.now() - start) / 1000, checkpoint_files_delay: delay}
 }
 
-async function transferContainerFS(waitDestination: Promise<void>, start: number, interfaceHost: string,
-                                   interfacePort: string, containerInfo: ContainerInfo, destinationFs: string,
+async function transferContainerFS(waitDestination: Promise<void>, start: number,
+                                   {interfaceHost, interfacePort, image}: MigrateRequestType,
+                                   containerInfo: ContainerInfo, destinationFs: string,
                                    log: FastifyBaseLogger) {
     await waitDestination
     const delay = (Date.now() - start) / 1000
-    const {GraphDriver: {Name, Data: {MergedDir}}} = await migrationInterface.inspectContainer(containerInfo.Id)
+    const {GraphDriver: {Name, Data: {MergedDir, UpperDir}}} = await migrationInterface.inspectContainer(containerInfo.Id)
     if (Name === 'overlay2' && destinationFs !== null) {
-        await execRsync(interfacePort, `${MergedDir}/*`, `root@${interfaceHost}:${destinationFs}`, log)
+        if (image) {
+            await execRsync(interfacePort, `${MergedDir}/*`, `root@${interfaceHost}:${destinationFs}`, log)
+        } else {
+            await execRsync(interfacePort, `${UpperDir}/*`, `root@${interfaceHost}:${destinationFs}`, log)
+        }
     }
     return {file_system_transfer: (Date.now() - start) / 1000, file_system_delay: delay}
 }

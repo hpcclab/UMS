@@ -156,7 +156,6 @@ class PinD implements MigrationInterface {
     }
 
     async restoreContainer(fileName: string) {
-        await this.loadImage(fileName)
         await execBash(`docker container restore --import-previous /var/lib/containers/storage/${fileName}/pre.tar.gz -i /var/lib/containers/storage/${fileName}/checkpoint.tar.gz --tcp-established --file-locks`, this.log)
         return ""
     }

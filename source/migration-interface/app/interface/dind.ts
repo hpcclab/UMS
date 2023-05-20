@@ -191,7 +191,6 @@ class DinD implements MigrationInterface {
     }
 
     async migrate(start: number, body: MigrateRequestType): Promise<any> {
-        // todo image migration api (and disable at migrate step)
         const waitDestination = waitForIt(body.interfaceHost, body.interfacePort, this.log)
 
         const config = dotenv.parse(readFileSync('/etc/podinfo/annotations', 'utf8'))
@@ -207,8 +206,8 @@ class DinD implements MigrationInterface {
         ])
     }
 
-    async migrateContainer(waitDestination: Promise<void>, start: number, {checkpointId, interfaceHost, interfacePort, containers}:
-                               MigrateRequestType,
+    async migrateContainer(waitDestination: Promise<void>, start: number,
+                           {checkpointId, interfaceHost, interfacePort, containers, image}: MigrateRequestType,
                            containerInfo: ContainerInfo, exit: boolean) {
         const {destinationId, destinationFs} = findDestinationFileSystemId(containers, containerInfo)
 
@@ -234,7 +233,9 @@ class DinD implements MigrationInterface {
 
         const responses = await Promise.all([
             transferContainerImage(waitDestination, start, interfacePort, imageQueue, sourceImagePath, destinationImagePath, this.log),
-            transferContainerFS(waitDestination, start, interfaceHost, interfacePort, containerInfo, destinationFs, this.log),
+            transferContainerFS(waitDestination, start,
+                {template: undefined, volumes: [], checkpointId, interfaceHost, interfacePort, containers, image},
+                containerInfo, destinationFs, this.log),
             this.checkpointContainer(start, containerInfo.Id, checkpointId, exit, imageQueue)
         ])
 

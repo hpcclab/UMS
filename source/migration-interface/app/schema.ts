@@ -10,6 +10,7 @@ const MigrateRequestProperties = {
     interfaceHost: Type.String(),
     interfacePort: Type.String(),
     containers: Type.Array(Type.Any()),
+    image: Type.Boolean(),
     volumes: Type.Array(Type.Any()),
     template: Type.Any()
 }
