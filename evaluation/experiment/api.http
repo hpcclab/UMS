@@ -36,6 +36,54 @@ Content-Type: application/json
 }
 
 ###
+#@name debug create
+POST http://{{des}}/create
+Content-Type: application/json
+
+{
+  "interface": "dind",
+  "template": {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{"migration-interface":"dind", "migration-start-mode": "passive", "migration-position":  "destination", "migration-step": "reserved"},"labels":{"app":"memhog"},"name":"memhog","namespace":"default"},"spec":{"containers":[{"image":"hpcccontrol.cmix.louisiana.edu:30443/migration/memhog:latest","name":"memhog"}],"serviceAccountName":"migration-coordinator"}}
+}
+
+###
+#@name debug list
+GET http://{{srcin}}/list
+Content-Type: application/json
+
+###
+#@name debug list
+GET http://{{desin}}/list
+Content-Type: application/json
+
+###
+#@name debug migration
+POST http://{{srcin}}/migrate
+Content-Type: application/json
+
+{
+  "checkpointId": "test2",
+  "interfaceHost": "10.131.36.32",
+  "interfacePort": "30109",
+  "containers": [
+    {"name": "/memhog",
+      "id": "cb6be0e8af8fef82ed444fec56e4dc65ead1deb1af879ba15e6053b441a572ee",
+      "fs": "/var/lib/docker/overlay2/f4510299100661dff059d2b88da42a1c45db551ba4400ab8b20d52e3f9dfc882/diff"}],
+  "image": false,
+  "volumes": [],
+  "template": {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{"migration-interface":"dind"},"labels":{"app":"memhog"},"name":"memhog","namespace":"default"},"spec":{"containers":[{"image":"hpcccontrol.cmix.louisiana.edu:30443/migration/memhog:latest","name":"memhog"}],"serviceAccountName":"migration-coordinator"}}
+}
+
+###
+#@name debug restore
+POST http://{{desin}}/restore
+Content-Type: application/json
+
+{
+  "checkpointId": "test2",
+  "template": {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{"migration-interface":"dind"},"labels":{"app":"memhog"},"name":"memhog","namespace":"default"},"spec":{"containers":[{"image":"hpcccontrol.cmix.louisiana.edu:30443/migration/memhog:latest","name":"memhog"}],"serviceAccountName":"migration-coordinator"}}
+}
+
+###
 #@name todo new api design
 POST http://{{src}}/migrate
 Content-Type: application/json
@@ -61,7 +109,7 @@ POST http://{{des}}/migrate
 Content-Type: application/json
 
 {
-    "name": "yoloff",
+    "name": "memhog",
     "namespace": "{{namespace}}",
     "destinationUrl": "{{src}}",
     "keep": "true",

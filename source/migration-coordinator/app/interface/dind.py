@@ -34,10 +34,11 @@ def is_compatible(src_pod, des_info):
     return False
 
 
-def generate_des_pod_template(src_pod):
+def generate_des_pod_template(src_pod, migrate_image):
     body = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
-    for container in body['spec']['containers']:
-        container['image'] = SCRATCH_IMAGE
+    if migrate_image:
+        for container in body['spec']['containers']:
+            container['image'] = SCRATCH_IMAGE
     body['metadata']['annotations'][LAST_APPLIED_CONFIG] = json.dumps(body)
     body['metadata']['annotations'][START_MODE_ANNOTATION] = START_MODE_PASSIVE
     body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][
@@ -66,12 +67,15 @@ def do_create_pod(template):
     namespace = template.get('metadata', {}).get('namespace', 'default')
     new_pod = client.create_pod(namespace, template)
     msg = wait_created_pod_ready(new_pod)
-    response = requests.get(f"http://{msg['ip']}:8888/list")
-    response.raise_for_status()
-    return {
-        **msg['annotations'],
-        'current-containers': response.json()
-    }
+    exit_code = os.system(f"/app/wait-for-it.sh {msg['ip']}:8888 -t 1")
+    if exit_code == 0:
+        response = requests.get(f"http://{msg['ip']}:8888/list")
+        response.raise_for_status()
+        return {
+            **msg['annotations'],
+            'current-containers': response.json()
+        }
+    abort(502, 'Interface does not respond to /list')
 
 
 def wait_created_pod_ready(pod):
@@ -107,7 +111,7 @@ def probe_all(pod_ip):
     return 1
 
 
-def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state):
+def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state, migrate_image, destination_url, migration_id, des_pod_template):
     name = src_pod['metadata']['name']
     namespace = src_pod['metadata'].get('namespace', 'default')
     src_pod = client.update_pod_restart(name, namespace, START_MODE_NULL)
@@ -116,6 +120,7 @@ def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migrati
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
         'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
         'containers': des_pod_annotations['current-containers'],
+        'image': migrate_image is not None,
         'volumes': json.loads(des_pod_annotations[VOLUME_LIST_ANNOTATION]),
         'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     })

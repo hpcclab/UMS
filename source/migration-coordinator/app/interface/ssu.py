@@ -21,7 +21,7 @@ def is_compatible(src_pod, des_info):
     return False
 
 
-def generate_des_pod_template(src_pod):
+def generate_des_pod_template(src_pod, migrate_image):
     body = json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     body['metadata']['annotations'][LAST_APPLIED_CONFIG] = src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG)
     body['metadata']['annotations'][MIGRATION_ID_ANNOTATION] = src_pod['metadata']['annotations'][
@@ -43,12 +43,13 @@ def do_create_pod(template):
     }
 
 
-def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state):
+def checkpoint_and_transfer(src_pod, des_pod_annotations, checkpoint_id, migration_state, migrate_image, destination_url, migration_id, des_pod_template):
     response = requests.post(f"http://{SSU_INTERFACE_SERVICE}:8888/migrate", json={
         'checkpointId': checkpoint_id,
         'interfaceHost': des_pod_annotations[SYNC_HOST_ANNOTATION],
         'interfacePort': des_pod_annotations[SYNC_PORT_ANNOTATION],
         'containers': [],
+        'image': False,
         'volumes': [],  # todo check if volume is migrated
         'template': json.loads(src_pod['metadata']['annotations'].get(LAST_APPLIED_CONFIG))
     })

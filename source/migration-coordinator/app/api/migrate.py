@@ -72,14 +72,14 @@ def migrate(body, migration_id):
         des_info = ping_destination(destination_url)
         interface = select_migration_interface(src_pod, des_info, selected_interface)
 
-        des_pod_template = interface.generate_des_pod_template(src_pod)
+        des_pod_template = interface.generate_des_pod_template(src_pod, body.get('migrateImage'))
         des_pod_info = interface.create_des_pod(des_pod_template, des_info, migration_state)
         create_or_update_frontman(src_pod, migration_state, create_keeper=body.get('keep'))
         created_time = datetime.now(tz=tzlocal())
 
         checkpoint_id = uuid4().hex[:8]
         client.update_migration_step(name, namespace, MIGRATION_STEP_CHECKPOINTING)
-        src_pod, checkpoint_and_transfer_overhead = interface.checkpoint_and_transfer(src_pod, des_pod_info, checkpoint_id, migration_state)
+        src_pod, checkpoint_and_transfer_overhead = interface.checkpoint_and_transfer(src_pod, des_pod_info, checkpoint_id, migration_state, body.get('migrateImage'), destination_url, migration_id, des_pod_template)
         checkpointed_time = datetime.now(tz=tzlocal())
 
         if migration_state['src_pod_exist']:

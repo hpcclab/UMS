@@ -104,7 +104,8 @@ def update_pod_redirect(name, namespace, redirect_uri):
     return app
 
 
-async def exec_pod(pod_name, namespace, command, container_name):
+# async def exec_pod(pod_name, namespace, command, container_name):
+def exec_pod(pod_name, namespace, command, container_name):
     exit_code, output = docker_client.containers.get(
         get_docker_id(pod_name, namespace)
     ).exec_run(cmd=f'/bin/bash -c "{command}"')

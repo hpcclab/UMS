@@ -70,7 +70,7 @@ function findDestinationFileSystemId(containers: any, containerInfo: any) {
         }
     }
     if (destinationId === undefined) {
-        throw new HttpError(`Cannot find Id of the destination container (${containers.toString()}): ${containerInfo.Names[0]}`, 500)
+        throw new HttpError(`Cannot find Id of the destination container (${JSON.stringify(containers)}): ${containerInfo.Names[0]}`, 500)
     }
     return {destinationId, destinationFs}
 }
