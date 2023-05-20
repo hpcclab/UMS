@@ -76,7 +76,7 @@ spec:
       serviceAccountName: ssu
       containers:
         - name: operator
-          image: ghcr.io/hpcclab/live_service_migration/ssu-operator:main
+          image: ghcr.io/hpcclab/nims/ssu-operator:main
           imagePullPolicy: Always
           volumeMounts:
             - mountPath: /root/.kube/config
@@ -117,7 +117,7 @@ spec:
       serviceAccountName: ssu
       containers:
         - name: apiserver
-          image: ghcr.io/hpcclab/live_service_migration/ssu-apiserver:main
+          image: ghcr.io/hpcclab/nims/ssu-apiserver:main
           imagePullPolicy: Always
 ---
 apiVersion: v1
@@ -160,7 +160,7 @@ spec:
       serviceAccountName: ssu
       containers:
         - name: interface
-          image: ghcr.io/hpcclab/live_service_migration/ssu-interface:main
+          image: ghcr.io/hpcclab/nims/ssu-interface:main
           imagePullPolicy: Always
           volumeMounts:
             - mountPath: /var/lib/kubelet/migration
