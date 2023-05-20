@@ -37,3 +37,4 @@ sudo systemctl daemon-reload
 sudo systemctl restart kubelet
 
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+#sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=0.0.0.0 --apiserver-cert-extra-sans=0.0.0.0

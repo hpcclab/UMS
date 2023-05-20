@@ -5,10 +5,10 @@ metadata:
   name: migration-env
 data:
   ORCHESTRATOR_TYPE: kubernetes
-  DIND_IMAGE: ghcr.io/hpcclab/live_service_migration/migration-dind:main
-  PIND_IMAGE: ghcr.io/hpcclab/live_service_migration/migration-pind:main
-  AMBASSADOR_IMAGE: ghcr.io/hpcclab/live_service_migration/migration-ambassador:main
-  FRONTMAN_IMAGE: ghcr.io/hpcclab/live_service_migration/frontman:main
+  DIND_IMAGE: ghcr.io/hpcclab/nims/migration-dind:main
+  PIND_IMAGE: ghcr.io/hpcclab/nims/migration-pind:main
+  AMBASSADOR_IMAGE: ghcr.io/hpcclab/nims/migration-ambassador:main
+  FRONTMAN_IMAGE: ghcr.io/hpcclab/nims/frontman:main
   IMAGE_PULL_POLICY: Always
 ---
 apiVersion: apps/v1
@@ -36,7 +36,7 @@ spec:
       serviceAccountName: migration-coordinator
       containers:
         - name: operator
-          image: ghcr.io/hpcclab/live_service_migration/migration-operator:main
+          image: ghcr.io/hpcclab/nims/migration-operator:main
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
@@ -75,7 +75,7 @@ spec:
       serviceAccountName: migration-coordinator
       containers:
         - name: coordinator
-          image: ghcr.io/hpcclab/live_service_migration/migration-coordinator:main
+          image: ghcr.io/hpcclab/nims/migration-coordinator:main
           ports:
             - containerPort: 5000
           imagePullPolicy: Always
@@ -132,7 +132,7 @@ spec:
       serviceAccountName: migration-coordinator
       containers:
         - name: interceptor
-          image: ghcr.io/hpcclab/live_service_migration/migration-interceptor:main
+          image: ghcr.io/hpcclab/nims/migration-interceptor:main
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
