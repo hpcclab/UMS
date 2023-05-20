@@ -14,10 +14,6 @@ client = select_orchestrator()
 demo_api_blueprint = Blueprint('demo_api', __name__)
 
 
-async def gather(fn_list):
-    return await asyncio.gather(*fn_list)
-
-
 @demo_api_blueprint.route("/demo", methods=['GET'])
 def demo_api():
     body = request.args.to_dict()

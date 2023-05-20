@@ -76,7 +76,8 @@ def update_pod_redirect(name, namespace, redirect_uri):
         'redirect': redirect_uri}}}))
 
 
-async def exec_pod(pod_name, namespace, command, container_name):
+# async def exec_pod(pod_name, namespace, command, container_name):
+def exec_pod(pod_name, namespace, command, container_name):
     return stream(client.CoreV1Api().connect_get_namespaced_pod_exec, pod_name, namespace,
                   command=['/bin/sh', '-c', command], container=container_name,
                   stderr=True, stdin=True, stdout=True, tty=False, )
