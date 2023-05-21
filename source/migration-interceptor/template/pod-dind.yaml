@@ -39,6 +39,6 @@ spec:
             fieldRef:
               fieldPath: metadata.annotations
     - name: kernel
-      hostPah:
+      hostPath:
         path: /lib/modules
         type: Directory

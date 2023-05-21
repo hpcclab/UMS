@@ -1,4 +1,4 @@
-FROM ghcr.io/hpcclab/live_service_migration/migration-interface:development as interface
+FROM ghcr.io/hpcclab/nims/migration-interface:main as interface
 
 FROM node:18-alpine
 ARG S6_OVERLAY_VERSION=3.1.0.1

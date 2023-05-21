@@ -1,5 +1,5 @@
 # run coordinator
-docker run -d --name=coordinator -p 30001:5000 -e ORCHESTRATOR_TYPE=mesos -e MARATHON_URL=http://172.17.0.1:8088 -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/hpcclab/live_service_migration/migration-coordinator:main
+docker run -d --name=coordinator -p 30001:5000 -e ORCHESTRATOR_TYPE=mesos -e MARATHON_URL=http://172.17.0.1:8088 -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/hpcclab/nims/migration-coordinator:main
 
 # run memhog dind
 {
@@ -9,13 +9,13 @@ docker run -d --name=coordinator -p 30001:5000 -e ORCHESTRATOR_TYPE=mesos -e MAR
   "container": {
     "type": "DOCKER",
     "docker": {
-      "image": "ghcr.io/hpcclab/live_service_migration/migration-dind:main",
+      "image": "ghcr.io/hpcclab/nims/migration-dind:main",
       "privileged": true,
       "parameters": [
                 { "key": "env", "value": "DOCKER_HOST=127.0.0.1:2375" },
                 { "key": "env", "value": "LOG_LEVEL=debug" },
-                { "key": "label", "value": "kubectl.kubernetes.io/last-applied-configuration={\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{\"migration-interface\":\"dind\",\"migration-migratable\":\"true\"},\"labels\":{\"app\":\"memhog\"},\"name\":\"memhog\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"MEMORY_LIMIT\",\"value\":\"128\"},{\"name\":\"MEMORY_INCREMENT\",\"value\":\"128\"}],\"image\":\"ghcr.io/hpcclab/live_service_migration/memhog:main\",\"name\":\"memhog\"}],\"serviceAccountName\":\"migration-coordinator\"}}\n" },
-                { "key": "label", "value": "migration-containers=[{\"env\": [{\"name\": \"MEMORY_LIMIT\", \"value\": \"128\"}, {\"name\": \"MEMORY_INCREMENT\", \"value\": \"128\"}], \"image\": \"ghcr.io/hpcclab/live_service_migration/memhog:main\", \"name\": \"memhog\"}]"},
+                { "key": "label", "value": "kubectl.kubernetes.io/last-applied-configuration={\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{\"migration-interface\":\"dind\",\"migration-migratable\":\"true\"},\"labels\":{\"app\":\"memhog\"},\"name\":\"memhog\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"MEMORY_LIMIT\",\"value\":\"128\"},{\"name\":\"MEMORY_INCREMENT\",\"value\":\"128\"}],\"image\":\"ghcr.io/hpcclab/nims/memhog:main\",\"name\":\"memhog\"}],\"serviceAccountName\":\"migration-coordinator\"}}\n" },
+                { "key": "label", "value": "migration-containers=[{\"env\": [{\"name\": \"MEMORY_LIMIT\", \"value\": \"128\"}, {\"name\": \"MEMORY_INCREMENT\", \"value\": \"128\"}], \"image\": \"ghcr.io/hpcclab/nims/memhog:main\", \"name\": \"memhog\"}]"},
                 { "key": "label", "value": "migration-app=default-memhog"},
                 { "key": "label", "value": "migration-migratable=True"},
                 { "key": "label", "value": "migration-start-mode=active"},
@@ -44,7 +44,7 @@ docker run -d --name=coordinator -p 30001:5000 -e ORCHESTRATOR_TYPE=mesos -e MAR
   "container": {
     "type": "DOCKER",
     "docker": {
-      "image": "ghcr.io/hpcclab/live_service_migration/migration-ambassador:main",
+      "image": "ghcr.io/hpcclab/nims/migration-ambassador:main",
       "parameters": [
                 { "key": "env", "value": "DOCKER_HOST=172.17.0.3:2375" },
                 { "key": "env", "value": "CONTAINER_NAME=memhog" },
@@ -62,11 +62,11 @@ docker run -d --name=coordinator -p 30001:5000 -e ORCHESTRATOR_TYPE=mesos -e MAR
   "container": {
     "type": "DOCKER",
     "docker": {
-      "image": "ghcr.io/hpcclab/live_service_migration/memhogff:main",
+      "image": "ghcr.io/hpcclab/nims/memhogff:main",
       "parameters": [
                 { "key": "env", "value": "MEMORY_LIMIT=128" },
                 { "key": "env", "value": "MEMORY_INCREMENT=128" },
-                { "key": "label", "value": "kubectl.kubernetes.io/last-applied-configuration={\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{\"migration-migratable\":\"true\"},\"labels\":{\"app\":\"memhog\"},\"name\":\"memhog\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"MEMORY_LIMIT\",\"value\":\"128\"},{\"name\":\"MEMORY_INCREMENT\",\"value\":\"128\"}],\"image\":\"ghcr.io/hpcclab/live_service_migration/memhogff:main\",\"name\":\"memhog\"}],\"serviceAccountName\":\"migration-coordinator\"}}\n"},
+                { "key": "label", "value": "kubectl.kubernetes.io/last-applied-configuration={\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{\"migration-migratable\":\"true\"},\"labels\":{\"app\":\"memhog\"},\"name\":\"memhog\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"MEMORY_LIMIT\",\"value\":\"128\"},{\"name\":\"MEMORY_INCREMENT\",\"value\":\"128\"}],\"image\":\"ghcr.io/hpcclab/nims/memhogff:main\",\"name\":\"memhog\"}],\"serviceAccountName\":\"migration-coordinator\"}}\n"},
                 { "key": "label", "value": "migration-app=default-memhog"},
                 { "key": "label", "value": "migration-migratable=True"},
                 { "key": "label", "value": "migration-start-mode=active"},
