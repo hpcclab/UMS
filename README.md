@@ -64,7 +64,7 @@ In this approach, the service can be deployed without any further changes in the
 
 #### Service-level migration approach
 
-In this approach, the service needs to be built from provided `fastfreeze-base` image (available [here](https://github.com/users/hpcclab/packages/container/package/live_service_migration%2Ffastfreeze-base)). Then, the `migration-interface: 'ff'` needs to be set in the annotations of the pod. Below is an example of deploying example service `memhogff` for using service-level migration approach.
+In this approach, the service needs to be built from provided `fastfreeze-base` image (available [here](https://github.com/users/hpcclab/packages/container/package/nims%2Ffastfreeze-base)). Then, the `migration-interface: 'ff'` needs to be set in the annotations of the pod. Below is an example of deploying example service `memhogff` for using service-level migration approach.
 
 ```
 apiVersion: v1
@@ -77,7 +77,7 @@ spec:
   serviceAccountName: migration-coordinator
   containers:
     - name: memhog
-      image: ghcr.io/hpcclab/live_service_migration/memhogff:main
+      image: ghcr.io/hpcclab/nims/memhogff:main
 ```
 
 The following environment variables can be configured in `fastfreeze-base` image:
@@ -99,7 +99,7 @@ spec:
   serviceAccountName: migration-coordinator
   containers:
     - name: memhog
-      image: ghcr.io/hpcclab/live_service_migration/memhog:main
+      image: ghcr.io/hpcclab/nims/memhog:main
 ```
 
 ### Migration

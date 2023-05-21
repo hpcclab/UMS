@@ -1,4 +1,4 @@
-FROM ghcr.io/hpcclab/live_service_migration/fastfreeze-base:development
+FROM ghcr.io/hpcclab/nims/fastfreeze-base:main
 
 RUN echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list \
     && apt-get update \

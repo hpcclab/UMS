@@ -1,5 +1,4 @@
-#FROM ghcr.io/hpcclab/live_service_migration/fastfreeze-base:development
-FROM core.harbor.10.131.36.2.nip.io/migration/fastfreeze-base
+FROM ghcr.io/hpcclab/nims/fastfreeze-base:main
 WORKDIR /root
 COPY example.mp4 .
 CMD ffmpeg -re -stream_loop -1 -i /root/example.mp4 -map 0:v:0 -c:v libx264 -f null -

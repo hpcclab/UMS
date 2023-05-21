@@ -32,7 +32,7 @@ RUN apk update && apk add \
   && make -j4 \
   && make install
 
-FROM ghcr.io/hpcclab/live_service_migration/migration-interface:development as interface
+FROM ghcr.io/hpcclab/nims/migration-interface:main as interface
 
 FROM docker:20.10.21-dind-alpine3.16
 ARG S6_OVERLAY_VERSION=3.1.0.1

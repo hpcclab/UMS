@@ -1,4 +1,4 @@
-FROM ghcr.io/hpcclab/live_service_migration/fastfreeze-base:development
+FROM ghcr.io/hpcclab/nims/fastfreeze-base:main
 WORKDIR /root
 RUN apt update \
     && apt install -y git wget make gcc g++ \
