@@ -13,10 +13,12 @@ spec:
   serviceAccountName: migration-coordinator
   containers:
     - name: memhog
-      image: ghcr.io/hpcclab/live_service_migration/memhog:main
-#      image: ghcr.io/hpcclab/live_service_migration/memhogff:main
+      image: ghcr.io/hpcclab/nims/memhog:main
+#      image: ghcr.io/hpcclab/nims/memhogff:main
       env:
         - name: MEMORY_LIMIT
           value: '128'
-        # - name: MEMORY_INCREMENT
-        #   value: '0'
+#        - name: MEMORY_INCREMENT
+#          value: '0'
+#        - name: PROCESS
+#          value: '8'

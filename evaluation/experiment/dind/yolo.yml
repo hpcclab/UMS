@@ -10,4 +10,4 @@ spec:
   serviceAccountName: migration-coordinator
   containers:
     - name: yolo
-      image: ghcr.io/hpcclab/live_service_migration/yolo:main
+      image: ghcr.io/hpcclab/nims/yolo:main
