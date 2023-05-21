@@ -13,6 +13,6 @@ spec:
       value: '64'
     - name: PROCESS
       value: '1'
-    image: ghcr.io/hpcclab/live_service_migration/memhog:main
+    image: ghcr.io/hpcclab/nims/memhog:main
     name: memhog
   serviceAccountName: migration-coordinator
