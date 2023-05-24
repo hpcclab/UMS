@@ -57,15 +57,15 @@ br3 = [x + barWidth for x in br2]
 
 
 # Make the plot
-plt.bar(br1, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ff], color='none', width=barWidth, edgecolor='darkgreen')
-plt.bar(br2, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ssu], color='none', width=barWidth, edgecolor='red')
-plt.bar(br3, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in dind], color='none', width=barWidth, edgecolor='darkblue')
+plt.bar(br1, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ff], color='none', width=barWidth, edgecolor='darkgreen', hatch='--')
+plt.bar(br2, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in ssu], color='none', width=barWidth, edgecolor='red', hatch='\\\\')
+plt.bar(br3, [element['creation'] + element['checkpoint_and_transfer_total'] + element['restoration'] for element in dind], color='none', width=barWidth, edgecolor='darkblue', hatch='//')
 
 plt.yscale('log')
 plt.ylim(bottom=1)
 # plt.xlabel('Container memory footprint (MiB)', fontsize=24)
 plt.xlabel('Number of processes', fontsize=24)
-plt.ylabel('Time (seconds)', fontsize=24, labelpad=0)
+plt.ylabel('Migration time (seconds)', fontsize=24, labelpad=0)
 plt.yticks(fontsize=18)
 # plt.xticks([r + 3*barWidth for r in range(len(x))],
 #            x, fontsize=18)
@@ -74,9 +74,9 @@ plt.xticks([r + barWidth for r in range(len(x))],
 
 a_val = 0.6
 
-circ1 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='red', label='Orchestrator-level approach')
-circ2 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkblue', label='Container-level approach')
-circ3 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkgreen', label='Service-level approach')
+circ1 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='red', hatch='\\\\', label='Orchestrator-level approach')
+circ2 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkblue', hatch='//', label='Container-level approach')
+circ3 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkgreen', hatch='--', label='Service-level approach')
 # circ4 = mp.Patch(facecolor='white', alpha=a_val, hatch='||', label='Creating dest. container')
 # circ5 = mp.Patch(facecolor='white', alpha=a_val, hatch=r'\\\\', label='Checkpointing')
 # circ6 = mp.Patch(facecolor='white', alpha=a_val, hatch='//', label='Ckpt. files transfer')
@@ -89,7 +89,7 @@ plt.legend(handles=[circ3, circ1, circ2], loc=2, prop={'size': 20})
 
 
 plt.tight_layout()
-# plt.savefig('./migration_time.pdf')
-plt.savefig('./migration_time_2.pdf')
-# plt.savefig('./migration_time_3.pdf')
+# plt.savefig('./migration_time.pdf', bbox_inches='tight')
+plt.savefig('./migration_time_2.pdf', bbox_inches='tight')
+# plt.savefig('./migration_time_3.pdf', bbox_inches='tight')
 plt.show()

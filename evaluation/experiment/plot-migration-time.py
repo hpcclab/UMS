@@ -91,7 +91,7 @@ plt.bar(br6, [element['restoration'] for element in dind], color='white', width=
 
 plt.xlabel('Container memory footprint (MiB)', fontsize=24)
 # plt.xlabel('Number of processes', fontsize=24)
-plt.ylabel('Time (seconds)', fontsize=24, labelpad=0)
+plt.ylabel('Migration time (seconds)', fontsize=24, labelpad=0)
 plt.yticks(fontsize=18)
 plt.xticks([r + 3*barWidth for r in range(len(x))],
            x, fontsize=18)
@@ -102,7 +102,7 @@ circ1 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='red', label='Orchest
 circ2 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkblue', label='Container-level approach')
 circ3 = mp.Patch(facecolor='white', alpha=a_val, edgecolor='darkgreen', label='Service-level approach')
 circ4 = mp.Patch(facecolor='white', alpha=a_val, hatch='||', label='Creating dest. container')
-circ5 = mp.Patch(facecolor='white', alpha=a_val, hatch=r'\\\\', label='Checkpointing')
+circ5 = mp.Patch(facecolor='white', alpha=a_val, hatch='\\\\', label='Checkpointing')
 circ6 = mp.Patch(facecolor='white', alpha=a_val, hatch='//', label='Ckpt. files transfer')
 circ8 = mp.Patch(facecolor='white', alpha=a_val, hatch='+', label='RW layers transfer')
 circ7 = mp.Patch(facecolor='white', alpha=a_val, hatch='--', label='Restoration')
@@ -112,7 +112,7 @@ plt.legend(handles=[circ3, circ1, circ2, circ4, circ5, circ6, circ8, circ7], loc
 
 
 plt.tight_layout()
-plt.savefig('./migration_time.pdf')
-# plt.savefig('./migration_time_2.pdf')
-# plt.savefig('./migration_time_3.pdf')
+plt.savefig('./migration_time.pdf', bbox_inches='tight')
+# plt.savefig('./migration_time_2.pdf', bbox_inches='tight')
+# plt.savefig('./migration_time_3.pdf', bbox_inches='tight')
 plt.show()
