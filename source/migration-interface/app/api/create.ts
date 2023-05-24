@@ -14,6 +14,13 @@ import {
 async function create(request: FastifyRequest<{ Params: CreateRequestType }>, reply: FastifyReply) {
     const {containerName} = request.params
 
+    if (migrationInterface.creatingContainers.includes(containerName)) {
+        reply.code(204)
+        return
+    } else {
+        migrationInterface.creatingContainers.push(containerName)
+    }
+
     try {
         await migrationInterface.stopContainer(containerName)
         await migrationInterface.removeContainer(containerName)
@@ -32,13 +39,6 @@ async function create(request: FastifyRequest<{ Params: CreateRequestType }>, re
     } else if (startMode === START_MODE_NULL) {
         reply.code(204)
         return
-    }
-
-    if (migrationInterface.creatingContainers.includes(containerName)) {
-        reply.code(204)
-        return
-    } else {
-        migrationInterface.creatingContainers.push(containerName)
     }
 
     try {
