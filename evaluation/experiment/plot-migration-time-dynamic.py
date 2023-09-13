@@ -21,9 +21,9 @@ def preprocess(path, d=0):
 
 fig = plt.subplots(figsize=(12, 6))
 
-dind_memory, dind_downtime, dind_migration_time = preprocess('./dind/experiment3a.json')
-ff_memory, ff_downtime, ff_migration_time = preprocess('./fastfreeze/experiment3a.json', 200)  # container memory - other processes memory
-ssu_memory, ssu_downtime, ssu_migration_time = preprocess('./ssu-podmigration-operator/experiment3a.json')
+dind_memory, dind_downtime, dind_migration_time = preprocess('./dind/experiment3.json')
+ff_memory, ff_downtime, ff_migration_time = preprocess('./fastfreeze/experiment3.json', 200)  # container memory - other processes memory
+ssu_memory, ssu_downtime, ssu_migration_time = preprocess('./ssu-podmigration-operator/experiment3.json')
 
 plt.scatter(ff_memory, ff_migration_time, s=200, marker='^', c='white', edgecolors='darkgreen', label='Service-level')
 plt.scatter(dind_memory, dind_migration_time, s=200, marker='o', c='white', edgecolors='darkblue', label='Container-level')

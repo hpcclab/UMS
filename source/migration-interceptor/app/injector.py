@@ -1,12 +1,13 @@
 import json
 import os
+from typing import Mapping, Any
 
 import kopf
 import yaml
 
 from share.const import MIGRATABLE_ANNOTATION, BYPASS_ANNOTATION, INTERFACE_ANNOTATION, INTERFACE_DIND, \
     START_MODE_ANNOTATION, START_MODE_ACTIVE, VOLUME_LIST_ANNOTATION, CONTAINER_SPEC_ANNOTATION, LAST_APPLIED_CONFIG, \
-    ORCHESTRATOR_TYPE_MINISHIFT, ORCHESTRATOR_TYPE_KUBERNETES, INTERFACE_PIND, INTERFACE_FF, MIGRATABLE_FALSE
+    ORCHESTRATOR_TYPE_MINISHIFT, ORCHESTRATOR_TYPE_KUBERNETES, INTERFACE_PIND, INTERFACE_FF, MIGRATABLE_FALSE, MIGRATION_ID_ANNOTATION
 from share.env import AMBASSADOR_IMAGE, IMAGE_PULL_POLICY, env, ORCHESTRATOR_TYPE
 
 
@@ -101,3 +102,11 @@ def replace_container(spec, env_docker_host):
              'imagePullPolicy': IMAGE_PULL_POLICY,
              'startupProbe': {'httpGet': {'port': 8888, 'path': f"/probe/{container['name']}"}, 'periodSeconds': 1}}
             for container in spec.get('containers', [])]
+
+
+@kopf.on.validate('v1', 'pods')
+def block(userinfo: Mapping[str, Any], old, **_):
+    if old and (old['metadata']['annotations'].get(MIGRATION_ID_ANNOTATION)
+                and not userinfo['username'] == 'system:serviceaccount:default:migration-coordinator') \
+            and not old['metadata'].get('deletionTimestamp'):
+        raise kopf.AdmissionError("Any control messages are blocked during migration", code=401)

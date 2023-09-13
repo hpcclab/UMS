@@ -1,3 +1,0 @@
-#!/command/with-contenv sh
-cd /app
-exec npm run start

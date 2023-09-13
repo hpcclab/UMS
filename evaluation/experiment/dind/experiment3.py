@@ -7,22 +7,19 @@ from time import sleep
 import requests as requests
 import yaml
 
-OUTPUT = './experiment3a.json'
+OUTPUT = './experiment3.json'
 YOLO_CONFIG = './yolo.dev.yml'
-SRC_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-3.yaml'
-DES_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-4.yaml'
-# SRC_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-1.yaml'
-# DES_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-2.yaml'
-SRC = '10.131.36.33.nip.io:30001'
-DES = '10.131.36.34.nip.io:30001'
-# SRC = '10.131.36.31.nip.io:30001'
-# DES = '10.131.36.32.nip.io:30001'
+SRC_CONFIG = '/example/path'
+DES_CONFIG = '/example/path'
+SRC = 'example.url'
+DES = 'example.url'
+NAME = 'memhog'
 NAME = 'yolo'
 NAMESPACE = 'default'
 
 
 def get_log(config_file, name=NAME):
-    return subprocess.run(f'kubectl --kubeconfig="{config_file}" -n {NAMESPACE} logs {name}',
+    return subprocess.run(f'kubectl --kubeconfig="{config_file}" -n {NAMESPACE} logs {name} -c {name}',
                           capture_output=True, shell=True).stdout.decode("utf-8")
 
 
@@ -101,8 +98,21 @@ def test(n, index):
                 del result['des_pod']
                 results[str(index)].append(result)
             else:
-                print(f'error: [{response.status_code}] {response.text}')
-                break
+                subprocess.run(f'kubectl --kubeconfig="{SRC_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
+                               capture_output=True, shell=True)
+                subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" apply -f {YOLO_CONFIG}',
+                               capture_output=True, shell=True)
+                sleep(3)
+                subprocess.run(f'kubectl --kubeconfig="{DES_CONFIG}" -n {NAMESPACE} delete pod {NAME}',
+                               capture_output=True, shell=True)
+                while True:
+                    if get_pod(SRC_CONFIG, NAME, NAMESPACE) != b'':
+                        break
+                    sleep(1)
+                while True:
+                    if get_pod(DES_CONFIG, NAME, NAMESPACE) != b'':
+                        break
+                    sleep(1)
     finally:
         with open(OUTPUT, 'w') as f:
             json.dump(results, f)

@@ -7,7 +7,7 @@ from time import sleep
 import requests as requests
 import yaml
 
-OUTPUT = './experiment3a.json'
+OUTPUT = './experiment3.json'
 YOLO_CONFIG = './yolo.dev.yml'
 # SRC_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-3.yaml'
 # DES_CONFIG = r'C:\Users\User\Projects\tmp\test\service-migration-4.yaml'

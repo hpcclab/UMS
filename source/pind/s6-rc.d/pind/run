@@ -1,2 +1,0 @@
-#!/command/with-contenv sh
-exec podman system service -t 0 tcp://0.0.0.0:2375

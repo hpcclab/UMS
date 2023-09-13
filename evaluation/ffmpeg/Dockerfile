@@ -1,6 +1,0 @@
-FROM debian:10
-WORKDIR /root
-COPY example.mp4 .
-CMD ffmpeg -re -stream_loop -1 -i /root/example.mp4 -map 0:v:0 -c:v libx264 -f null -
-RUN apt update \
-    && apt install -y ffmpeg
