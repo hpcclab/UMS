@@ -1,0 +1,5 @@
+/.dockerignore
+/.editorconfig
+/.gitignore
+/Dockerfile
+/Dockerfile.dev
