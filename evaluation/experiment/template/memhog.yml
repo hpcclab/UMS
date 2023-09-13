@@ -6,9 +6,9 @@ metadata:
     app: memhog
     # namespace: myproject
   annotations:
-    # migration-interface: 'dind'
+     migration-interface: 'dind'
     # migration-interface: 'pind'
-    migration-interface: 'ff'
+#    migration-interface: 'ff'
 spec:
   serviceAccountName: migration-coordinator
   containers:
